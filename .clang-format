@@ -1,0 +1,9 @@
+﻿---
+BasedOnStyle: WebKit
+BreakBeforeBraces: Allman
+SortIncludes: 'false'
+SpaceBeforeParens: ControlStatements
+TabWidth: '4'
+UseTab: Never
+
+...
