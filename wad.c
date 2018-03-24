@@ -22,11 +22,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-int				wad_numlumps;
-lumpinfo_t		*wad_lumps;
-byte			*wad_base = NULL; //johnfitz -- set to null
+int wad_numlumps;
+lumpinfo_t* wad_lumps;
+byte* wad_base = NULL; //johnfitz -- set to null
 
-void SwapPic (qpic_t *pic);
+void SwapPic(qpic_t* pic);
 
 /*
 ==================
@@ -39,24 +39,24 @@ Space padding is so names can be printed nicely in tables.
 Can safely be performed in place.
 ==================
 */
-void W_CleanupName (char *in, char *out)
+void W_CleanupName(char* in, char* out)
 {
-	int		i;
-	int		c;
+    int i;
+    int c;
 
-	for (i=0 ; i<16 ; i++ )
-	{
-		c = in[i];
-		if (!c)
-			break;
+    for (i = 0; i < 16; i++)
+    {
+        c = in[i];
+        if (!c)
+            break;
 
-		if (c >= 'A' && c <= 'Z')
-			c += ('a' - 'A');
-		out[i] = c;
-	}
+        if (c >= 'A' && c <= 'Z')
+            c += ('a' - 'A');
+        out[i] = c;
+    }
 
-	for ( ; i< 16 ; i++ )
-		out[i] = 0;
+    for (; i < 16; i++)
+        out[i] = 0;
 }
 
 /*
@@ -64,93 +64,93 @@ void W_CleanupName (char *in, char *out)
 W_LoadWadFile
 ====================
 */
-void W_LoadWadFile (void) //johnfitz -- filename is now hard-coded for honesty
+void W_LoadWadFile(void) //johnfitz -- filename is now hard-coded for honesty
 {
-	lumpinfo_t		*lump_p;
-	wadinfo_t		*header;
-	unsigned		i;
-	int				infotableofs;
-	char			*filename = WADFILENAME;
+    lumpinfo_t* lump_p;
+    wadinfo_t* header;
+    unsigned i;
+    int infotableofs;
+    char* filename = WADFILENAME;
 
-	//johnfitz -- modified to use malloc
-	//TODO: use cache_alloc
-	int		h, len;
+    //johnfitz -- modified to use malloc
+    //TODO: use cache_alloc
+    int h, len;
 
-	Draw_BeginDisc ();
-	free (wad_base);
-	len = COM_OpenFile (filename, &h);
-	if (h == -1)
-		Sys_Error ("W_LoadWadFile: couldn't load %s", filename);
-	wad_base = (unsigned char *)malloc (len);
-	Sys_FileRead (h, wad_base, len);
-	COM_CloseFile (h);
-	//johnfitz
+    Draw_BeginDisc();
+    free(wad_base);
+    len = COM_OpenFile(filename, &h);
+    if (h == -1)
+        Sys_Error("W_LoadWadFile: couldn't load %s", filename);
+    wad_base = (unsigned char*)malloc(len);
+    Sys_FileRead(h, wad_base, len);
+    COM_CloseFile(h);
+    //johnfitz
 
-	header = (wadinfo_t *)wad_base;
+    header = (wadinfo_t*)wad_base;
 
-	if (header->identification[0] != 'W' || header->identification[1] != 'A'
-	|| header->identification[2] != 'D' || header->identification[3] != '2')
-		Sys_Error ("Wad file %s doesn't have WAD2 id\n",filename);
+    if (header->identification[0] != 'W' || header->identification[1] != 'A'
+        || header->identification[2] != 'D' || header->identification[3] != '2')
+        Sys_Error("Wad file %s doesn't have WAD2 id\n", filename);
 
-	wad_numlumps = LittleLong(header->numlumps);
-	infotableofs = LittleLong(header->infotableofs);
-	wad_lumps = (lumpinfo_t *)(wad_base + infotableofs);
+    wad_numlumps = LittleLong(header->numlumps);
+    infotableofs = LittleLong(header->infotableofs);
+    wad_lumps = (lumpinfo_t*)(wad_base + infotableofs);
 
-	for (i=0, lump_p = wad_lumps ; i<wad_numlumps ; i++,lump_p++)
-	{
-		lump_p->filepos = LittleLong(lump_p->filepos);
-		lump_p->size = LittleLong(lump_p->size);
-		W_CleanupName (lump_p->name, lump_p->name);
-		if (lump_p->type == TYP_QPIC)
-			SwapPic ( (qpic_t *)(wad_base + lump_p->filepos));
-	}
+    for (i = 0, lump_p = wad_lumps; i < wad_numlumps; i++, lump_p++)
+    {
+        lump_p->filepos = LittleLong(lump_p->filepos);
+        lump_p->size = LittleLong(lump_p->size);
+        W_CleanupName(lump_p->name, lump_p->name);
+        if (lump_p->type == TYP_QPIC)
+            SwapPic((qpic_t*)(wad_base + lump_p->filepos));
+    }
 }
-
 
 /*
 =============
 W_GetLumpinfo
 =============
 */
-lumpinfo_t	*W_GetLumpinfo (char *name)
+lumpinfo_t* W_GetLumpinfo(char* name)
 {
-	int		i;
-	lumpinfo_t	*lump_p;
-	char	clean[16];
+    int i;
+    lumpinfo_t* lump_p;
+    char clean[16];
 
-	W_CleanupName (name, clean);
+    W_CleanupName(name, clean);
 
-	for (lump_p=wad_lumps, i=0 ; i<wad_numlumps ; i++,lump_p++)
-	{
-		if (!strcmp(clean, lump_p->name))
-			return lump_p;
-	}
+    for (lump_p = wad_lumps, i = 0; i < wad_numlumps; i++, lump_p++)
+    {
+        if (!strcmp(clean, lump_p->name))
+            return lump_p;
+    }
 
-	Con_SafePrintf ("W_GetLumpinfo: %s not found\n", name); //johnfitz -- was Sys_Error
-	return NULL;
+    Con_SafePrintf("W_GetLumpinfo: %s not found\n", name); //johnfitz -- was Sys_Error
+    return NULL;
 }
 
-void *W_GetLumpName (char *name)
+void* W_GetLumpName(char* name)
 {
-	lumpinfo_t	*lump;
+    lumpinfo_t* lump;
 
-	lump = W_GetLumpinfo (name);
+    lump = W_GetLumpinfo(name);
 
-	if (!lump) return NULL; //johnfitz
+    if (!lump)
+        return NULL; //johnfitz
 
-	return (void *)(wad_base + lump->filepos);
+    return (void*)(wad_base + lump->filepos);
 }
 
-void *W_GetLumpNum (int num)
+void* W_GetLumpNum(int num)
 {
-	lumpinfo_t	*lump;
+    lumpinfo_t* lump;
 
-	if (num < 0 || num > wad_numlumps)
-		Sys_Error ("W_GetLumpNum: bad number: %i", num);
+    if (num < 0 || num > wad_numlumps)
+        Sys_Error("W_GetLumpNum: bad number: %i", num);
 
-	lump = wad_lumps + num;
+    lump = wad_lumps + num;
 
-	return (void *)(wad_base + lump->filepos);
+    return (void*)(wad_base + lump->filepos);
 }
 
 /*
@@ -161,8 +161,8 @@ automatic byte swapping
 =============================================================================
 */
 
-void SwapPic (qpic_t *pic)
+void SwapPic(qpic_t* pic)
 {
-	pic->width = LittleLong(pic->width);
-	pic->height = LittleLong(pic->height);
+    pic->width = LittleLong(pic->width);
+    pic->height = LittleLong(pic->height);
 }
