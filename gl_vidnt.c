@@ -1124,12 +1124,15 @@ GetWGLExtensions -- johnfitz
 */
 void GetWGLExtensions(void)
 {
-    const char* (*wglGetExtensionsStringARB)(HDC hdc);
-    const char* (*wglGetExtensionsStringEXT)();
-
-    if (wglGetExtensionsStringARB = (void*)wglGetProcAddress("wglGetExtensionsStringARB"))
+    typedef const char*(__stdcall * wglGetExtensionsStringARB_t)(HDC hdc);
+    typedef const char*(__stdcall * wglGetExtensionsStringEXT_t)();
+    wglGetExtensionsStringARB_t wglGetExtensionsStringARB =
+      (wglGetExtensionsStringARB_t)wglGetProcAddress("wglGetExtensionsStringARB");
+    wglGetExtensionsStringEXT_t wglGetExtensionsStringEXT =
+      (wglGetExtensionsStringEXT_t)wglGetProcAddress("wglGetExtensionsStringEXT");
+    if (wglGetExtensionsStringARB)
         wgl_extensions = wglGetExtensionsStringARB(maindc);
-    else if (wglGetExtensionsStringEXT = (void*)wglGetProcAddress("wglGetExtensionsStringEXT"))
+    else if (wglGetExtensionsStringEXT)
         wgl_extensions = wglGetExtensionsStringEXT();
     else
         wgl_extensions = "";
