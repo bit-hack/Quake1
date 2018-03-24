@@ -21,16 +21,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // in_win.c -- windows 95 mouse and joystick code
 // 02/21/97 JCB Added extended DirectInput code to support external controllers.
 
+#if 0
 #include <dinput.h>
+#endif
+
 #include "quakedef.h"
 #include "winquake.h"
 
 #define DINPUT_BUFFERSIZE 16
 #define iDirectInputCreate(a, b, c, d) pDirectInputCreate(a, b, c, d)
 
+#if 0
 HRESULT(WINAPI* pDirectInputCreate)
 (HINSTANCE hinst, DWORD dwVersion,
     LPDIRECTINPUT* lplpDirectInput, LPUNKNOWN punkOuter);
+#endif
 
 // mouse variables
 cvar_t m_filter = { "m_filter", "0" };
@@ -116,14 +121,18 @@ int joy_id;
 DWORD joy_flags;
 DWORD joy_numbuttons;
 
+#if 0
 static LPDIRECTINPUT g_pdi;
 static LPDIRECTINPUTDEVICE g_pMouse;
+#endif
 
 static JOYINFOEX ji;
 
 static HINSTANCE hInstDI;
 
+#if 0
 static qboolean dinput;
+#endif
 
 typedef struct MYDATA
 {
@@ -136,7 +145,8 @@ typedef struct MYDATA
     BYTE bButtonD; // Another button goes here
 } MYDATA;
 
-static DIOBJECTDATAFORMAT rgodf[] = {
+#if 0
+static DIOBJECTDATAFORMAT rgodf[7] = {
     {
         &GUID_XAxis, FIELD_OFFSET(MYDATA, lX), DIDFT_AXIS | DIDFT_ANYINSTANCE, 0,
     },
@@ -159,7 +169,9 @@ static DIOBJECTDATAFORMAT rgodf[] = {
         0, FIELD_OFFSET(MYDATA, bButtonD), 0x80000000 | DIDFT_BUTTON | DIDFT_ANYINSTANCE, 0,
     },
 };
+#endif
 
+#if 0
 #define NUM_OBJECTS (sizeof(rgodf) / sizeof(rgodf[0]))
 
 static DIDATAFORMAT df = {
@@ -170,6 +182,7 @@ static DIDATAFORMAT df = {
     NUM_OBJECTS, // number of objects
     rgodf, // and here they are
 };
+#endif
 
 // forward-referenced functions
 void IN_StartupJoystick(void);
@@ -194,7 +207,11 @@ IN_UpdateClipCursor
 void IN_UpdateClipCursor(void)
 {
 
+#if 0
     if (mouseinitialized && mouseactive && !dinput)
+#else
+    if (mouseinitialized && mouseactive)
+#endif
     {
         ClipCursor(&window_rect);
     }
@@ -242,6 +259,7 @@ void IN_ActivateMouse(void)
 
     if (mouseinitialized)
     {
+#if 0
         if (dinput)
         {
             if (g_pMouse)
@@ -258,6 +276,7 @@ void IN_ActivateMouse(void)
             }
         }
         else
+#endif
         {
             if (mouseparmsvalid)
                 restore_spi = SystemParametersInfo(SPI_SETMOUSE, 0, newmouseparms, 0);
@@ -294,6 +313,7 @@ void IN_DeactivateMouse(void)
 
     if (mouseinitialized)
     {
+#if 0
         if (dinput)
         {
             if (g_pMouse)
@@ -306,6 +326,7 @@ void IN_DeactivateMouse(void)
             }
         }
         else
+#endif
         {
             if (restore_spi)
                 SystemParametersInfo(SPI_SETMOUSE, 0, originalmouseparms, 0);
@@ -344,6 +365,7 @@ IN_InitDInput
 */
 qboolean IN_InitDInput(void)
 {
+#if 0
     HRESULT hr;
     DIPROPDWORD dipdw = {
         {
@@ -422,8 +444,9 @@ qboolean IN_InitDInput(void)
         Con_SafePrintf("Couldn't set DI buffersize\n");
         return false;
     }
-
     return true;
+#endif
+    return false;
 }
 
 /*
@@ -440,6 +463,7 @@ void IN_StartupMouse(void)
 
     mouseinitialized = true;
 
+#if 0
     if (COM_CheckParm("-dinput"))
     {
         dinput = IN_InitDInput();
@@ -453,9 +477,11 @@ void IN_StartupMouse(void)
             Con_SafePrintf("DirectInput not initialized\n");
         }
     }
-
+#endif
+#if 0
     if (!dinput)
     {
+#endif
         mouseparmsvalid = SystemParametersInfo(SPI_GETMOUSE, 0, originalmouseparms, 0);
 
         if (mouseparmsvalid)
@@ -476,7 +502,9 @@ void IN_StartupMouse(void)
                 newmouseparms[2] = originalmouseparms[2];
             }
         }
+#if 0
     }
+#endif
 
     mouse_buttons = 3;
 
@@ -544,7 +572,7 @@ void IN_Shutdown(void)
 
     IN_DeactivateMouse();
     IN_ShowMouse();
-
+#if 0
     if (g_pMouse)
     {
         IDirectInputDevice_Release(g_pMouse);
@@ -556,6 +584,7 @@ void IN_Shutdown(void)
         IDirectInput_Release(g_pdi);
         g_pdi = NULL;
     }
+#endif
 }
 
 /*
@@ -567,7 +596,11 @@ void IN_MouseEvent(int mstate)
 {
     int i;
 
+#if 0
     if (mouseactive && !dinput)
+#else
+    if (mouseactive)
+#endif
     {
         // perform button actions
         for (i = 0; i < mouse_buttons; i++)
@@ -600,13 +633,16 @@ void IN_MouseMove(usercmd_t* cmd)
     int mx, my;
     HDC hdc;
     int i;
+#if 0
     DIDEVICEOBJECTDATA od;
+#endif
     DWORD dwElements;
     HRESULT hr;
 
     if (!mouseactive)
         return;
 
+#if 0
     if (dinput)
     {
         mx = 0;
@@ -684,6 +720,7 @@ void IN_MouseMove(usercmd_t* cmd)
         mouse_oldbuttonstate = mstate_di;
     }
     else
+#endif
     {
         GetCursorPos(&current_pos);
         mx = current_pos.x - window_center_x + mx_accum;
@@ -773,7 +810,9 @@ void IN_Accumulate(void)
 
     if (mouseactive)
     {
+#if 0
         if (!dinput)
+#endif
         {
             GetCursorPos(&current_pos);
 
