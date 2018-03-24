@@ -54,25 +54,24 @@ typedef struct
     //  NULL
 } viddef_t;
 
-extern viddef_t vid; // global video state
-//extern	unsigned short	d_8to16table[256]; //johnfitz -- never used
+// global video state
+extern viddef_t vid;
+
 extern void (*vid_menudrawfn)(void);
 extern void (*vid_menukeyfn)(int key);
 extern void (*vid_menucmdfn)(void); //johnfitz
 
-//johnfitz -- deleted VID_SetPalette and VID_ShiftPalette
+void VID_Init(void);
 
-void VID_Init(void); //johnfitz -- removed palette from argument list
-
-void VID_Shutdown(void);
 // Called at shutdown
+void VID_Shutdown(void);
 
-void VID_Update(vrect_t* rects);
 // flushes the given rectangles from the view buffer to the screen
+void VID_Update(vrect_t* rects);
 
-int VID_SetMode(int modenum); //johnfitz -- removed palette from argument list
 // sets the mode; only used by the Quake engine for resetting to mode 0 (the
 // base mode) on memory allocation failures
+int VID_SetMode(int modenum);
 
-void VID_HandlePause(qboolean pause);
 // called only on Win32, when pause happens, so the mouse can be released
+void VID_HandlePause(qboolean pause);

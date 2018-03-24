@@ -260,12 +260,6 @@ void S_Shutdown(void)
 // Load a sound
 // =======================================================================
 
-/*
-==================
-S_FindName
-
-==================
-*/
 sfx_t* S_FindName(char* name)
 {
     int i;
@@ -295,12 +289,6 @@ sfx_t* S_FindName(char* name)
     return sfx;
 }
 
-/*
-==================
-S_TouchSound
-
-==================
-*/
 void S_TouchSound(char* name)
 {
     sfx_t* sfx;
@@ -312,12 +300,6 @@ void S_TouchSound(char* name)
     Cache_Check(&sfx->cache);
 }
 
-/*
-==================
-S_PrecacheSound
-
-==================
-*/
 sfx_t* S_PrecacheSound(char* name)
 {
     sfx_t* sfx;
@@ -336,11 +318,6 @@ sfx_t* S_PrecacheSound(char* name)
 
 //=============================================================================
 
-/*
-=================
-SND_PickChannel
-=================
-*/
 channel_t* SND_PickChannel(int entnum, int entchannel)
 {
     int ch_idx;
@@ -380,11 +357,6 @@ channel_t* SND_PickChannel(int entnum, int entchannel)
     return &channels[first_to_die];
 }
 
-/*
-=================
-SND_Spatialize
-=================
-*/
 void SND_Spatialize(channel_t* ch)
 {
     vec_t dot;
@@ -598,11 +570,6 @@ void S_ClearBuffer(void)
     }
 }
 
-/*
-=================
-S_StaticSound
-=================
-*/
 void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 {
     channel_t* ss;
@@ -641,11 +608,6 @@ void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 
 //=============================================================================
 
-/*
-===================
-S_UpdateAmbientSounds
-===================
-*/
 void S_UpdateAmbientSounds(void)
 {
     mleaf_t* l;
@@ -700,13 +662,7 @@ void S_UpdateAmbientSounds(void)
     }
 }
 
-/*
-============
-S_Update
-
-Called once each time through the main loop
-============
-*/
+// Called once each time through the main loop
 void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
     int i, j;
@@ -889,9 +845,7 @@ void S_Update_(void)
 
 /*
 ===============================================================================
-
 console functions
-
 ===============================================================================
 */
 
