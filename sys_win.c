@@ -20,6 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sys_win.c -- Win32 system interface code
 
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <direct.h>
+
 #include "quakedef.h"
 #include "winquake.h"
 #include "errno.h"
@@ -36,7 +40,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 int starttime;
 qboolean ActiveApp, Minimized;
-qboolean WinNT;
 
 static double pfreq;
 static double curtime = 0.0;
@@ -57,6 +60,12 @@ void Sys_InitFloatTime(void);
 
 volatile int sys_checksum;
 
+HINSTANCE global_hInstance;
+int global_nCmdShow;
+char* argv[MAX_NUM_ARGVS];
+static char* empty_string = "";
+HWND hwnd_dialog;
+
 /*
 ================
 Sys_PageIn
@@ -64,22 +73,6 @@ Sys_PageIn
 */
 void Sys_PageIn(void* ptr, int size)
 {
-    byte* x;
-    int j, m, n;
-
-    // touch all the memory to make sure it's there. The 16-page skip is to
-    // keep Win 95 from thinking we're trying to page ourselves in (we are
-    // doing that, of course, but there's no reason we shouldn't)
-    x = (byte*)ptr;
-
-    for (n = 0; n < 4; n++)
-    {
-        for (m = 0; m < (size - 16 * 0x1000); m += 4)
-        {
-            sys_checksum += *(int*)&x[m];
-            sys_checksum += *(int*)&x[m + 16 * 0x1000];
-        }
-    }
 }
 
 /*
@@ -93,94 +86,60 @@ FILE IO
 #define MAX_HANDLES 100 //johnfitz -- was 10
 FILE* sys_handles[MAX_HANDLES];
 
-int findhandle(void)
+static int findhandle(void)
 {
-    int i;
-
-    for (i = 1; i < MAX_HANDLES; i++)
+    for (int i = 1; i < MAX_HANDLES; i++)
         if (!sys_handles[i])
             return i;
     Sys_Error("out of handles");
     return -1;
 }
 
-/*
-================
-filelength
-================
-*/
-int filelength(FILE* f)
+static long filelength(FILE* f)
 {
-    int pos;
-    int end;
-    int t;
-
-    t = VID_ForceUnlockedAndReturnState();
-
-    pos = ftell(f);
+    const int t = VID_ForceUnlockedAndReturnState();
+    const long pos = ftell(f);
     fseek(f, 0, SEEK_END);
-    end = ftell(f);
+    const long end = ftell(f);
     fseek(f, pos, SEEK_SET);
-
     VID_ForceLockState(t);
-
     return end;
 }
 
 int Sys_FileOpenRead(char* path, int* hndl)
 {
-    FILE* f;
-    int i, retval;
-    int t;
-
-    t = VID_ForceUnlockedAndReturnState();
-
-    i = findhandle();
-
-    f = fopen(path, "rb");
-
-    if (!f)
+    *hndl = -1;
+    int retval = -1;
+    const int t = VID_ForceUnlockedAndReturnState();
     {
-        *hndl = -1;
-        retval = -1;
+        const int i = findhandle();
+        FILE* f = fopen(path, "rb");
+        if (f)
+        {
+            sys_handles[i] = f;
+            *hndl = i;
+            retval = filelength(f);
+        }
     }
-    else
-    {
-        sys_handles[i] = f;
-        *hndl = i;
-        retval = filelength(f);
-    }
-
     VID_ForceLockState(t);
-
     return retval;
 }
 
 int Sys_FileOpenWrite(char* path)
 {
-    FILE* f;
-    int i;
-    int t;
-
-    t = VID_ForceUnlockedAndReturnState();
-
-    i = findhandle();
-
-    f = fopen(path, "wb");
+    const int t = VID_ForceUnlockedAndReturnState();
+    const int i = findhandle();
+    FILE* f = fopen(path, "wb");
     if (!f)
         Sys_Error("Error opening %s: %s", path, strerror(errno));
     sys_handles[i] = f;
-
     VID_ForceLockState(t);
-
     return i;
 }
 
 void Sys_FileClose(int handle)
 {
-    int t;
-
-    t = VID_ForceUnlockedAndReturnState();
+    const int t = VID_ForceUnlockedAndReturnState();
     fclose(sys_handles[handle]);
     sys_handles[handle] = NULL;
     VID_ForceLockState(t);
@@ -188,52 +147,37 @@ void Sys_FileClose(int handle)
 
 void Sys_FileSeek(int handle, int position)
 {
-    int t;
-
-    t = VID_ForceUnlockedAndReturnState();
+    const int t = VID_ForceUnlockedAndReturnState();
     fseek(sys_handles[handle], position, SEEK_SET);
     VID_ForceLockState(t);
 }
 
 int Sys_FileRead(int handle, void* dest, int count)
 {
-    int t, x;
-
-    t = VID_ForceUnlockedAndReturnState();
-    x = fread(dest, 1, count, sys_handles[handle]);
+    const int t = VID_ForceUnlockedAndReturnState();
+    const int x = fread(dest, 1, count, sys_handles[handle]);
     VID_ForceLockState(t);
     return x;
 }
 
 int Sys_FileWrite(int handle, void* data, int count)
 {
-    int t, x;
-
-    t = VID_ForceUnlockedAndReturnState();
-    x = fwrite(data, 1, count, sys_handles[handle]);
+    const int t = VID_ForceUnlockedAndReturnState();
+    const int x = fwrite(data, 1, count, sys_handles[handle]);
     VID_ForceLockState(t);
     return x;
 }
 
 int Sys_FileTime(char* path)
 {
-    FILE* f;
-    int t, retval;
-
-    t = VID_ForceUnlockedAndReturnState();
-
-    f = fopen(path, "rb");
-
+    const int t = VID_ForceUnlockedAndReturnState();
+    FILE* f = fopen(path, "rb");
+    int retval = -1;
     if (f)
     {
         fclose(f);
         retval = 1;
     }
-    else
-    {
-        retval = -1;
-    }
-
     VID_ForceLockState(t);
     return retval;
 }
@@ -250,19 +194,6 @@ SYSTEM IO
 
 ===============================================================================
 */
-
-/*
-================
-Sys_MakeCodeWriteable
-================
-*/
-void Sys_MakeCodeWriteable(unsigned long startaddr, unsigned long length)
-{
-    DWORD flOldProtect;
-
-    if (!VirtualProtect((LPVOID)startaddr, length, PAGE_READWRITE, &flOldProtect))
-        Sys_Error("Protection change failed\n");
-}
 
 /*
 ================
@@ -297,19 +228,6 @@ void Sys_Init(void)
     Sys_InitFloatTime();
 
     vinfo.dwOSVersionInfoSize = sizeof(vinfo);
-
-    if (!GetVersionEx(&vinfo))
-        Sys_Error("Couldn't get OS info");
-
-    if ((vinfo.dwMajorVersion < 4) || (vinfo.dwPlatformId == VER_PLATFORM_WIN32s))
-    {
-        Sys_Error("WinQuake requires at least Win95 or NT 4.0");
-    }
-
-    if (vinfo.dwPlatformId == VER_PLATFORM_WIN32_NT)
-        WinNT = true;
-    else
-        WinNT = false;
 }
 
 void Sys_Error(char* error, ...)
@@ -516,8 +434,7 @@ char* Sys_ConsoleInput(void)
     static char text[256];
     static int len;
     INPUT_RECORD recs[1024];
-    int count;
-    int i, dummy;
+    int dummy;
     int ch, numread, numevents;
 
     if (!isDedicated)
@@ -611,43 +528,17 @@ void Sys_SendKeyEvents(void)
     }
 }
 
-/*
-==============================================================================
-
- WINDOWS CRAP
-
-==============================================================================
-*/
-
-/*
-==================
-WinMain
-==================
-*/
 void SleepUntilInput(int time)
 {
 
     MsgWaitForMultipleObjects(1, &tevent, FALSE, time, QS_ALLINPUT);
 }
 
-/*
-==================
-WinMain
-==================
-*/
-HINSTANCE global_hInstance;
-int global_nCmdShow;
-char* argv[MAX_NUM_ARGVS];
-static char* empty_string = "";
-HWND hwnd_dialog;
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    MSG msg;
     quakeparms_t parms;
     double time, oldtime, newtime;
-    MEMORYSTATUS lpBuffer;
-    static char cwd[1024];
+    static char cwd[1024] = {0};
     int t;
     RECT rect;
 
@@ -657,9 +548,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     global_hInstance = hInstance;
     global_nCmdShow = nCmdShow;
-
-    lpBuffer.dwLength = sizeof(MEMORYSTATUS);
-    GlobalMemoryStatus(&lpBuffer);
 
     if (!GetCurrentDirectory(sizeof(cwd), cwd))
         Sys_Error("Couldn't determine current directory");
@@ -731,16 +619,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // take the greater of all the available memory or half the total memory,
     // but at least 8 Mb and no more than 16 Mb, unless they explicitly
     // request otherwise
-    parms.memsize = lpBuffer.dwAvailPhys;
-
-    if (parms.memsize < MINIMUM_WIN_MEMORY)
-        parms.memsize = MINIMUM_WIN_MEMORY;
-
-    if (parms.memsize < (lpBuffer.dwTotalPhys >> 1))
-        parms.memsize = lpBuffer.dwTotalPhys >> 1;
-
-    if (parms.memsize > MAXIMUM_WIN_MEMORY)
-        parms.memsize = MAXIMUM_WIN_MEMORY;
+    parms.memsize = MAXIMUM_WIN_MEMORY;
 
     if (COM_CheckParm("-heapsize"))
     {
