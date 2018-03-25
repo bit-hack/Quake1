@@ -22,6 +22,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#define _SDL_main_h
+#include <SDL/SDL.h>
+
 #include <direct.h>
 
 #include "quakedef.h"
@@ -51,10 +54,10 @@ HANDLE hinput, houtput;
 
 static char* tracking_tag = "Clams & Mooses";
 
-static HANDLE tevent;
-static HANDLE hFile;
-static HANDLE heventParent;
-static HANDLE heventChild;
+//static HANDLE tevent;
+//static HANDLE hFile;
+//static HANDLE heventParent;
+//static HANDLE heventChild;
 
 void Sys_InitFloatTime(void);
 
@@ -316,8 +319,8 @@ void Sys_Quit(void)
 {
     VID_ForceUnlockedAndReturnState();
     Host_Shutdown();
-    if (tevent)
-        CloseHandle(tevent);
+//    if (tevent)
+//        CloseHandle(tevent);
     if (isDedicated)
         FreeConsole();
     // shut down QHOST hooks if necessary
@@ -393,12 +396,8 @@ Sys_InitFloatTime
 */
 void Sys_InitFloatTime(void)
 {
-    int j;
-
     Sys_FloatTime();
-
-    j = COM_CheckParm("-starttime");
-
+    const int j = COM_CheckParm("-starttime");
     if (j)
     {
         curtime = (double)(Q_atof(com_argv[j + 1]));
@@ -407,7 +406,6 @@ void Sys_InitFloatTime(void)
     {
         curtime = 0.0;
     }
-
     lastcurtime = curtime;
 }
 
@@ -510,17 +508,87 @@ void Sys_SendKeyEvents(void)
     }
 }
 
-void SleepUntilInput(int time)
+static void SleepUntilInput(int time)
 {
+//    MsgWaitForMultipleObjects(1, &tevent, FALSE, time, QS_ALLINPUT);
+}
 
-    MsgWaitForMultipleObjects(1, &tevent, FALSE, time, QS_ALLINPUT);
+/* Map from SDL to quake keynums */
+static int MapKey(int key)
+{
+    switch (key)
+    {
+    case SDLK_RETURN:
+        return K_ENTER;
+    case SDLK_SLASH:
+        // XXX: FIXME
+        return KP_SLASH;
+    case SDLK_HOME:
+        return K_HOME;
+    case SDLK_UP:
+        return K_UPARROW;
+    case SDLK_PAGEUP:
+        return K_PGUP;
+    case SDLK_LEFT:
+        return K_LEFTARROW;
+    case SDLK_RIGHT:
+        return K_RIGHTARROW;
+    case SDLK_END:
+        return K_END;
+    case SDLK_DOWN:
+        return K_DOWNARROW;
+    case SDLK_PAGEDOWN:
+        return K_PGDN;
+    case SDLK_INSERT:
+        return K_INS;
+    case SDLK_DELETE:
+        return K_DEL;
+    case SDLK_ESCAPE:
+        return K_ESCAPE;
+    case SDLK_ASTERISK:
+        return '*';
+    case SDLK_MINUS:
+        return '-';
+    case SDLK_5:
+        return '5';
+    case SDLK_PLUS:
+        return '+';
+    case SDLK_LCTRL:
+    case SDLK_RCTRL:
+        return K_CTRL;
+    case SDLK_LSHIFT:
+    case SDLK_RSHIFT:
+        return K_SHIFT;
+    default:
+        return key;
+    }
+}
+
+static void PollSDLEvents()
+{
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            Sys_Quit();
+            return;
+        case SDL_KEYDOWN:
+            Key_Event(MapKey(event.key.keysym.sym), true);
+            break;
+        case SDL_KEYUP:
+            Key_Event(MapKey(event.key.keysym.sym), false);
+            break;
+        }
+    }
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     quakeparms_t parms;
     double time, oldtime, newtime;
-    static char cwd[1024] = {0};
+    static char cwd[1024] = { 0 };
     int t;
     RECT rect;
 
@@ -573,7 +641,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     isDedicated = (COM_CheckParm("-dedicated") != 0);
 
-#if 1 //johnfitz -- 0 to supress the 'starting quake' dialog
+#if 0 //johnfitz -- 0 to supress the 'starting quake' dialog
     if (!isDedicated)
     {
         hwnd_dialog = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, NULL);
@@ -618,10 +686,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     Sys_PageIn(parms.membase, parms.memsize);
 
-    tevent = CreateEvent(NULL, FALSE, FALSE, NULL);
+//    tevent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-    if (!tevent)
-        Sys_Error("Couldn't create event");
+//    if (!tevent)
+//        Sys_Error("Couldn't create event");
 
     if (isDedicated)
     {
@@ -636,23 +704,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // give QHOST a chance to hook into the console
         if ((t = COM_CheckParm("-HFILE")) > 0)
         {
-            if (t < com_argc)
-                hFile = (HANDLE)Q_atoi(com_argv[t + 1]);
+//            if (t < com_argc)
+//                hFile = (HANDLE)Q_atoi(com_argv[t + 1]);
         }
 
         if ((t = COM_CheckParm("-HPARENT")) > 0)
         {
-            if (t < com_argc)
-                heventParent = (HANDLE)Q_atoi(com_argv[t + 1]);
+//            if (t < com_argc)
+//                heventParent = (HANDLE)Q_atoi(com_argv[t + 1]);
         }
 
         if ((t = COM_CheckParm("-HCHILD")) > 0)
         {
-            if (t < com_argc)
-                heventChild = (HANDLE)Q_atoi(com_argv[t + 1]);
+//            if (t < com_argc)
+//                heventChild = (HANDLE)Q_atoi(com_argv[t + 1]);
         }
 
-        InitConProc(hFile, heventParent, heventChild);
+        InitConProc(NULL, NULL, NULL);
     }
 
     Sys_Init();
@@ -668,6 +736,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     /* main window message loop */
     while (1)
     {
+        PollSDLEvents();
+
         if (isDedicated)
         {
             newtime = Sys_FloatTime();

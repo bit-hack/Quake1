@@ -494,6 +494,7 @@ Draw_Pic -- johnfitz -- modified
 */
 void Draw_Pic(int x, int y, qpic_t* pic)
 {
+    assert(pic);
     glpic_t* gl;
 
     if (scrap_dirty)

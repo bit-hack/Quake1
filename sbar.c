@@ -278,13 +278,16 @@ Sbar_DrawPicAlpha -- johnfitz
 */
 Sbar_DrawPicAlpha(int x, int y, qpic_t* pic, float alpha)
 {
-    glDisable(GL_ALPHA_TEST);
-    glEnable(GL_BLEND);
-    glColor4f(1, 1, 1, alpha);
-    Draw_Pic(x, y + 24, pic);
-    glColor3f(1, 1, 1);
-    glDisable(GL_BLEND);
-    glEnable(GL_ALPHA_TEST);
+    if (pic)
+    {
+        glDisable(GL_ALPHA_TEST);
+        glEnable(GL_BLEND);
+        glColor4f(1, 1, 1, alpha);
+        Draw_Pic(x, y + 24, pic);
+        glColor3f(1, 1, 1);
+        glDisable(GL_BLEND);
+        glEnable(GL_ALPHA_TEST);
+    }
 }
 
 /*

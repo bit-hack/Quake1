@@ -20,6 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // gl_vidnt.c -- NT GL vid component
 
+#include <Windows.h>
+
+#include <SDL/SDL.h>
+#include <SDL/SDL_syswm.h>
+
 #include "quakedef.h"
 #include "winquake.h"
 #include "resource.h"
@@ -68,8 +73,8 @@ lmode_t lowresmodes[] = {
 const char* gl_vendor;
 const char* gl_renderer;
 const char* gl_version;
-const char* gl_extensions;
-const char* wgl_extensions; //johnfitz
+const char* gl_extensions = "";
+const char* wgl_extensions = ""; //johnfitz
 
 qboolean DDActive;
 qboolean scr_skipupdate;
@@ -104,8 +109,6 @@ static qboolean fullsbardraw = false;
 HDC maindc;
 
 glvert_t glv;
-
-HWND WINAPI InitializeWindow(HINSTANCE hInstance, int nCmdShow);
 
 viddef_t vid; // global video state
 
@@ -180,13 +183,13 @@ RECT window_rect;
 //==========================================================================
 
 typedef int(WINAPI* RAMPFUNC)();
-RAMPFUNC wglGetDeviceGammaRamp3DFX;
-RAMPFUNC wglSetDeviceGammaRamp3DFX;
+static RAMPFUNC wglGetDeviceGammaRamp3DFX;
+static RAMPFUNC wglSetDeviceGammaRamp3DFX;
 
-unsigned short vid_gammaramp[768];
-unsigned short vid_systemgammaramp[768]; //to restore gamma on exit
-unsigned short vid_3dfxgammaramp[768]; //to restore gamma on exit
-int vid_gammaworks, vid_3dfxgamma;
+static unsigned short vid_gammaramp[768];
+static unsigned short vid_systemgammaramp[768]; //to restore gamma on exit
+static unsigned short vid_3dfxgammaramp[768]; //to restore gamma on exit
+static int vid_gammaworks, vid_3dfxgamma;
 
 /*
 ================
@@ -321,7 +324,7 @@ void D_EndDirectRect(int x, int y, int width, int height)
 CenterWindow
 ================
 */
-void CenterWindow(HWND hWndCenter, int width, int height, BOOL lefttopjustify)
+static void CenterWindow(HWND hWndCenter, int width, int height, BOOL lefttopjustify)
 {
     RECT rect;
     int CenterX, CenterY;
@@ -336,74 +339,40 @@ void CenterWindow(HWND hWndCenter, int width, int height, BOOL lefttopjustify)
         SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_DRAWFRAME);
 }
 
-/*
-================
-VID_SetWindowedMode
-================
-*/
-qboolean VID_SetWindowedMode(int modenum)
+static qboolean CreateSDLWindow(int modenum, qboolean fullscreen)
 {
-    HDC hdc;
-    int lastmodestate, width, height;
-    RECT rect;
+    // make sure that sdl was initalized
+    if (!SDL_WasInit(SDL_INIT_VIDEO))
+    {
+        if (SDL_Init(SDL_INIT_VIDEO) != 0)
+        {
+            Sys_Error("Unable to initalize SDL, SDL_Init failed");
+        }
+    }
 
-    lastmodestate = modestate;
+    // window creation flags
+    const uint32_t flags = SDL_OPENGL | (fullscreen ? SDL_FULLSCREEN : 0);
 
-    WindowRect.top = WindowRect.left = 0;
+    // create an opengl window
+    SDL_Surface* surface = SDL_SetVideoMode(
+        modelist[modenum].width,
+        modelist[modenum].height,
+        32, flags);
+    if (surface == NULL)
+    {
+        Sys_Error("SDL_SetVideoMode failed");
+    }
 
-    WindowRect.right = modelist[modenum].width;
-    WindowRect.bottom = modelist[modenum].height;
-
-    DIBWidth = modelist[modenum].width;
-    DIBHeight = modelist[modenum].height;
-
-    //johnfitz -- if width and height match desktop size, do aguirRe's trick of making the window have no titlebar/borders
-    if (DIBWidth == GetSystemMetrics(SM_CXSCREEN) && DIBHeight == GetSystemMetrics(SM_CYSCREEN))
-        WindowStyle = WS_POPUP; // Window covers entire screen; no caption, borders etc
-    else
-        WindowStyle = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-    //johnfitz
-    ExWindowStyle = 0;
-
-    rect = WindowRect;
-    AdjustWindowRectEx(&rect, WindowStyle, FALSE, 0);
-
-    width = rect.right - rect.left;
-    height = rect.bottom - rect.top;
-
-    // Create the DIB window
-    dibwindow = CreateWindowEx(
-        ExWindowStyle,
-        "FitzQuake", //johnfitz -- was "WinQuake"
-        "FitzQuake", //johnfitz -- was "GLQuake"
-        WindowStyle,
-        rect.left, rect.top,
-        width,
-        height,
-        NULL,
-        NULL,
-        global_hInstance,
-        NULL);
-
-    if (!dibwindow)
-        Sys_Error("Couldn't create DIB window");
-
-    // Center and show the DIB window
-    CenterWindow(dibwindow, WindowRect.right - WindowRect.left,
-        WindowRect.bottom - WindowRect.top, false);
-
-    ShowWindow(dibwindow, SW_SHOWDEFAULT);
-    UpdateWindow(dibwindow);
-
-    modestate = MS_WINDOWED;
-
-    // because we have set the background brush for the window to NULL
-    // (to avoid flickering when re-sizing the window on the desktop),
-    // we clear the window to black when created, otherwise it will be
-    // empty while Quake starts up.
-    hdc = GetDC(dibwindow);
-    PatBlt(hdc, 0, 0, WindowRect.right, WindowRect.bottom, BLACKNESS);
-    ReleaseDC(dibwindow, hdc);
+#ifdef _WIN32
+    // get a window handle
+    SDL_SysWMinfo wminfo = { 0 };
+    if (!SDL_GetWMInfo(&wminfo))
+    {
+        Sys_Error("SDL_GetWMInfo failed");
+    }
+    dibwindow = wminfo.window;
+    mainwindow = wminfo.window;
+#endif
 
     //johnfitz -- stuff
     vid.width = modelist[modenum].width;
@@ -412,14 +381,31 @@ qboolean VID_SetWindowedMode(int modenum)
     vid.conheight = vid.conwidth * vid.height / vid.width;
     //johnfitz
 
+    // whats this used for?
     vid.numpages = 2;
 
-    mainwindow = dibwindow;
+    // set the window rect
+    WindowRect.top = 0;
+    WindowRect.left = 0;
+    WindowRect.right = modelist[modenum].width;
+    WindowRect.bottom = modelist[modenum].height;
 
-    SendMessage(mainwindow, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
-    SendMessage(mainwindow, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
+    // set the DIB size
+    DIBWidth = modelist[modenum].width;
+    DIBHeight = modelist[modenum].height;
 
     return true;
+}
+
+/*
+================
+VID_SetWindowedMode
+================
+*/
+qboolean VID_SetWindowedMode(int modenum)
+{
+    modestate = MS_WINDOWED;
+    return CreateSDLWindow(modenum, false);
 }
 
 /*
@@ -429,90 +415,8 @@ VID_SetFullDIBMode
 */
 qboolean VID_SetFullDIBMode(int modenum)
 {
-    HDC hdc;
-    int lastmodestate, width, height;
-    RECT rect;
-
-    if (!leavecurrentmode)
-    {
-        gdevmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY; //johnfitz -- refreshrate
-        gdevmode.dmBitsPerPel = modelist[modenum].bpp;
-        gdevmode.dmPelsWidth = modelist[modenum].width << modelist[modenum].halfscreen;
-        gdevmode.dmPelsHeight = modelist[modenum].height;
-        gdevmode.dmDisplayFrequency = modelist[modenum].refreshrate; //johnfitz -- refreshrate
-        gdevmode.dmSize = sizeof(gdevmode);
-
-        if (ChangeDisplaySettings(&gdevmode, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-            Sys_Error("Couldn't set fullscreen DIB mode");
-    }
-
-    lastmodestate = modestate;
     modestate = MS_FULLDIB;
-
-    WindowRect.top = WindowRect.left = 0;
-
-    WindowRect.right = modelist[modenum].width;
-    WindowRect.bottom = modelist[modenum].height;
-
-    DIBWidth = modelist[modenum].width;
-    DIBHeight = modelist[modenum].height;
-
-    WindowStyle = WS_POPUP;
-    ExWindowStyle = 0;
-
-    rect = WindowRect;
-    AdjustWindowRectEx(&rect, WindowStyle, FALSE, 0);
-
-    width = rect.right - rect.left;
-    height = rect.bottom - rect.top;
-
-    // Create the DIB window
-    dibwindow = CreateWindowEx(
-        ExWindowStyle,
-        "FitzQuake", //johnfitz -- was "WinQuake"
-        "FitzQuake", //johnfitz -- was "GLQuake"
-        WindowStyle,
-        rect.left, rect.top,
-        width,
-        height,
-        NULL,
-        NULL,
-        global_hInstance,
-        NULL);
-
-    if (!dibwindow)
-        Sys_Error("Couldn't create DIB window");
-
-    ShowWindow(dibwindow, SW_SHOWDEFAULT);
-    UpdateWindow(dibwindow);
-
-    // Because we have set the background brush for the window to NULL
-    // (to avoid flickering when re-sizing the window on the desktop), we
-    // clear the window to black when created, otherwise it will be
-    // empty while Quake starts up.
-    hdc = GetDC(dibwindow);
-    PatBlt(hdc, 0, 0, WindowRect.right, WindowRect.bottom, BLACKNESS);
-    ReleaseDC(dibwindow, hdc);
-
-    //johnfitz -- stuff
-    vid.width = modelist[modenum].width;
-    vid.height = modelist[modenum].height;
-    vid.conwidth = vid.width & 0xFFFFFFF8;
-    vid.conheight = vid.conwidth * vid.height / vid.width;
-    //johnfitz
-
-    vid.numpages = 2;
-
-    // needed because we're not getting WM_MOVE messages fullscreen on NT
-    window_x = 0;
-    window_y = 0;
-
-    mainwindow = dibwindow;
-
-    SendMessage(mainwindow, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
-    SendMessage(mainwindow, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
-
-    return true;
+    return CreateSDLWindow(modenum, true);
 }
 
 /*
@@ -593,21 +497,7 @@ int VID_SetMode(int modenum)
     // to let messages finish bouncing around the system, then we put
     // ourselves at the top of the z order, then grab the foreground again,
     // Who knows if it helps, but it probably doesn't hurt
-    SetForegroundWindow(mainwindow);
     vid_modenum = modenum;
-
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    Sleep(100);
-
-    SetWindowPos(mainwindow, HWND_TOP, 0, 0, 0, 0,
-        SWP_DRAWFRAME | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOCOPYBITS);
-
-    SetForegroundWindow(mainwindow);
 
     // fix the leftover Alt from any Alt-Tab or the like that switched us away
     ClearAllStates();
@@ -867,7 +757,6 @@ VID_Unlock -- johnfitz
 void VID_Unlock(void)
 {
     vid_locked = false;
-
     //sync up cvars in case they were changed during the lock
     Cvar_Set("vid_width", va("%i", modelist[vid_default].width));
     Cvar_Set("vid_height", va("%i", modelist[vid_default].height));
@@ -904,7 +793,7 @@ void VID_UpdateWindowStatus(void)
 GL_MakeNiceExtensionsList -- johnfitz
 ===============
 */
-char* GL_MakeNiceExtensionsList(const char* in)
+static char* GL_MakeNiceExtensionsList(const char* in)
 {
     char *copy, *token, *out;
     int i, count;
@@ -934,7 +823,7 @@ char* GL_MakeNiceExtensionsList(const char* in)
 GL_Info_f -- johnfitz
 ===============
 */
-void GL_Info_f(void)
+static void GL_Info_f(void)
 {
     static char* gl_extensions_nice = NULL;
     static char* wgl_extensions_nice = NULL;
@@ -957,7 +846,7 @@ void GL_Info_f(void)
 CheckArrayExtensions
 ===============
 */
-void CheckArrayExtensions(void)
+static void CheckArrayExtensions(void)
 {
     char* tmp;
 
@@ -986,7 +875,7 @@ void CheckArrayExtensions(void)
 GL_CheckExtensions -- johnfitz
 ===============
 */
-void GL_CheckExtensions(void)
+static void GL_CheckExtensions(void)
 {
     //
     // multitexture
@@ -1061,7 +950,8 @@ void GL_CheckExtensions(void)
     //
     // swap control
     //
-    if (strstr(gl_extensions, "GL_EXT_swap_control") || strstr(wgl_extensions, "WGL_EXT_swap_control"))
+    // XXX: Sort this mess out
+    if (!wglSwapIntervalEXT || !wglGetSwapIntervalEXT)
     {
         wglSwapIntervalEXT = (SETSWAPFUNC)wglGetProcAddress("wglSwapIntervalEXT");
         wglGetSwapIntervalEXT = (GETSWAPFUNC)wglGetProcAddress("wglGetSwapIntervalEXT");
@@ -1081,8 +971,6 @@ void GL_CheckExtensions(void)
         else
             Con_Warning("vertical sync not supported (wglGetProcAddress failed)\n");
     }
-    else
-        Con_Warning("vertical sync not supported (extension not found)\n");
 
     //
     // anisotropic filtering
@@ -1122,14 +1010,12 @@ void GL_CheckExtensions(void)
 GetWGLExtensions -- johnfitz
 ===============
 */
-void GetWGLExtensions(void)
+static void GetWGLExtensions(void)
 {
     typedef const char*(__stdcall * wglGetExtensionsStringARB_t)(HDC hdc);
     typedef const char*(__stdcall * wglGetExtensionsStringEXT_t)();
-    wglGetExtensionsStringARB_t wglGetExtensionsStringARB =
-      (wglGetExtensionsStringARB_t)wglGetProcAddress("wglGetExtensionsStringARB");
-    wglGetExtensionsStringEXT_t wglGetExtensionsStringEXT =
-      (wglGetExtensionsStringEXT_t)wglGetProcAddress("wglGetExtensionsStringEXT");
+    wglGetExtensionsStringARB_t wglGetExtensionsStringARB = (wglGetExtensionsStringARB_t)wglGetProcAddress("wglGetExtensionsStringARB");
+    wglGetExtensionsStringEXT_t wglGetExtensionsStringEXT = (wglGetExtensionsStringEXT_t)wglGetProcAddress("wglGetExtensionsStringEXT");
     if (wglGetExtensionsStringARB)
         wgl_extensions = wglGetExtensionsStringARB(maindc);
     else if (wglGetExtensionsStringEXT)
@@ -1198,7 +1084,7 @@ void GL_Init(void)
         Con_Printf("Intel Display Adapter detected\n");
         isIntelVideo = true;
     }
-//johnfitz
+    //johnfitz
 
 #if 0
 	//johnfitz -- confirm presence of stencil buffer
@@ -1232,7 +1118,13 @@ GL_EndRendering
 void GL_EndRendering(void)
 {
     if (!scr_skipupdate || block_drawing)
+    {
+#if 0
         SwapBuffers(maindc);
+#else
+        SDL_GL_SwapBuffers();
+#endif
+    }
 
     // handle the mouse state when windowed if that's changed
     if (modestate == MS_WINDOWED)
@@ -1280,12 +1172,10 @@ void VID_Shutdown(void)
         vid_canalttab = false;
         hRC = wglGetCurrentContext();
         hDC = wglGetCurrentDC();
-
+#if 0
         wglMakeCurrent(NULL, NULL);
-
         if (hRC)
             wglDeleteContext(hRC);
-
         VID_Gamma_Shutdown(); //johnfitz
 
         if (hDC && dibwindow)
@@ -1296,14 +1186,14 @@ void VID_Shutdown(void)
 
         if (maindc && dibwindow)
             ReleaseDC(dibwindow, maindc);
-
+#endif
         AppActivate(false, false);
     }
 }
 
 //==========================================================================
 
-BOOL bSetupPixelFormat(HDC hDC)
+static BOOL bSetupPixelFormat(HDC hDC)
 {
     static PIXELFORMATDESCRIPTOR pfd = {
         sizeof(PIXELFORMATDESCRIPTOR), // size of this pfd
@@ -1345,137 +1235,6 @@ BOOL bSetupPixelFormat(HDC hDC)
     return TRUE;
 }
 
-byte scantokey[128] = {
-    //  0           1       2       3       4       5       6       7
-    //  8           9       A       B       C       D       E       F
-    0, 27, '1', '2', '3', '4', '5', '6',
-    '7', '8', '9', '0', '-', '=', K_BACKSPACE, 9, // 0
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
-    'o', 'p', '[', ']', 13, K_CTRL, 'a', 's', // 1
-    'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
-    '\'', '`', K_SHIFT, '\\', 'z', 'x', 'c', 'v', // 2
-    'b', 'n', 'm', ',', '.', '/', K_SHIFT, '*',
-    K_ALT, ' ', 0, K_F1, K_F2, K_F3, K_F4, K_F5, // 3
-    K_F6, K_F7, K_F8, K_F9, K_F10, K_PAUSE, 0, K_HOME,
-    K_UPARROW, K_PGUP, '-', K_LEFTARROW, '5', K_RIGHTARROW, '+', K_END, //4
-    K_DOWNARROW, K_PGDN, K_INS, K_DEL, 0, 0, 0, K_F11,
-    K_F12, 0, 0, 0, 0, 0, 0, 0, // 5
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, // 6
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0 // 7
-};
-
-byte shiftscantokey[128] = {
-    //  0           1       2       3       4       5       6       7
-    //  8           9       A       B       C       D       E       F
-    0, 27, '!', '@', '#', '$', '%', '^',
-    '&', '*', '(', ')', '_', '+', K_BACKSPACE, 9, // 0
-    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I',
-    'O', 'P', '{', '}', 13, K_CTRL, 'A', 'S', // 1
-    'D', 'F', 'G', 'H', 'J', 'K', 'L', ':',
-    '"', '~', K_SHIFT, '|', 'Z', 'X', 'C', 'V', // 2
-    'B', 'N', 'M', '<', '>', '?', K_SHIFT, '*',
-    K_ALT, ' ', 0, K_F1, K_F2, K_F3, K_F4, K_F5, // 3
-    K_F6, K_F7, K_F8, K_F9, K_F10, K_PAUSE, 0, K_HOME,
-    K_UPARROW, K_PGUP, '_', K_LEFTARROW, '%', K_RIGHTARROW, '+', K_END, //4
-    K_DOWNARROW, K_PGDN, K_INS, K_DEL, 0, 0, 0, K_F11,
-    K_F12, 0, 0, 0, 0, 0, 0, 0, // 5
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, // 6
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0 // 7
-};
-
-/*
-=======
-MapKey
-
-Map from windows to quake keynums
-=======
-*/
-int MapKey(int key)
-{
-    /*
-	key = (key>>16)&255;
-	if (key > 127)
-		return 0;
-	if (scantokey[key] == 0)
-		Con_DPrintf("key 0x%02x has no translation\n", key);
-	return scantokey[key];
-	*/
-
-    int extended;
-    extern cvar_t cl_keypad;
-
-    extended = (key >> 24) & 1;
-
-    key = (key >> 16) & 255;
-    if (key > 127)
-        return 0;
-
-    key = scantokey[key];
-
-    if (cl_keypad.value)
-    {
-        if (extended)
-        {
-            switch (key)
-            {
-            case K_ENTER:
-                return KP_ENTER;
-            case '/':
-                return KP_SLASH;
-            case K_PAUSE:
-                return KP_NUMLOCK;
-            };
-        }
-        else
-        {
-            switch (key)
-            {
-            case K_HOME:
-                return KP_HOME;
-            case K_UPARROW:
-                return KP_UPARROW;
-            case K_PGUP:
-                return KP_PGUP;
-            case K_LEFTARROW:
-                return KP_LEFTARROW;
-            case K_RIGHTARROW:
-                return KP_RIGHTARROW;
-            case K_END:
-                return KP_END;
-            case K_DOWNARROW:
-                return KP_DOWNARROW;
-            case K_PGDN:
-                return KP_PGDN;
-            case K_INS:
-                return KP_INS;
-            case K_DEL:
-                return KP_DEL;
-            }
-        }
-    }
-    else
-    {
-        // cl_keypad 0, compatibility mode
-        switch (key)
-        {
-        case KP_STAR:
-            return '*';
-        case KP_MINUS:
-            return '-';
-        case KP_5:
-            return '5';
-        case KP_PLUS:
-            return '+';
-        }
-    }
-
-    return key;
-}
-
 /*
 ===================================================================
 
@@ -1489,14 +1248,13 @@ MAIN WINDOW
 ClearAllStates
 ================
 */
-void ClearAllStates(void)
+static void ClearAllStates(void)
 {
     //johnfitz -- moved some code into Key_ClearStates
     Key_ClearStates();
     IN_ClearStates();
 }
 
-void AppActivate(BOOL fActive, BOOL minimize)
 /****************************************************************************
 *
 * Function:     AppActivate
@@ -1507,6 +1265,7 @@ void AppActivate(BOOL fActive, BOOL minimize)
 *               correctly.
 *
 ****************************************************************************/
+static void AppActivate(BOOL fActive, BOOL minimize)
 {
     MSG msg;
     HDC hdc;
@@ -1530,6 +1289,7 @@ void AppActivate(BOOL fActive, BOOL minimize)
 
     if (fActive)
     {
+#if 0
         if (modestate == MS_FULLDIB)
         {
             IN_ActivateMouse();
@@ -1547,11 +1307,13 @@ void AppActivate(BOOL fActive, BOOL minimize)
             IN_ActivateMouse();
             IN_HideMouse();
         }
+#endif
         VID_Gamma_SetGamma(); //johnfitz
     }
 
     if (!fActive)
     {
+#if 0
         if (modestate == MS_FULLDIB)
         {
             IN_DeactivateMouse();
@@ -1567,17 +1329,19 @@ void AppActivate(BOOL fActive, BOOL minimize)
             IN_DeactivateMouse();
             IN_ShowMouse();
         }
+#endif
         VID_Gamma_Restore(); //johnfitz
     }
 }
 
 /* main window procedure */
-LONG WINAPI MainWndProc(
+static LONG WINAPI MainWndProc(
     HWND hWnd,
     UINT uMsg,
     WPARAM wParam,
     LPARAM lParam)
 {
+#if 0
     LONG lRet = 1;
     int fwKeys, xPos, yPos, fActive, fMinimized, temp;
     extern unsigned int uiWheelMessage;
@@ -1699,6 +1463,9 @@ LONG WINAPI MainWndProc(
 
     /* return 1 if handled message, 0 if not */
     return lRet;
+#else
+    return 0;
+#endif
 }
 
 //==========================================================================
@@ -2282,15 +2049,6 @@ void VID_Init(void)
     DestroyWindow(hwnd_dialog);
 
     VID_SetMode(vid_default);
-
-    maindc = GetDC(mainwindow);
-    bSetupPixelFormat(maindc);
-
-    baseRC = wglCreateContext(maindc);
-    if (!baseRC)
-        Sys_Error("Could not initialize GL (wglCreateContext failed).\n\nMake sure you in are 65535 color mode, and try running -window.");
-    if (!wglMakeCurrent(maindc, baseRC))
-        Sys_Error("VID_Init: wglMakeCurrent failed");
 
     GL_Init();
 

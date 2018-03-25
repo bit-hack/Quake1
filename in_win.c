@@ -213,7 +213,7 @@ void IN_UpdateClipCursor(void)
     if (mouseinitialized && mouseactive)
 #endif
     {
-        ClipCursor(&window_rect);
+//        ClipCursor(&window_rect);
     }
 }
 
@@ -227,7 +227,7 @@ void IN_ShowMouse(void)
 
     if (!mouseshowtoggle)
     {
-        ShowCursor(TRUE);
+//        ShowCursor(TRUE);
         mouseshowtoggle = 1;
     }
 }
@@ -242,7 +242,7 @@ void IN_HideMouse(void)
 
     if (mouseshowtoggle)
     {
-        ShowCursor(FALSE);
+//        ShowCursor(FALSE);
         mouseshowtoggle = 0;
     }
 }
@@ -281,9 +281,9 @@ void IN_ActivateMouse(void)
             if (mouseparmsvalid)
                 restore_spi = SystemParametersInfo(SPI_SETMOUSE, 0, newmouseparms, 0);
 
-            SetCursorPos(window_center_x, window_center_y);
-            SetCapture(mainwindow);
-            ClipCursor(&window_rect);
+//            SetCursorPos(window_center_x, window_center_y);
+//            SetCapture(mainwindow);
+//            ClipCursor(&window_rect);
         }
 
         mouseactive = true;
@@ -331,8 +331,8 @@ void IN_DeactivateMouse(void)
             if (restore_spi)
                 SystemParametersInfo(SPI_SETMOUSE, 0, originalmouseparms, 0);
 
-            ClipCursor(NULL);
-            ReleaseCapture();
+//            ClipCursor(NULL);
+//            ReleaseCapture();
         }
 
         mouseactive = false;
@@ -354,8 +354,8 @@ void IN_RestoreOriginalMouseState(void)
 
     // try to redraw the cursor so it gets reinitialized, because sometimes it
     // has garbage after the mode switch
-    ShowCursor(TRUE);
-    ShowCursor(FALSE);
+//    ShowCursor(TRUE);
+//    ShowCursor(FALSE);
 }
 
 /*
@@ -779,7 +779,7 @@ void IN_MouseMove(usercmd_t* cmd)
     // if the mouse has moved, force it to the center, so there's room to move
     if (mx || my)
     {
-        SetCursorPos(window_center_x, window_center_y);
+//        SetCursorPos(window_center_x, window_center_y);
     }
 }
 
@@ -814,13 +814,13 @@ void IN_Accumulate(void)
         if (!dinput)
 #endif
         {
-            GetCursorPos(&current_pos);
+//            GetCursorPos(&current_pos);
 
             mx_accum += current_pos.x - window_center_x;
             my_accum += current_pos.y - window_center_y;
 
             // force the mouse to the center, so there's room to move
-            SetCursorPos(window_center_x, window_center_y);
+//            SetCursorPos(window_center_x, window_center_y);
         }
     }
 }

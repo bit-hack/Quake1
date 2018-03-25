@@ -7,6 +7,9 @@ file(GLOB HFILE *.h)
 set(USE_SDL FALSE CACHE BOOL "Use SDL sybsystem")
 
 if(USE_SDL)
+
+    find_package(SDL REQUIRED)
+
     list(REMOVE_ITEM CFILE
         "${CMAKE_CURRENT_SOURCE_DIR}/sys_win.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/gl_vid_win.c"
@@ -31,4 +34,5 @@ target_link_libraries(
     ws2_32.lib
     winmm.lib
     Comctl32.lib
+    ${SDL_LIBRARY}
     )
