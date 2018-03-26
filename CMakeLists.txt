@@ -13,11 +13,15 @@ if(USE_SDL)
     list(REMOVE_ITEM CFILE
         "${CMAKE_CURRENT_SOURCE_DIR}/sys_win.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/gl_vid_win.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/in_win.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/snd_win.c"
         )
 else()
     list(REMOVE_ITEM CFILE
         "${CMAKE_CURRENT_SOURCE_DIR}/sys_sdl.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/gl_vid_sdl.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/in_sdl.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/snd_sdl.c"
         )
 endif()
 
