@@ -21,10 +21,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Quake is a trademark of Id Software, Inc., (c) 1996 Id Software, Inc. All
 // rights reserved.
 
+// #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+#include <SDL/SDL.h>
+#include <SDL/SDL_syswm.h>
+
 #include "quakedef.h"
 
-extern HWND mainwindow;
 extern cvar_t bgmvolume;
 
 static qboolean cdValid = false;
@@ -40,6 +44,17 @@ static byte playTrack;
 static byte maxTrack;
 
 UINT wDeviceID;
+
+static HWND get_hwnd()
+{
+    HWND mainwindow = GetForegroundWindow();
+    SDL_SysWMinfo wminfo;
+    if (SDL_GetWMInfo(&wminfo) == 1)
+    {
+        mainwindow = wminfo.window;
+    }
+    return mainwindow;
+}
 
 static void CDAudio_Eject(void)
 {
@@ -154,7 +169,7 @@ void CDAudio_Play(byte track, qboolean looping)
 
     mciPlayParms.dwFrom = MCI_MAKE_TMSF(track, 0, 0, 0);
     mciPlayParms.dwTo = (mciStatusParms.dwReturn << 8) | track;
-    mciPlayParms.dwCallback = (DWORD)mainwindow;
+    mciPlayParms.dwCallback = (DWORD)get_hwnd();
     dwReturn = mciSendCommand(wDeviceID, MCI_PLAY, MCI_NOTIFY | MCI_FROM | MCI_TO, (DWORD)(LPVOID)&mciPlayParms);
     if (dwReturn)
     {
@@ -198,7 +213,14 @@ void CDAudio_Pause(void)
     if (!playing)
         return;
 
-    mciGenericParms.dwCallback = (DWORD)mainwindow;
+
+    HWND mainwindow = GetForegroundWindow();
+    SDL_SysWMinfo wminfo;
+    if (SDL_GetWMInfo(&wminfo) == 1) {
+      mainwindow = wminfo.window;
+    }
+
+    mciGenericParms.dwCallback = (DWORD)get_hwnd();
     if (dwReturn = mciSendCommand(wDeviceID, MCI_PAUSE, 0, (DWORD)(LPVOID)&mciGenericParms))
         Con_DPrintf("MCI_PAUSE failed (%i)", dwReturn);
 
@@ -222,7 +244,7 @@ void CDAudio_Resume(void)
 
     mciPlayParms.dwFrom = MCI_MAKE_TMSF(playTrack, 0, 0, 0);
     mciPlayParms.dwTo = MCI_MAKE_TMSF(playTrack + 1, 0, 0, 0);
-    mciPlayParms.dwCallback = (DWORD)mainwindow;
+    mciPlayParms.dwCallback = (DWORD)get_hwnd();
     dwReturn = mciSendCommand(wDeviceID, MCI_PLAY, MCI_TO | MCI_NOTIFY, (DWORD)(LPVOID)&mciPlayParms);
     if (dwReturn)
     {
@@ -237,7 +259,6 @@ static void CD_f(void)
     char* command;
     int ret;
     int n;
-    int startAddress;
 
     if (Cmd_Argc() < 2)
         return;

@@ -319,8 +319,8 @@ void Sys_Quit(void)
 {
     VID_ForceUnlockedAndReturnState();
     Host_Shutdown();
-//    if (tevent)
-//        CloseHandle(tevent);
+    //    if (tevent)
+    //        CloseHandle(tevent);
     if (isDedicated)
         FreeConsole();
     // shut down QHOST hooks if necessary
@@ -510,7 +510,7 @@ void Sys_SendKeyEvents(void)
 
 static void SleepUntilInput(int time)
 {
-//    MsgWaitForMultipleObjects(1, &tevent, FALSE, time, QS_ALLINPUT);
+    //    MsgWaitForMultipleObjects(1, &tevent, FALSE, time, QS_ALLINPUT);
 }
 
 /* Map from SDL to quake keynums */
@@ -590,7 +590,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     double time, oldtime, newtime;
     static char cwd[1024] = { 0 };
     int t;
-    RECT rect;
+//    RECT rect;
 
     /* previous instances do not exist in Win32 */
     if (hPrevInstance)
@@ -686,10 +686,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     Sys_PageIn(parms.membase, parms.memsize);
 
-//    tevent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    //    tevent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-//    if (!tevent)
-//        Sys_Error("Couldn't create event");
+    //    if (!tevent)
+    //        Sys_Error("Couldn't create event");
 
     if (isDedicated)
     {
@@ -704,20 +704,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // give QHOST a chance to hook into the console
         if ((t = COM_CheckParm("-HFILE")) > 0)
         {
-//            if (t < com_argc)
-//                hFile = (HANDLE)Q_atoi(com_argv[t + 1]);
+            //            if (t < com_argc)
+            //                hFile = (HANDLE)Q_atoi(com_argv[t + 1]);
         }
 
         if ((t = COM_CheckParm("-HPARENT")) > 0)
         {
-//            if (t < com_argc)
-//                heventParent = (HANDLE)Q_atoi(com_argv[t + 1]);
+            //            if (t < com_argc)
+            //                heventParent = (HANDLE)Q_atoi(com_argv[t + 1]);
         }
 
         if ((t = COM_CheckParm("-HCHILD")) > 0)
         {
-//            if (t < com_argc)
-//                heventChild = (HANDLE)Q_atoi(com_argv[t + 1]);
+            //            if (t < com_argc)
+            //                heventChild = (HANDLE)Q_atoi(com_argv[t + 1]);
         }
 
         InitConProc(NULL, NULL, NULL);

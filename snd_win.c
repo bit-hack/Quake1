@@ -18,6 +18,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+#include <Windows.h>
+
+#include <SDL/SDL.h>
+#include <SDL/SDL_syswm.h>
+
 #include "quakedef.h"
 #include "winquake.h"
 
@@ -72,6 +77,17 @@ HINSTANCE hInstDS;
 qboolean SNDDMA_InitDirect(void);
 qboolean SNDDMA_InitWav(void);
 
+static HWND get_hwnd()
+{
+    HWND mainwindow = GetForegroundWindow();
+    SDL_SysWMinfo wminfo;
+    if (SDL_GetWMInfo(&wminfo) == 1)
+    {
+        mainwindow = wminfo.window;
+    }
+    return mainwindow;
+}
+
 /*
 ==================
 S_BlockSound
@@ -79,7 +95,6 @@ S_BlockSound
 */
 void S_BlockSound(void)
 {
-
     // DirectSound takes care of blocking itself
     if (snd_iswave)
     {
@@ -130,7 +145,8 @@ void FreeSound(void)
 
     if (pDS)
     {
-        pDS->lpVtbl->SetCooperativeLevel(pDS, mainwindow, DSSCL_NORMAL);
+        HWND hwnd = get_hwnd();
+        pDS->lpVtbl->SetCooperativeLevel(pDS, hwnd, DSSCL_NORMAL);
         pDS->lpVtbl->Release(pDS);
     }
 
@@ -261,7 +277,8 @@ sndinitstat SNDDMA_InitDirect(void)
         return SIS_FAILURE;
     }
 
-    if (DS_OK != pDS->lpVtbl->SetCooperativeLevel(pDS, mainwindow, DSSCL_EXCLUSIVE))
+    HWND hwnd = get_hwnd();
+    if (DS_OK != pDS->lpVtbl->SetCooperativeLevel(pDS, hwnd, DSSCL_EXCLUSIVE))
     {
         Con_SafePrintf("Set coop level failed\n");
         FreeSound();
@@ -336,7 +353,8 @@ sndinitstat SNDDMA_InitDirect(void)
     }
     else
     {
-        if (DS_OK != pDS->lpVtbl->SetCooperativeLevel(pDS, mainwindow, DSSCL_WRITEPRIMARY))
+        HWND hwnd = get_hwnd();
+        if (DS_OK != pDS->lpVtbl->SetCooperativeLevel(pDS, hwnd, DSSCL_WRITEPRIMARY))
         {
             Con_SafePrintf("Set coop level failed\n");
             FreeSound();
@@ -468,11 +486,10 @@ qboolean SNDDMA_InitWav(void)
     }
 
     /*
-	 * Allocate and lock memory for the waveform data. The memory
-	 * for waveform data must be globally allocated with
-	 * GMEM_MOVEABLE and GMEM_SHARE flags.
-
-	*/
+    * Allocate and lock memory for the waveform data. The memory
+    * for waveform data must be globally allocated with
+    * GMEM_MOVEABLE and GMEM_SHARE flags.
+    */
     gSndBufSize = WAV_BUFFERS * WAV_BUFFER_SIZE;
     hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE, gSndBufSize);
     if (!hData)
@@ -491,10 +508,10 @@ qboolean SNDDMA_InitWav(void)
     memset(lpData, 0, gSndBufSize);
 
     /*
-	 * Allocate and lock memory for the header. This memory must
-	 * also be globally allocated with GMEM_MOVEABLE and
-	 * GMEM_SHARE flags.
-	 */
+    * Allocate and lock memory for the header. This memory must
+    * also be globally allocated with GMEM_MOVEABLE and
+    * GMEM_SHARE flags.
+    */
     hWaveHdr = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE,
         (DWORD)sizeof(WAVEHDR) * WAV_BUFFERS);
 

@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // gl_vidnt.c -- NT GL vid component
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <Windows.h>
 
 #include <SDL/SDL.h>
@@ -28,7 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "winquake.h"
 #include "resource.h"
-#include <commctrl.h>
 
 #define MAX_MODE_LIST 600 //johnfitz -- was 30
 #define VID_ROW_SIZE 3
@@ -74,12 +75,14 @@ const char* gl_vendor;
 const char* gl_renderer;
 const char* gl_version;
 const char* gl_extensions = "";
-const char* wgl_extensions = ""; //johnfitz
+const char* wgl_extensions = "";
 
 qboolean DDActive;
 qboolean scr_skipupdate;
 
+// XXX: default init this list
 static vmode_t modelist[MAX_MODE_LIST];
+
 static int nummodes;
 static vmode_t* pcurrentmode;
 static vmode_t badmode;
@@ -91,13 +94,11 @@ static qboolean vid_canalttab = false;
 static qboolean vid_wassuspended = false;
 static int windowed_mouse;
 extern qboolean mouseactive; // from in_win.c
-static HICON hIcon;
 
 int DIBWidth, DIBHeight;
 RECT WindowRect;
-DWORD WindowStyle, ExWindowStyle;
 
-HWND mainwindow, dibwindow;
+// HWND mainwindow, dibwindow;
 
 int vid_modenum = NO_MODE;
 int vid_realmode;
@@ -105,8 +106,6 @@ int vid_default = MODE_WINDOWED;
 static int windowed_default;
 unsigned char vid_curpal[256 * 3];
 static qboolean fullsbardraw = false;
-
-HDC maindc;
 
 glvert_t glv;
 
@@ -122,8 +121,6 @@ void VID_Menu_f(void); //johnfitz
 void VID_MenuDraw(void);
 void VID_MenuKey(int key);
 
-LONG WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void AppActivate(BOOL fActive, BOOL minimize);
 char* VID_GetModeDescription(int mode);
 void ClearAllStates(void);
 void VID_UpdateWindowStatus(void);
@@ -173,7 +170,7 @@ cvar_t vid_vsync = { "vid_vsync", "0", true };
 cvar_t _windowed_mouse = { "_windowed_mouse", "1", true };
 cvar_t vid_gamma = { "gamma", "1", true }; //johnfitz -- moved here from view.c
 
-int window_center_x, window_center_y, window_x, window_y, window_width, window_height;
+int window_x, window_y, window_width, window_height;
 RECT window_rect;
 
 //==========================================================================
@@ -183,8 +180,10 @@ RECT window_rect;
 //==========================================================================
 
 typedef int(WINAPI* RAMPFUNC)();
+#if 0
 static RAMPFUNC wglGetDeviceGammaRamp3DFX;
 static RAMPFUNC wglSetDeviceGammaRamp3DFX;
+#endif
 
 static unsigned short vid_gammaramp[768];
 static unsigned short vid_systemgammaramp[768]; //to restore gamma on exit
@@ -198,6 +197,7 @@ VID_Gamma_SetGamma -- apply gamma correction
 */
 void VID_Gamma_SetGamma(void)
 {
+#if 0
     if (maindc)
     {
         if (vid_gammaworks)
@@ -208,6 +208,7 @@ void VID_Gamma_SetGamma(void)
             if (wglSetDeviceGammaRamp3DFX(maindc, vid_gammaramp) == false)
                 Con_Printf("VID_Gamma_SetGamma: failed on wglSetDeviceGammaRamp3DFX\n");
     }
+#endif
 }
 
 /*
@@ -217,6 +218,7 @@ VID_Gamma_Restore -- restore system gamma
 */
 void VID_Gamma_Restore(void)
 {
+#if 0
     if (maindc)
     {
         if (vid_gammaworks)
@@ -227,6 +229,7 @@ void VID_Gamma_Restore(void)
             if (wglSetDeviceGammaRamp3DFX(maindc, vid_3dfxgammaramp) == false)
                 Con_Printf("VID_Gamma_Restore: failed on wglSetDeviceGammaRamp3DFX\n");
     }
+#endif
 }
 
 /*
@@ -267,6 +270,7 @@ VID_Gamma_Init -- call on init
 */
 void VID_Gamma_Init(void)
 {
+#if 0
     vid_gammaworks = vid_3dfxgamma = false;
 
     if (strstr(gl_extensions, "WGL_3DFX_gamma_control"))
@@ -284,6 +288,7 @@ void VID_Gamma_Init(void)
         vid_gammaworks = true;
 
     Cvar_RegisterVariable(&vid_gamma, VID_Gamma_f);
+#endif
 }
 
 //==========================================================================
@@ -319,26 +324,6 @@ void D_EndDirectRect(int x, int y, int width, int height)
 {
 }
 
-/*
-================
-CenterWindow
-================
-*/
-static void CenterWindow(HWND hWndCenter, int width, int height, BOOL lefttopjustify)
-{
-    RECT rect;
-    int CenterX, CenterY;
-
-    CenterX = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
-    CenterY = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
-    if (CenterX > CenterY * 2)
-        CenterX >>= 1; // dual screens
-    CenterX = (CenterX < 0) ? 0 : CenterX;
-    CenterY = (CenterY < 0) ? 0 : CenterY;
-    SetWindowPos(hWndCenter, NULL, CenterX, CenterY, 0, 0,
-        SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_DRAWFRAME);
-}
-
 static qboolean CreateSDLWindow(int modenum, qboolean fullscreen)
 {
     // make sure that sdl was initalized
@@ -349,6 +334,12 @@ static qboolean CreateSDLWindow(int modenum, qboolean fullscreen)
             Sys_Error("Unable to initalize SDL, SDL_Init failed");
         }
     }
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     // window creation flags
     const uint32_t flags = SDL_OPENGL | (fullscreen ? SDL_FULLSCREEN : 0);
@@ -362,17 +353,6 @@ static qboolean CreateSDLWindow(int modenum, qboolean fullscreen)
     {
         Sys_Error("SDL_SetVideoMode failed");
     }
-
-#ifdef _WIN32
-    // get a window handle
-    SDL_SysWMinfo wminfo = { 0 };
-    if (!SDL_GetWMInfo(&wminfo))
-    {
-        Sys_Error("SDL_GetWMInfo failed");
-    }
-    dibwindow = wminfo.window;
-    mainwindow = wminfo.window;
-#endif
 
     //johnfitz -- stuff
     vid.width = modelist[modenum].width;
@@ -428,13 +408,6 @@ int VID_SetMode(int modenum)
 {
     int original_mode, temp;
     qboolean stat;
-    MSG msg;
-    HDC hdc;
-
-    if ((windowed && (modenum != 0)) || (!windowed && (modenum < 1)) || (!windowed && (modenum >= nummodes)))
-    {
-        Sys_Error("Bad video mode\n");
-    }
 
     // so Con_Printfs don't mess us up by forcing vid and snd updates
     temp = scr_disabled_for_loading;
@@ -473,11 +446,6 @@ int VID_SetMode(int modenum)
     {
         Sys_Error("VID_SetMode: Bad mode type in modelist");
     }
-
-    //johnfitz -- re-initialize dinput becuase it's tied to the "mainwindow" object
-    if (COM_CheckParm("-dinput"))
-        IN_InitDInput();
-    //johnfitz
 
     window_width = DIBWidth;
     window_height = DIBHeight;
@@ -539,162 +507,7 @@ VID_Restart -- johnfitz -- change video modes on the fly
 */
 void VID_Restart(void)
 {
-    HDC hdc;
-    HGLRC hrc;
-    int i;
-    qboolean mode_changed = false;
-    vmode_t oldmode;
-
-    if (vid_locked)
-        return;
-
-    //
-    // check cvars against current mode
-    //
-    if (vid_fullscreen.value)
-    {
-        if (modelist[vid_default].type == MS_WINDOWED)
-            mode_changed = true;
-        else if (modelist[vid_default].bpp != (int)vid_bpp.value)
-            mode_changed = true;
-        else if (modelist[vid_default].refreshrate != (int)vid_refreshrate.value)
-            mode_changed = true;
-    }
-    else if (modelist[vid_default].type != MS_WINDOWED)
-        mode_changed = true;
-
-    if (modelist[vid_default].width != (int)vid_width.value || modelist[vid_default].height != (int)vid_height.value)
-        mode_changed = true;
-
-    if (mode_changed)
-    {
-        //
-        // decide which mode to set
-        //
-        oldmode = modelist[vid_default];
-
-        if (vid_fullscreen.value)
-        {
-            for (i = 1; i < nummodes; i++)
-            {
-                if (modelist[i].width == (int)vid_width.value && modelist[i].height == (int)vid_height.value && modelist[i].bpp == (int)vid_bpp.value && modelist[i].refreshrate == (int)vid_refreshrate.value)
-                {
-                    break;
-                }
-            }
-
-            if (i == nummodes)
-            {
-                Con_Printf("%dx%dx%d %dHz is not a valid fullscreen mode\n",
-                    (int)vid_width.value,
-                    (int)vid_height.value,
-                    (int)vid_bpp.value,
-                    (int)vid_refreshrate.value);
-                return;
-            }
-
-            windowed = false;
-            vid_default = i;
-        }
-        else //not fullscreen
-        {
-            hdc = GetDC(NULL);
-            if (GetDeviceCaps(hdc, RASTERCAPS) & RC_PALETTE)
-            {
-                Con_Printf("Can't run windowed on non-RGB desktop\n");
-                ReleaseDC(NULL, hdc);
-                return;
-            }
-            ReleaseDC(NULL, hdc);
-
-            if (vid_width.value < 320)
-            {
-                Con_Printf("Window width can't be less than 320\n");
-                return;
-            }
-
-            if (vid_height.value < 200)
-            {
-                Con_Printf("Window height can't be less than 200\n");
-                return;
-            }
-
-            modelist[0].width = (int)vid_width.value;
-            modelist[0].height = (int)vid_height.value;
-            sprintf(modelist[0].modedesc, "%dx%dx%d %dHz",
-                modelist[0].width,
-                modelist[0].height,
-                modelist[0].bpp,
-                modelist[0].refreshrate);
-
-            windowed = true;
-            vid_default = 0;
-        }
-        //
-        // destroy current window
-        //
-        hrc = wglGetCurrentContext();
-        hdc = wglGetCurrentDC();
-        wglMakeCurrent(NULL, NULL);
-
-        vid_canalttab = false;
-
-        if (hdc && dibwindow)
-            ReleaseDC(dibwindow, hdc);
-        if (modestate == MS_FULLDIB)
-            ChangeDisplaySettings(NULL, 0);
-        if (maindc && dibwindow)
-            ReleaseDC(dibwindow, maindc);
-        maindc = NULL;
-        if (dibwindow)
-            DestroyWindow(dibwindow);
-        //
-        // set new mode
-        //
-        VID_SetMode(vid_default);
-        maindc = GetDC(mainwindow);
-        bSetupPixelFormat(maindc);
-
-        // try to reuse existing render context, and if that fails create a new one
-        if (!wglMakeCurrent(maindc, hrc))
-        {
-            wglDeleteContext(hrc);
-            hrc = wglCreateContext(maindc);
-            if (!wglMakeCurrent(maindc, hrc))
-            {
-                char szBuf[80];
-                LPVOID lpMsgBuf;
-                DWORD dw = GetLastError();
-                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-                sprintf(szBuf, "VID_Restart: wglMakeCurrent failed with error %d: %s", dw, lpMsgBuf);
-                Sys_Error(szBuf);
-            }
-            TexMgr_ReloadImages();
-            GL_SetupState();
-        }
-
-        vid_canalttab = true;
-
-        //swapcontrol settings were lost when previous window was destroyed
-        VID_Vsync_f();
-
-        //warpimages needs to be recalculated
-        TexMgr_RecalcWarpImageSize();
-
-        //conwidth and conheight need to be recalculated
-        vid.conwidth = (scr_conwidth.value > 0) ? (int)scr_conwidth.value : (scr_conscale.value > 0) ? (int)(vid.width / scr_conscale.value) : vid.width;
-        vid.conwidth = CLAMP(320, vid.conwidth, vid.width);
-        vid.conwidth &= 0xFFFFFFF8;
-        vid.conheight = vid.conwidth * vid.height / vid.width;
-    }
-    //
-    // keep cvars in line with actual mode
-    //
-    Cvar_Set("vid_width", va("%i", modelist[vid_default].width));
-    Cvar_Set("vid_height", va("%i", modelist[vid_default].height));
-    Cvar_Set("vid_bpp", va("%i", modelist[vid_default].bpp));
-    Cvar_Set("vid_refreshrate", va("%i", modelist[vid_default].refreshrate));
-    Cvar_Set("vid_fullscreen", (windowed) ? "0" : "1");
+    // TODO
 }
 
 /*
@@ -776,9 +589,6 @@ void VID_UpdateWindowStatus(void)
     window_rect.top = window_y;
     window_rect.right = window_x + window_width;
     window_rect.bottom = window_y + window_height;
-    window_center_x = (window_rect.left + window_rect.right) / 2;
-    window_center_y = (window_rect.top + window_rect.bottom) / 2;
-
     IN_UpdateClipCursor();
 }
 
@@ -1005,23 +815,22 @@ static void GL_CheckExtensions(void)
         Con_Warning("texture_filter_anisotropic not supported\n");
 }
 
-/*
-===============
-GetWGLExtensions -- johnfitz
-===============
-*/
 static void GetWGLExtensions(void)
 {
     typedef const char*(__stdcall * wglGetExtensionsStringARB_t)(HDC hdc);
     typedef const char*(__stdcall * wglGetExtensionsStringEXT_t)();
     wglGetExtensionsStringARB_t wglGetExtensionsStringARB = (wglGetExtensionsStringARB_t)wglGetProcAddress("wglGetExtensionsStringARB");
     wglGetExtensionsStringEXT_t wglGetExtensionsStringEXT = (wglGetExtensionsStringEXT_t)wglGetProcAddress("wglGetExtensionsStringEXT");
+    wgl_extensions = "";
     if (wglGetExtensionsStringARB)
-        wgl_extensions = wglGetExtensionsStringARB(maindc);
+    {
+        HDC dc = wglGetCurrentDC();
+        wgl_extensions = wglGetExtensionsStringARB(dc);
+    }
     else if (wglGetExtensionsStringEXT)
+    {
         wgl_extensions = wglGetExtensionsStringEXT();
-    else
-        wgl_extensions = "";
+    }
 }
 
 /*
@@ -1164,75 +973,10 @@ void VID_SetDefaultMode(void)
 
 void VID_Shutdown(void)
 {
-    HGLRC hRC;
-    HDC hDC;
-
     if (vid_initialized)
     {
         vid_canalttab = false;
-        hRC = wglGetCurrentContext();
-        hDC = wglGetCurrentDC();
-#if 0
-        wglMakeCurrent(NULL, NULL);
-        if (hRC)
-            wglDeleteContext(hRC);
-        VID_Gamma_Shutdown(); //johnfitz
-
-        if (hDC && dibwindow)
-            ReleaseDC(dibwindow, hDC);
-
-        if (modestate == MS_FULLDIB)
-            ChangeDisplaySettings(NULL, 0);
-
-        if (maindc && dibwindow)
-            ReleaseDC(dibwindow, maindc);
-#endif
-        AppActivate(false, false);
     }
-}
-
-//==========================================================================
-
-static BOOL bSetupPixelFormat(HDC hDC)
-{
-    static PIXELFORMATDESCRIPTOR pfd = {
-        sizeof(PIXELFORMATDESCRIPTOR), // size of this pfd
-        1, // version number
-        PFD_DRAW_TO_WINDOW | // support window
-            PFD_SUPPORT_OPENGL | // support OpenGL
-            PFD_DOUBLEBUFFER, // double buffered
-        PFD_TYPE_RGBA, // RGBA type
-        24, // 24-bit color depth
-        0, 0, 0, 0, 0, 0, // color bits ignored
-        0, // no alpha buffer
-        0, // shift bit ignored
-        0, // no accumulation buffer
-        0, 0, 0, 0, // accum bits ignored
-        32, // 32-bit z-buffer
-        0, // no stencil buffer
-        0, // no auxiliary buffer
-        PFD_MAIN_PLANE, // main layer
-        0, // reserved
-        0, 0, 0 // layer masks ignored
-    };
-    int pixelformat;
-    PIXELFORMATDESCRIPTOR test; //johnfitz
-
-    if ((pixelformat = ChoosePixelFormat(hDC, &pfd)) == 0)
-    {
-        MessageBox(NULL, "ChoosePixelFormat failed", "Error", MB_OK);
-        return FALSE;
-    }
-
-    DescribePixelFormat(hDC, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), &test); //johnfitz
-
-    if (SetPixelFormat(hDC, pixelformat, &pfd) == FALSE)
-    {
-        MessageBox(NULL, "SetPixelFormat failed", "Error", MB_OK);
-        return FALSE;
-    }
-
-    return TRUE;
 }
 
 /*
@@ -1253,219 +997,6 @@ static void ClearAllStates(void)
     //johnfitz -- moved some code into Key_ClearStates
     Key_ClearStates();
     IN_ClearStates();
-}
-
-/****************************************************************************
-*
-* Function:     AppActivate
-* Parameters:   fActive - True if app is activating
-*
-* Description:  If the application is activating, then swap the system
-*               into SYSPAL_NOSTATIC mode so that our palettes will display
-*               correctly.
-*
-****************************************************************************/
-static void AppActivate(BOOL fActive, BOOL minimize)
-{
-    MSG msg;
-    HDC hdc;
-    int i, t;
-    static BOOL sound_active;
-
-    ActiveApp = fActive;
-    Minimized = minimize;
-
-    // enable/disable sound on focus gain/loss
-    if (!ActiveApp && sound_active)
-    {
-        S_BlockSound();
-        sound_active = false;
-    }
-    else if (ActiveApp && !sound_active)
-    {
-        S_UnblockSound();
-        sound_active = true;
-    }
-
-    if (fActive)
-    {
-#if 0
-        if (modestate == MS_FULLDIB)
-        {
-            IN_ActivateMouse();
-            IN_HideMouse();
-            if (vid_canalttab && vid_wassuspended)
-            {
-                vid_wassuspended = false;
-                ChangeDisplaySettings(&gdevmode, CDS_FULLSCREEN);
-                ShowWindow(mainwindow, SW_SHOWNORMAL);
-                MoveWindow(mainwindow, 0, 0, gdevmode.dmPelsWidth, gdevmode.dmPelsHeight, false); //johnfitz -- alt-tab fix via Baker
-            }
-        }
-        else if ((modestate == MS_WINDOWED) && _windowed_mouse.value && key_dest == key_game)
-        {
-            IN_ActivateMouse();
-            IN_HideMouse();
-        }
-#endif
-        VID_Gamma_SetGamma(); //johnfitz
-    }
-
-    if (!fActive)
-    {
-#if 0
-        if (modestate == MS_FULLDIB)
-        {
-            IN_DeactivateMouse();
-            IN_ShowMouse();
-            if (vid_canalttab)
-            {
-                ChangeDisplaySettings(NULL, 0);
-                vid_wassuspended = true;
-            }
-        }
-        else if ((modestate == MS_WINDOWED) && _windowed_mouse.value)
-        {
-            IN_DeactivateMouse();
-            IN_ShowMouse();
-        }
-#endif
-        VID_Gamma_Restore(); //johnfitz
-    }
-}
-
-/* main window procedure */
-static LONG WINAPI MainWndProc(
-    HWND hWnd,
-    UINT uMsg,
-    WPARAM wParam,
-    LPARAM lParam)
-{
-#if 0
-    LONG lRet = 1;
-    int fwKeys, xPos, yPos, fActive, fMinimized, temp;
-    extern unsigned int uiWheelMessage;
-
-    if (uMsg == uiWheelMessage)
-        uMsg = WM_MOUSEWHEEL;
-
-    switch (uMsg)
-    {
-    case WM_KILLFOCUS:
-        if (modestate == MS_FULLDIB)
-            ShowWindow(mainwindow, SW_SHOWMINNOACTIVE);
-        break;
-
-    case WM_CREATE:
-        break;
-
-    case WM_MOVE:
-        window_x = (int)LOWORD(lParam);
-        window_y = (int)HIWORD(lParam);
-        VID_UpdateWindowStatus();
-        break;
-
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-        Key_Event(MapKey(lParam), true);
-        break;
-
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-        Key_Event(MapKey(lParam), false);
-        break;
-
-    case WM_SYSCHAR:
-        // keep Alt-Space from happening
-        break;
-
-    // this is complicated because Win32 seems to pack multiple mouse events into
-    // one update sometimes, so we always check all states and look for events
-    case WM_LBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
-    case WM_MBUTTONDOWN:
-    case WM_MBUTTONUP:
-    case WM_MOUSEMOVE:
-        temp = 0;
-
-        if (wParam & MK_LBUTTON)
-            temp |= 1;
-
-        if (wParam & MK_RBUTTON)
-            temp |= 2;
-
-        if (wParam & MK_MBUTTON)
-            temp |= 4;
-
-        IN_MouseEvent(temp);
-
-        break;
-
-    // JACK: This is the mouse wheel with the Intellimouse
-    // Its delta is either positive or neg, and we generate the proper
-    // Event.
-    case WM_MOUSEWHEEL:
-        if ((short)HIWORD(wParam) > 0)
-        {
-            Key_Event(K_MWHEELUP, true);
-            Key_Event(K_MWHEELUP, false);
-        }
-        else
-        {
-            Key_Event(K_MWHEELDOWN, true);
-            Key_Event(K_MWHEELDOWN, false);
-        }
-        break;
-
-    case WM_SIZE:
-        break;
-
-    case WM_CLOSE:
-        if (MessageBox(mainwindow, "Are you sure you want to quit?", "Confirm Exit",
-                MB_YESNO | MB_SETFOREGROUND | MB_ICONQUESTION)
-            == IDYES)
-        {
-            Sys_Quit();
-        }
-
-        break;
-
-    case WM_ACTIVATE:
-        fActive = LOWORD(wParam);
-        fMinimized = (BOOL)HIWORD(wParam);
-        AppActivate(!(fActive == WA_INACTIVE), fMinimized);
-
-        // fix the leftover Alt from any Alt-Tab or the like that switched us away
-        ClearAllStates();
-
-        break;
-
-    case WM_DESTROY:
-    {
-        if (dibwindow)
-            DestroyWindow(dibwindow);
-
-        PostQuitMessage(0);
-    }
-    break;
-
-    case MM_MCINOTIFY:
-        lRet = CDAudio_MessageHandler(hWnd, uMsg, wParam, lParam);
-        break;
-
-    default:
-        /* pass all unhandled messages to DefWindowProc */
-        lRet = DefWindowProc(hWnd, uMsg, wParam, lParam);
-        break;
-    }
-
-    /* return 1 if handled message, 0 if not */
-    return lRet;
-#else
-    return 0;
-#endif
 }
 
 //==========================================================================
@@ -1491,7 +1022,6 @@ VID_GetModePtr
 */
 vmode_t* VID_GetModePtr(int modenum)
 {
-
     if ((modenum >= 0) && (modenum < nummodes))
         return &modelist[modenum];
     else
@@ -1505,7 +1035,7 @@ VID_GetModeDescription
 */
 char* VID_GetModeDescription(int mode)
 {
-    char* pinfo;
+    char* pinfo = "";
     vmode_t* pv;
     static char temp[100];
 
@@ -1519,11 +1049,13 @@ char* VID_GetModeDescription(int mode)
     }
     else
     {
+#if 0
         sprintf(temp, "Desktop resolution (%ix%ix%i)", //johnfitz -- added bpp
             modelist[MODE_FULLSCREEN_DEFAULT].width,
             modelist[MODE_FULLSCREEN_DEFAULT].height,
             modelist[MODE_FULLSCREEN_DEFAULT].bpp); //johnfitz -- added bpp
         pinfo = temp;
+#endif
     }
 
     return pinfo;
@@ -1569,25 +1101,16 @@ char* VID_GetExtModeDescription(int mode)
     return pinfo;
 }
 
-/*
-=================
-VID_DescribeCurrentMode_f
-=================
-*/
-void VID_DescribeCurrentMode_f(void)
+// command: "vid_describecurrentmode"
+static void VID_DescribeCurrentMode_f(void)
 {
     Con_Printf("%s\n", VID_GetExtModeDescription(vid_modenum));
 }
 
-/*
-=================
-VID_DescribeModes_f -- johnfitz -- changed formatting, and added refresh rates after each mode.
-=================
-*/
-void VID_DescribeModes_f(void)
+// command: "vid_describemodes"
+static void VID_DescribeModes_f(void)
 {
     int i, lnummodes, t;
-    char* pinfo;
     vmode_t* pv;
     int lastwidth = 0, lastheight = 0, lastbpp = 0, count = 0;
 
@@ -1630,28 +1153,8 @@ void VID_DescribeModes_f(void)
 VID_InitDIB
 =================
 */
-void VID_InitDIB(HINSTANCE hInstance)
+static void VID_InitDIB()
 {
-    DEVMODE devmode; //johnfitz
-    WNDCLASS wc;
-    HDC hdc;
-    int i;
-
-    /* Register the frame class */
-    wc.style = 0;
-    wc.lpfnWndProc = (WNDPROC)MainWndProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = hInstance;
-    wc.hIcon = 0;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = NULL;
-    wc.lpszMenuName = 0;
-    wc.lpszClassName = "FitzQuake"; //johnfitz -- was WinQuake
-
-    if (!RegisterClass(&wc))
-        Sys_Error("Couldn't register window class");
-
     modelist[0].type = MS_WINDOWED;
 
     if (COM_CheckParm("-width"))
@@ -1670,16 +1173,8 @@ void VID_InitDIB(HINSTANCE hInstance)
     if (modelist[0].height < 200) //johnfitz -- was 240
         modelist[0].height = 200; //johnfitz -- was 240
 
-    //johnfitz -- get desktop bit depth
-    hdc = GetDC(NULL);
-    modelist[0].bpp = GetDeviceCaps(hdc, BITSPIXEL);
-    ReleaseDC(NULL, hdc);
-    //johnfitz
-
-    //johnfitz -- get refreshrate
-    if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &devmode))
-        modelist[0].refreshrate = devmode.dmDisplayFrequency;
-    //johnfitz
+    modelist[0].bpp = 32;
+    modelist[0].refreshrate = 0;
 
     sprintf(modelist[0].modedesc, "%dx%dx%d %dHz", //johnfitz -- added bpp, refreshrate
         modelist[0].width,
@@ -1696,168 +1191,16 @@ void VID_InitDIB(HINSTANCE hInstance)
 }
 
 /*
-=================
-VID_InitFullDIB
-=================
-*/
-void VID_InitFullDIB(HINSTANCE hInstance)
-{
-    DEVMODE devmode;
-    int i, modenum, cmodes, originalnummodes, existingmode, numlowresmodes;
-    int j, bpp, done;
-    BOOL stat;
-
-    // enumerate >8 bpp modes
-    originalnummodes = nummodes;
-    modenum = 0;
-
-    do
-    {
-        stat = EnumDisplaySettings(NULL, modenum, &devmode);
-
-        if ((devmode.dmBitsPerPel >= 15) && (devmode.dmPelsWidth <= MAXWIDTH) && (devmode.dmPelsHeight <= MAXHEIGHT) && (nummodes < MAX_MODE_LIST))
-        {
-            devmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY; //johnfitz -- refreshrate
-
-            if (ChangeDisplaySettings(&devmode, CDS_TEST | CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL)
-            {
-                modelist[nummodes].type = MS_FULLDIB;
-                modelist[nummodes].width = devmode.dmPelsWidth;
-                modelist[nummodes].height = devmode.dmPelsHeight;
-                modelist[nummodes].modenum = 0;
-                modelist[nummodes].halfscreen = 0;
-                modelist[nummodes].dib = 1;
-                modelist[nummodes].fullscreen = 1;
-                modelist[nummodes].bpp = devmode.dmBitsPerPel;
-                modelist[nummodes].refreshrate = devmode.dmDisplayFrequency; //johnfitz -- refreshrate
-                sprintf(modelist[nummodes].modedesc, "%dx%dx%d %dHz", //johnfitz -- refreshrate
-                    devmode.dmPelsWidth,
-                    devmode.dmPelsHeight,
-                    devmode.dmBitsPerPel,
-                    devmode.dmDisplayFrequency); //johnfitz -- refreshrate
-
-                // if the width is more than twice the height, reduce it by half because this
-                // is probably a dual-screen monitor
-                if (!COM_CheckParm("-noadjustaspect"))
-                {
-                    if (modelist[nummodes].width > (modelist[nummodes].height << 1))
-                    {
-                        modelist[nummodes].width >>= 1;
-                        modelist[nummodes].halfscreen = 1;
-                        sprintf(modelist[nummodes].modedesc, "%dx%dx%d %dHz", //johnfitz -- refreshrate
-                            modelist[nummodes].width,
-                            modelist[nummodes].height,
-                            modelist[nummodes].bpp,
-                            modelist[nummodes].refreshrate); //johnfitz -- refreshrate
-                    }
-                }
-
-                for (i = originalnummodes, existingmode = 0; i < nummodes; i++)
-                {
-                    if ((modelist[nummodes].width == modelist[i].width) && (modelist[nummodes].height == modelist[i].height) && (modelist[nummodes].bpp == modelist[i].bpp) && (modelist[nummodes].refreshrate == modelist[i].refreshrate)) //johnfitz -- refreshrate
-                    {
-                        existingmode = 1;
-                        break;
-                    }
-                }
-
-                if (!existingmode)
-                {
-                    nummodes++;
-                }
-            }
-        }
-
-        modenum++;
-    } while (stat);
-
-    // see if there are any low-res modes that aren't being reported
-    numlowresmodes = sizeof(lowresmodes) / sizeof(lowresmodes[0]);
-    bpp = 16;
-    done = 0;
-
-    do
-    {
-        for (j = 0; (j < numlowresmodes) && (nummodes < MAX_MODE_LIST); j++)
-        {
-            devmode.dmBitsPerPel = bpp;
-            devmode.dmPelsWidth = lowresmodes[j].width;
-            devmode.dmPelsHeight = lowresmodes[j].height;
-            devmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY; //johnfitz -- refreshrate;
-
-            if (ChangeDisplaySettings(&devmode, CDS_TEST | CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL)
-            {
-                modelist[nummodes].type = MS_FULLDIB;
-                modelist[nummodes].width = devmode.dmPelsWidth;
-                modelist[nummodes].height = devmode.dmPelsHeight;
-                modelist[nummodes].modenum = 0;
-                modelist[nummodes].halfscreen = 0;
-                modelist[nummodes].dib = 1;
-                modelist[nummodes].fullscreen = 1;
-                modelist[nummodes].bpp = devmode.dmBitsPerPel;
-                modelist[nummodes].refreshrate = devmode.dmDisplayFrequency; //johnfitz -- refreshrate
-                sprintf(modelist[nummodes].modedesc, "%dx%dx%d %dHz", //johnfitz -- refreshrate
-                    devmode.dmPelsWidth,
-                    devmode.dmPelsHeight,
-                    devmode.dmBitsPerPel,
-                    devmode.dmDisplayFrequency); //johnfitz -- refreshrate
-
-                for (i = originalnummodes, existingmode = 0; i < nummodes; i++)
-                {
-                    if ((modelist[nummodes].width == modelist[i].width) && (modelist[nummodes].height == modelist[i].height) && (modelist[nummodes].bpp == modelist[i].bpp) && (modelist[nummodes].refreshrate == modelist[i].refreshrate)) //johnfitz -- refreshrate
-                    {
-                        existingmode = 1;
-                        break;
-                    }
-                }
-
-                if (!existingmode)
-                {
-                    nummodes++;
-                }
-            }
-        }
-        switch (bpp)
-        {
-        case 16:
-            bpp = 32;
-            break;
-
-        case 32:
-            bpp = 24;
-            break;
-
-        case 24:
-            done = 1;
-            break;
-        }
-    } while (!done);
-
-    if (nummodes == originalnummodes)
-        Con_SafePrintf("No fullscreen DIB modes found\n");
-}
-
-/*
 ===================
 VID_Init
 ===================
 */
 void VID_Init(void)
 {
-    int i, existingmode;
-    int basenummodes, width, height, bpp, findbpp, done;
-    byte* ptmp;
-    char gldir[MAX_OSPATH];
-    HGLRC baseRC; //johnfitz -- moved here from global scope, since it was only used in this
-    HDC hdc;
-    DEVMODE devmode;
-
     //johnfitz -- clean up init readouts
     //Con_Printf("------------- Init Video -------------\n");
     //Con_Printf("%cVideo Init\n", 2);
     //johnfitz
-
-    memset(&devmode, 0, sizeof(devmode));
 
     Cvar_RegisterVariable(&vid_fullscreen, NULL); //johnfitz
     Cvar_RegisterVariable(&vid_width, NULL); //johnfitz
@@ -1872,172 +1215,8 @@ void VID_Init(void)
     Cmd_AddCommand("vid_describecurrentmode", VID_DescribeCurrentMode_f);
     Cmd_AddCommand("vid_describemodes", VID_DescribeModes_f);
 
-    hIcon = LoadIcon(global_hInstance, MAKEINTRESOURCE(IDI_ICON2));
-
-    InitCommonControls();
-
-    VID_InitDIB(global_hInstance);
-    basenummodes = nummodes = 1;
-
-    VID_InitFullDIB(global_hInstance);
-
-    if (COM_CheckParm("-window"))
-    {
-        hdc = GetDC(NULL);
-
-        if (GetDeviceCaps(hdc, RASTERCAPS) & RC_PALETTE)
-        {
-            Sys_Error("Can't run in non-RGB mode");
-        }
-
-        ReleaseDC(NULL, hdc);
-
-        windowed = true;
-
-        vid_default = MODE_WINDOWED;
-    }
-    else
-    {
-        if (nummodes == 1)
-            Sys_Error("No RGB fullscreen modes available");
-
-        windowed = false;
-
-        if (COM_CheckParm("-mode"))
-        {
-            vid_default = Q_atoi(com_argv[COM_CheckParm("-mode") + 1]);
-        }
-        else
-        {
-            if (COM_CheckParm("-current"))
-            {
-                modelist[MODE_FULLSCREEN_DEFAULT].width = GetSystemMetrics(SM_CXSCREEN);
-                modelist[MODE_FULLSCREEN_DEFAULT].height = GetSystemMetrics(SM_CYSCREEN);
-                vid_default = MODE_FULLSCREEN_DEFAULT;
-                leavecurrentmode = 1;
-            }
-            else
-            {
-                if (COM_CheckParm("-width"))
-                {
-                    width = Q_atoi(com_argv[COM_CheckParm("-width") + 1]);
-                }
-                else
-                {
-                    width = 640;
-                }
-
-                if (COM_CheckParm("-bpp"))
-                {
-                    bpp = Q_atoi(com_argv[COM_CheckParm("-bpp") + 1]);
-                    findbpp = 0;
-                }
-                else
-                {
-                    bpp = 15;
-                    findbpp = 1;
-                }
-
-                if (COM_CheckParm("-height"))
-                    height = Q_atoi(com_argv[COM_CheckParm("-height") + 1]);
-
-                // if they want to force it, add the specified mode to the list
-                if (COM_CheckParm("-force") && (nummodes < MAX_MODE_LIST))
-                {
-                    modelist[nummodes].type = MS_FULLDIB;
-                    modelist[nummodes].width = width;
-                    modelist[nummodes].height = height;
-                    modelist[nummodes].modenum = 0;
-                    modelist[nummodes].halfscreen = 0;
-                    modelist[nummodes].dib = 1;
-                    modelist[nummodes].fullscreen = 1;
-                    modelist[nummodes].bpp = bpp;
-                    sprintf(modelist[nummodes].modedesc, "%dx%dx%d %dHz", //johnfitz -- refreshrate
-                        devmode.dmPelsWidth,
-                        devmode.dmPelsHeight,
-                        devmode.dmBitsPerPel,
-                        devmode.dmDisplayFrequency); //johnfitz -- refreshrate
-
-                    for (i = nummodes, existingmode = 0; i < nummodes; i++)
-                    {
-                        if ((modelist[nummodes].width == modelist[i].width) && (modelist[nummodes].height == modelist[i].height) && (modelist[nummodes].bpp == modelist[i].bpp) && (modelist[nummodes].refreshrate == modelist[i].refreshrate)) //johnfitz -- refreshrate
-                        {
-                            existingmode = 1;
-                            break;
-                        }
-                    }
-
-                    if (!existingmode)
-                    {
-                        nummodes++;
-                    }
-                }
-
-                done = 0;
-
-                do
-                {
-                    if (COM_CheckParm("-height"))
-                    {
-                        height = Q_atoi(com_argv[COM_CheckParm("-height") + 1]);
-
-                        for (i = 1, vid_default = 0; i < nummodes; i++)
-                        {
-                            if ((modelist[i].width == width) && (modelist[i].height == height) && (modelist[i].bpp == bpp))
-                            {
-                                vid_default = i;
-                                done = 1;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (i = 1, vid_default = 0; i < nummodes; i++)
-                        {
-                            if ((modelist[i].width == width) && (modelist[i].bpp == bpp))
-                            {
-                                vid_default = i;
-                                done = 1;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!done)
-                    {
-                        if (findbpp)
-                        {
-                            switch (bpp)
-                            {
-                            case 15:
-                                bpp = 16;
-                                break;
-                            case 16:
-                                bpp = 32;
-                                break;
-                            case 32:
-                                bpp = 24;
-                                break;
-                            case 24:
-                                done = 1;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            done = 1;
-                        }
-                    }
-                } while (!done);
-
-                if (!vid_default)
-                {
-                    Sys_Error("Specified video mode not available");
-                }
-            }
-        }
-    }
+    // Enumerate display modes
+    VID_InitDIB();
 
     vid_initialized = true;
 
@@ -2046,16 +1225,15 @@ void VID_Init(void)
     vid.colormap = host_colormap;
     vid.fullbright = 256 - LittleLong(*((int*)vid.colormap + 2048));
 
-    DestroyWindow(hwnd_dialog);
+    //    DestroyWindow(hwnd_dialog);
 
-    VID_SetMode(vid_default);
+    VID_SetMode(vid_default); // create our SDL window
 
     GL_Init();
 
     //johnfitz -- removed code to create "glquake" subdirectory
 
     vid_realmode = vid_modenum;
-
     vid_menucmdfn = VID_Menu_f; //johnfitz
     vid_menudrawfn = VID_MenuDraw;
     vid_menukeyfn = VID_MenuKey;
@@ -2133,32 +1311,24 @@ enum
 
 #define VIDEO_OPTIONS_ITEMS 6
 int video_cursor_table[] = { 48, 56, 64, 72, 88, 96 };
-int video_options_cursor = 0;
+int video_options_cursor;
 
 typedef struct
 {
     int width, height;
 } vid_menu_mode;
 
-int vid_menu_rwidth;
-int vid_menu_rheight;
-
 //TODO: replace these fixed-length arrays with hunk_allocated buffers
 
 vid_menu_mode vid_menu_modes[MAX_MODE_LIST];
-int vid_menu_nummodes = 0;
-
+int vid_menu_nummodes;
 int vid_menu_bpps[4];
-int vid_menu_numbpps = 0;
-
+int vid_menu_numbpps;
 int vid_menu_rates[20];
-int vid_menu_numrates = 0;
+int vid_menu_numrates;
+int vid_menu_rwidth;
+int vid_menu_rheight;
 
-/*
-================
-VID_Menu_Init
-================
-*/
 void VID_Menu_Init(void)
 {
     int i, j, h, w;
@@ -2416,11 +1586,6 @@ void VID_Menu_ChooseNextRate(int dir)
     Cvar_SetValue("vid_refreshrate", (float)vid_menu_rates[i]);
 }
 
-/*
-================
-VID_MenuKey
-================
-*/
 void VID_MenuKey(int key)
 {
     switch (key)
@@ -2523,11 +1688,6 @@ void VID_MenuKey(int key)
     }
 }
 
-/*
-================
-VID_MenuDraw
-================
-*/
 void VID_MenuDraw(void)
 {
     int i = 0;
@@ -2575,11 +1735,6 @@ void VID_MenuDraw(void)
     //	M_Print (16, 188, "larger than the desktop resolution. ");
 }
 
-/*
-================
-VID_Menu_f
-================
-*/
 void VID_Menu_f(void)
 {
     key_dest = key_menu;
