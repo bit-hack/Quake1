@@ -427,13 +427,6 @@ sndinitstat SNDDMA_InitDirect(void)
     return SIS_SUCCESS;
 }
 
-/*
-==================
-SNDDM_InitWav
-
-Crappy windows multimedia base
-==================
-*/
 qboolean SNDDMA_InitWav(void)
 {
     WAVEFORMATEX format;

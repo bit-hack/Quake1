@@ -18,8 +18,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// in_win.c -- windows 95 mouse and joystick code
-// 02/21/97 JCB Added extended DirectInput code to support external controllers.
+
+#include <SDL/SDL.h>
 
 #include "quakedef.h"
 #include "winquake.h"
@@ -117,6 +117,54 @@ static HINSTANCE hInstDI;
 void IN_StartupJoystick(void);
 void Joy_AdvancedUpdate_f(void);
 void IN_JoyMove(usercmd_t* cmd);
+
+/* Map from SDL to quake keynums */
+static int MapKey(int key)
+{
+    switch (key)
+    {
+    case SDLK_RETURN:
+        return K_ENTER;
+    case SDLK_HOME:
+        return K_HOME;
+    case SDLK_UP:
+        return K_UPARROW;
+    case SDLK_PAGEUP:
+        return K_PGUP;
+    case SDLK_LEFT:
+        return K_LEFTARROW;
+    case SDLK_RIGHT:
+        return K_RIGHTARROW;
+    case SDLK_END:
+        return K_END;
+    case SDLK_DOWN:
+        return K_DOWNARROW;
+    case SDLK_PAGEDOWN:
+        return K_PGDN;
+    case SDLK_INSERT:
+        return K_INS;
+    case SDLK_DELETE:
+        return K_DEL;
+    case SDLK_ESCAPE:
+        return K_ESCAPE;
+    case SDLK_ASTERISK:
+        return '*';
+    case SDLK_MINUS:
+        return '-';
+    case SDLK_5:
+        return '5';
+    case SDLK_PLUS:
+        return '+';
+    case SDLK_LCTRL:
+    case SDLK_RCTRL:
+        return K_CTRL;
+    case SDLK_LSHIFT:
+    case SDLK_RSHIFT:
+        return K_SHIFT;
+    default:
+        return key;
+    }
+}
 
 void Force_CenterView_f(void)
 {
@@ -278,4 +326,16 @@ qboolean IN_ReadJoystick(void)
 
 void IN_JoyMove(usercmd_t* cmd)
 {
+}
+
+// process SDL input related events
+void IN_SDLEvent(const SDL_Event *event) {
+  switch (event->type) {
+  case SDL_KEYDOWN:
+    Key_Event(MapKey(event->key.keysym.sym), true);
+    break;
+  case SDL_KEYUP:
+    Key_Event(MapKey(event->key.keysym.sym), false);
+    break;
+  }
 }

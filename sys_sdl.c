@@ -513,84 +513,75 @@ static void SleepUntilInput(int time)
     //    MsgWaitForMultipleObjects(1, &tevent, FALSE, time, QS_ALLINPUT);
 }
 
-/* Map from SDL to quake keynums */
-static int MapKey(int key)
-{
-    switch (key)
-    {
-    case SDLK_RETURN:
-        return K_ENTER;
-    case SDLK_SLASH:
-        // XXX: FIXME
-        return KP_SLASH;
-    case SDLK_HOME:
-        return K_HOME;
-    case SDLK_UP:
-        return K_UPARROW;
-    case SDLK_PAGEUP:
-        return K_PGUP;
-    case SDLK_LEFT:
-        return K_LEFTARROW;
-    case SDLK_RIGHT:
-        return K_RIGHTARROW;
-    case SDLK_END:
-        return K_END;
-    case SDLK_DOWN:
-        return K_DOWNARROW;
-    case SDLK_PAGEDOWN:
-        return K_PGDN;
-    case SDLK_INSERT:
-        return K_INS;
-    case SDLK_DELETE:
-        return K_DEL;
-    case SDLK_ESCAPE:
-        return K_ESCAPE;
-    case SDLK_ASTERISK:
-        return '*';
-    case SDLK_MINUS:
-        return '-';
-    case SDLK_5:
-        return '5';
-    case SDLK_PLUS:
-        return '+';
-    case SDLK_LCTRL:
-    case SDLK_RCTRL:
-        return K_CTRL;
-    case SDLK_LSHIFT:
-    case SDLK_RSHIFT:
-        return K_SHIFT;
-    default:
-        return key;
-    }
-}
-
 static void PollSDLEvents()
 {
+    void IN_SDLEvent(const SDL_Event* event);
+
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
         {
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+            IN_SDLEvent(&event);
+            break;
         case SDL_QUIT:
             Sys_Quit();
             return;
-        case SDL_KEYDOWN:
-            Key_Event(MapKey(event.key.keysym.sym), true);
-            break;
-        case SDL_KEYUP:
-            Key_Event(MapKey(event.key.keysym.sym), false);
-            break;
         }
+    }
+}
+
+void SYS_MainLoop()
+{
+    double time, oldtime, newtime;
+    oldtime = Sys_FloatTime();
+
+    /* main window message loop */
+    while (1)
+    {
+        PollSDLEvents();
+
+        if (isDedicated)
+        {
+            newtime = Sys_FloatTime();
+            time = newtime - oldtime;
+
+            while (time < sys_ticrate.value)
+            {
+                Sys_Sleep();
+                newtime = Sys_FloatTime();
+                time = newtime - oldtime;
+            }
+        }
+        else
+        {
+            // yield the CPU for a little while when paused, minimized, or not the focus
+            if ((cl.paused && (!ActiveApp && !DDActive)) || Minimized || block_drawing)
+            {
+                SleepUntilInput(PAUSE_SLEEP);
+                scr_skipupdate = 1; // no point in bothering to draw
+            }
+            else if (!ActiveApp && !DDActive)
+            {
+                SleepUntilInput(NOT_FOCUS_SLEEP);
+            }
+
+            newtime = Sys_FloatTime();
+            time = newtime - oldtime;
+        }
+
+        Host_Frame(time);
+        oldtime = newtime;
     }
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     quakeparms_t parms;
-    double time, oldtime, newtime;
     static char cwd[1024] = { 0 };
     int t;
-//    RECT rect;
 
     /* previous instances do not exist in Win32 */
     if (hPrevInstance)
@@ -731,45 +722,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Sys_Printf("Host_Init\n");
     Host_Init(&parms);
 
-    oldtime = Sys_FloatTime();
-
-    /* main window message loop */
-    while (1)
-    {
-        PollSDLEvents();
-
-        if (isDedicated)
-        {
-            newtime = Sys_FloatTime();
-            time = newtime - oldtime;
-
-            while (time < sys_ticrate.value)
-            {
-                Sys_Sleep();
-                newtime = Sys_FloatTime();
-                time = newtime - oldtime;
-            }
-        }
-        else
-        {
-            // yield the CPU for a little while when paused, minimized, or not the focus
-            if ((cl.paused && (!ActiveApp && !DDActive)) || Minimized || block_drawing)
-            {
-                SleepUntilInput(PAUSE_SLEEP);
-                scr_skipupdate = 1; // no point in bothering to draw
-            }
-            else if (!ActiveApp && !DDActive)
-            {
-                SleepUntilInput(NOT_FOCUS_SLEEP);
-            }
-
-            newtime = Sys_FloatTime();
-            time = newtime - oldtime;
-        }
-
-        Host_Frame(time);
-        oldtime = newtime;
-    }
+    // execute the main game loop
+    SYS_MainLoop();
 
     /* return success of application */
     return TRUE;

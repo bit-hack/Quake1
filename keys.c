@@ -687,6 +687,7 @@ void Key_Init(void)
     //
     for (i = 32; i < 128; i++)
         consolekeys[i] = true;
+
     consolekeys[K_ENTER] = true;
     consolekeys[KP_ENTER] = true; //johnfitz
     consolekeys[K_TAB] = true;
