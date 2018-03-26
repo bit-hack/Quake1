@@ -31,7 +31,7 @@ byte* S_Alloc(int size);
 ResampleSfx
 ================
 */
-void ResampleSfx(sfx_t* sfx, int inrate, int inwidth, byte* data)
+static void ResampleSfx(sfx_t* sfx, int inrate, int inwidth, byte* data)
 {
     int outcount;
     int srcsample;
@@ -44,14 +44,14 @@ void ResampleSfx(sfx_t* sfx, int inrate, int inwidth, byte* data)
     if (!sc)
         return;
 
-    stepscale = (float)inrate / shm->speed; // this is usually 0.5, 1, or 2
+    stepscale = (float)inrate / S_SampleRate(); // this is usually 0.5, 1, or 2
 
     outcount = sc->length / stepscale;
     sc->length = outcount;
     if (sc->loopstart != -1)
         sc->loopstart = sc->loopstart / stepscale;
 
-    sc->speed = shm->speed;
+    sc->speed = S_SampleRate();
     if (loadas8bit.value)
         sc->width = 1;
     else
@@ -132,7 +132,7 @@ sfxcache_t* S_LoadSound(sfx_t* s)
         return NULL;
     }
 
-    stepscale = (float)info.rate / shm->speed;
+    stepscale = (float)info.rate / S_SampleRate();
     len = info.samples / stepscale;
 
     len = len * info.width * info.channels;

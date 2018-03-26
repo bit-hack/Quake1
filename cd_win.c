@@ -24,12 +24,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_syswm.h>
+#include <SDL.h>
+#include <SDL_syswm.h>
 
 #include "quakedef.h"
 
+// XXX: defined in snd
+#if 0
 extern cvar_t bgmvolume;
+#endif
 
 static qboolean cdValid = false;
 static qboolean playing = false;
@@ -411,6 +414,8 @@ void CDAudio_Update(void)
     if (!enabled)
         return;
 
+    //XXX: defined in snd
+#if 0
     if (bgmvolume.value != cdvolume)
     {
         if (cdvolume)
@@ -426,6 +431,7 @@ void CDAudio_Update(void)
             CDAudio_Resume();
         }
     }
+#endif
 }
 
 int CDAudio_Init(void)

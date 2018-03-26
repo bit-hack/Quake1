@@ -20,11 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include <Windows.h>
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_syswm.h>
+#include <SDL.h>
+#include <SDL_syswm.h>
 
-#include "quakedef.h"
-#include "winquake.h"
+#include "../quakedef.h"
+#include "../winquake.h"
 
 #define iDirectSoundCreate(a, b, c) pDirectSoundCreate(a, b, c)
 
@@ -427,6 +427,13 @@ sndinitstat SNDDMA_InitDirect(void)
     return SIS_SUCCESS;
 }
 
+/*
+==================
+SNDDM_InitWav
+
+Crappy windows multimedia base
+==================
+*/
 qboolean SNDDMA_InitWav(void)
 {
     WAVEFORMATEX format;

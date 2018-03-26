@@ -1039,63 +1039,67 @@ void M_AdjustSliders(int dir)
 {
     S_LocalSound("misc/menu3.wav");
 
+    cvar_t *bgmvolume = Cvar_FindVar("bgmvolume");
+    cvar_t *volume = Cvar_FindVar("volume");
+
     switch (options_cursor)
     {
     case 3: // screen size
-        scr_viewsize.value += dir * 10;
-        if (scr_viewsize.value < 30)
-            scr_viewsize.value = 30;
-        if (scr_viewsize.value > 120)
-            scr_viewsize.value = 120;
+        scr_viewsize.value += dir * 10.f;
+        if (scr_viewsize.value < 30.f)
+            scr_viewsize.value = 30.f;
+        if (scr_viewsize.value > 120.f)
+            scr_viewsize.value = 120.f;
         Cvar_SetValue("viewsize", scr_viewsize.value);
         break;
     case 4: // gamma
-        vid_gamma.value -= dir * 0.05;
-        if (vid_gamma.value < 0.5)
-            vid_gamma.value = 0.5;
-        if (vid_gamma.value > 1)
-            vid_gamma.value = 1;
+        vid_gamma.value -= dir * 0.05f;
+        if (vid_gamma.value < 0.5f)
+            vid_gamma.value = 0.5f;
+        if (vid_gamma.value > 1.f)
+            vid_gamma.value = 1.f;
         Cvar_SetValue("gamma", vid_gamma.value);
         break;
     case 5: // mouse speed
-        sensitivity.value += dir * 0.5;
-        if (sensitivity.value < 1)
-            sensitivity.value = 1;
-        if (sensitivity.value > 11)
-            sensitivity.value = 11;
+        sensitivity.value += dir * 0.5f;
+        if (sensitivity.value < 1.f)
+            sensitivity.value = 1.f;
+        if (sensitivity.value > 11.f)
+            sensitivity.value = 11.f;
         Cvar_SetValue("sensitivity", sensitivity.value);
         break;
     case 6: // music volume
-#ifdef _WIN32
-        bgmvolume.value += dir * 1.0;
-#else
-        bgmvolume.value += dir * 0.1;
-#endif
-        if (bgmvolume.value < 0)
-            bgmvolume.value = 0;
-        if (bgmvolume.value > 1)
-            bgmvolume.value = 1;
-        Cvar_SetValue("bgmvolume", bgmvolume.value);
+        if (bgmvolume)
+        {
+            bgmvolume->value += dir * 1.0f;
+            if (bgmvolume->value < 0.f)
+                bgmvolume->value = 0.f;
+            if (bgmvolume->value > 1.f)
+                bgmvolume->value = 1.f;
+            Cvar_SetValue("bgmvolume", bgmvolume->value);
+        }
         break;
     case 7: // sfx volume
-        volume.value += dir * 0.1;
-        if (volume.value < 0)
-            volume.value = 0;
-        if (volume.value > 1)
-            volume.value = 1;
-        Cvar_SetValue("volume", volume.value);
-        break;
-
-    case 8: // allways run
-        if (cl_forwardspeed.value > 200)
+        if (volume)
         {
-            Cvar_SetValue("cl_forwardspeed", 200);
-            Cvar_SetValue("cl_backspeed", 200);
+            volume->value += dir * 0.1f;
+            if (volume->value < 0.f)
+                volume->value = 0.f;
+            if (volume->value > 1.f)
+                volume->value = 1.f;
+            Cvar_SetValue("volume", volume->value);
+        }
+        break;
+    case 8: // allways run
+        if (cl_forwardspeed.value > 200.f)
+        {
+            Cvar_SetValue("cl_forwardspeed", 200.f);
+            Cvar_SetValue("cl_backspeed", 200.f);
         }
         else
         {
-            Cvar_SetValue("cl_forwardspeed", 400);
-            Cvar_SetValue("cl_backspeed", 400);
+            Cvar_SetValue("cl_forwardspeed", 400.f);
+            Cvar_SetValue("cl_backspeed", 400.f);
         }
         break;
 
@@ -1173,13 +1177,19 @@ void M_Options_Draw(void)
     r = (sensitivity.value - 1) / 10;
     M_DrawSlider(220, 72, r);
 
+    // XXX: pass on to SND_SetBGMVolume
+#if 0
     M_Print(16, 80, "       CD Music Volume");
     r = bgmvolume.value;
     M_DrawSlider(220, 80, r);
+#endif
 
+    // XXX: pass on to SND_SetVolume
+#if 0
     M_Print(16, 88, "          Sound Volume");
     r = volume.value;
     M_DrawSlider(220, 88, r);
+#endif
 
     M_Print(16, 96, "            Always Run");
     M_DrawCheckbox(220, 96, cl_forwardspeed.value > 200);

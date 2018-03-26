@@ -20,10 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // snd_dma.c -- main control for any streaming sound output device
 
-#include "quakedef.h"
+#include "../quakedef.h"
 
 #ifdef _WIN32
-#include "winquake.h"
+#include "../winquake.h"
 #endif
 
 void S_Play(void);
@@ -45,7 +45,7 @@ static qboolean snd_ambient = 1;
 qboolean snd_initialized = false;
 
 // pointer should go away
-volatile dma_t* shm = 0;
+volatile dma_t* shm;
 volatile dma_t sn;
 
 vec3_t listener_origin;
@@ -70,10 +70,10 @@ int sound_started = 0;
 
 cvar_t bgmvolume = { "bgmvolume", "1", true };
 cvar_t volume = { "volume", "0.7", true };
+cvar_t loadas8bit = { "loadas8bit", "0" };
 
 cvar_t nosound = { "nosound", "0" };
 cvar_t precache = { "precache", "1" };
-cvar_t loadas8bit = { "loadas8bit", "0" };
 cvar_t bgmbuffer = { "bgmbuffer", "4096" };
 cvar_t ambient_level = { "ambient_level", "0.3" };
 cvar_t ambient_fade = { "ambient_fade", "100" };
@@ -93,6 +93,18 @@ cvar_t _snd_mixahead = { "_snd_mixahead", "0.1", true };
 
 qboolean fakedma = false;
 int fakedma_updates = 15;
+
+int S_SampleRate(void)
+{
+    if (shm)
+    {
+        return shm->speed;
+    }
+    else
+    {
+        return 22050;
+    }
+}
 
 void S_AmbientOff(void)
 {
@@ -244,8 +256,9 @@ void S_Shutdown(void)
     if (!sound_started)
         return;
 
-    if (shm)
+    if (shm) {
         shm->gamealive = 0;
+    }
 
     shm = 0;
     sound_started = 0;
