@@ -488,33 +488,12 @@ char* Sys_ConsoleInput(void)
 
 void Sys_Sleep(void)
 {
-    Sleep(1);
+    SDL_Delay(1);
 }
 
-void Sys_SendKeyEvents(void)
+void Sys_PumpEvents(void)
 {
-    MSG msg;
-
-    while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
-    {
-        // we always update if there are any event, even if we're paused
-        scr_skipupdate = 0;
-
-        if (!GetMessage(&msg, NULL, 0, 0))
-            Sys_Quit();
-
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-}
-
-static void SleepUntilInput(int time)
-{
-    //    MsgWaitForMultipleObjects(1, &tevent, FALSE, time, QS_ALLINPUT);
-}
-
-static void PollSDLEvents()
-{
+    // SDL input event handler prototype
     void IN_SDLEvent(const SDL_Event* event);
 
     SDL_Event event;
@@ -541,7 +520,7 @@ void SYS_MainLoop()
     /* main window message loop */
     while (1)
     {
-        PollSDLEvents();
+        Sys_PumpEvents();
 
         if (isDedicated)
         {
@@ -560,12 +539,12 @@ void SYS_MainLoop()
             // yield the CPU for a little while when paused, minimized, or not the focus
             if ((cl.paused && (!ActiveApp && !DDActive)) || Minimized || block_drawing)
             {
-                SleepUntilInput(PAUSE_SLEEP);
+                SDL_Delay(PAUSE_SLEEP);
                 scr_skipupdate = 1; // no point in bothering to draw
             }
             else if (!ActiveApp && !DDActive)
             {
-                SleepUntilInput(NOT_FOCUS_SLEEP);
+                SDL_Delay(NOT_FOCUS_SLEEP);
             }
 
             newtime = Sys_FloatTime();

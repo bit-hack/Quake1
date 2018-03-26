@@ -882,6 +882,9 @@ keypress.
 */
 int SCR_ModalMessage(char* text, float timeout) //johnfitz -- timeout
 {
+    // last keypress prototype
+    int Key_LastKeyPress();
+
     double time1, time2; //johnfitz -- timeout
 
     if (cls.state == ca_dedicated)
@@ -902,10 +905,9 @@ int SCR_ModalMessage(char* text, float timeout) //johnfitz -- timeout
     do
     {
         key_count = -1; // wait for a key down and up
-        Sys_SendKeyEvents();
         if (timeout)
             time2 = Sys_FloatTime(); //johnfitz -- zero timeout means wait forever.
-    } while (key_lastpress != 'y' && key_lastpress != 'n' && key_lastpress != K_ESCAPE && time2 <= time1);
+    } while (Key_LastKeyPress() != 'y' && Key_LastKeyPress() != 'n' && Key_LastKeyPress() != K_ESCAPE && time2 <= time1);
 
     //	SCR_UpdateScreen (); //johnfitz -- commented out
 
@@ -914,7 +916,7 @@ int SCR_ModalMessage(char* text, float timeout) //johnfitz -- timeout
         return false;
     //johnfitz
 
-    return key_lastpress == 'y';
+    return Key_LastKeyPress() == 'y';
 }
 
 //=============================================================================

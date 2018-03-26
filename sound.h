@@ -169,7 +169,7 @@ sfxcache_t* S_LoadSound(sfx_t* s);
 wavinfo_t GetWavinfo(char* name, byte* wav, int wavlength);
 
 void SND_InitScaletable(void);
-void SNDDMA_Submit(void);
+void SNDDMA_Submit(void); // <--- submit buffers to waveout device
 
 void S_AmbientOff(void);
 void S_AmbientOn(void);

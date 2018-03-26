@@ -662,7 +662,7 @@ void _Host_Frame(float time)
         return; // don't run too fast, or packets will flood out
 
     // get new key events
-    Sys_SendKeyEvents();
+    Sys_PumpEvents();
 
     // allow mice or other external controllers to add commands
     IN_Commands();

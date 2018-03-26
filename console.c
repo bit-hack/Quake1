@@ -1091,7 +1091,6 @@ void Con_NotifyBox(char* text)
     {
         t1 = Sys_FloatTime();
         SCR_UpdateScreen();
-        Sys_SendKeyEvents();
         t2 = Sys_FloatTime();
         realtime += t2 - t1; // make the cursor blink
     } while (key_count < 0);

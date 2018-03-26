@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // input.h -- external (non-keyboard) input devices
 
+#include <SDL/SDL.h>
+
 void IN_Init(void);
 
 void IN_Shutdown(void);
@@ -32,3 +34,6 @@ void IN_Move(usercmd_t* cmd);
 
 void IN_ClearStates(void);
 // restores all button and position states to defaults
+
+// process SDL input related events
+void IN_SDLEvent(const SDL_Event *event);

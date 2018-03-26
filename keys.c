@@ -939,3 +939,8 @@ void Key_ClearStates(void)
             Key_Event(i, false);
     }
 }
+
+int Key_LastKeyPress()
+{
+    return key_lastpress;
+}

@@ -48,5 +48,5 @@ char* Sys_ConsoleInput(void);
 // not to hog cpu when paused or debugging
 void Sys_Sleep(void);
 
-// Perform Key_Event () callbacks until the input que is empty
-void Sys_SendKeyEvents(void);
+// pump all host events and perform Key_Event() callbacks until the input queue is empty
+void Sys_PumpEvents(void);

@@ -795,7 +795,7 @@ void S_ExtraUpdate(void)
     S_Update_();
 }
 
-void S_Update_(void)
+static void S_Update_(void)
 {
     unsigned endtime;
     int samps;
