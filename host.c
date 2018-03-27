@@ -35,7 +35,7 @@ Memory is cleared / released when a server or client begins, not when they end.
 
 quakeparms_t host_parms;
 
-qboolean host_initialized; // true if into command execution
+bool host_initialized; // true if into command execution
 
 double host_frametime;
 double host_time;
@@ -139,7 +139,7 @@ void Host_Error(char* error, ...)
 {
     va_list argptr;
     char string[1024];
-    static qboolean inerror = false;
+    static bool inerror = false;
 
     if (inerror)
         Sys_Error("Host_Error: recursively entered");
@@ -385,7 +385,7 @@ Called when the player is getting totally kicked off the host
 if (crash = true), don't bother sending signofs
 =====================
 */
-void SV_DropClient(qboolean crash)
+void SV_DropClient(bool crash)
 {
     int saveSelf;
     int i;
@@ -447,7 +447,7 @@ Host_ShutdownServer
 This only happens at the end of a game, not between levels
 ==================
 */
-void Host_ShutdownServer(qboolean crash)
+void Host_ShutdownServer(bool crash)
 {
     int i;
     int count;
@@ -543,7 +543,7 @@ Host_FilterTime
 Returns false if the time is too short to run a frame
 ===================
 */
-qboolean Host_FilterTime(float time)
+bool Host_FilterTime(float time)
 {
     float maxfps; //johnfitz
 
@@ -872,7 +872,7 @@ to run quit through here before the final handoff to the sys code.
 */
 void Host_Shutdown(void)
 {
-    static qboolean isdown = false;
+    static bool isdown = false;
 
     if (isdown)
     {

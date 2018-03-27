@@ -38,7 +38,7 @@ typedef struct glRect_s
 } glRect_t;
 
 glpoly_t* lightmap_polys[MAX_LIGHTMAPS];
-qboolean lightmap_modified[MAX_LIGHTMAPS];
+bool lightmap_modified[MAX_LIGHTMAPS];
 glRect_t lightmap_rectchange[MAX_LIGHTMAPS];
 
 int allocated[MAX_LIGHTMAPS][BLOCK_WIDTH];
@@ -784,7 +784,7 @@ void BuildSurfaceDisplayList(msurface_t* fa)
     medge_t *pedges, *r_pedge;
     mplane_t* pplane;
     int vertpage, newverts, newpage, lastvert;
-    qboolean visible;
+    bool visible;
     float* vec;
     float s, t;
     glpoly_t* poly;

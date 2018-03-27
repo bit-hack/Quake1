@@ -172,7 +172,7 @@ FIXME: this is getting called twice (becuase of the recursive Cvar_SetValue call
 */
 void TexMgr_Anisotropy_f(void)
 {
-    extern qboolean gl_anisotropy_able;
+    extern bool gl_anisotropy_able;
     extern float gl_max_anisotropy;
     gltexture_t* glt;
 
@@ -689,7 +689,7 @@ unsigned* TexMgr_MipMapH(unsigned* data, int width, int height)
 TexMgr_ResampleTexture -- bilinear resample
 ================
 */
-unsigned* TexMgr_ResampleTexture(unsigned* in, int inwidth, int inheight, qboolean alpha)
+unsigned* TexMgr_ResampleTexture(unsigned* in, int inwidth, int inheight, bool alpha)
 {
     byte *nwpx, *nepx, *swpx, *sepx, *dest;
     unsigned xfrac, yfrac, x, y, modx, mody, imodx, imody, injump, outjump;
@@ -1071,7 +1071,7 @@ TexMgr_LoadImage8 -- handles 8bit source data, then passes it to LoadImage32
 void TexMgr_LoadImage8(gltexture_t* glt, byte* data)
 {
     extern cvar_t gl_fullbrights;
-    qboolean padw = false, padh = false;
+    bool padw = false, padh = false;
     byte padbyte;
     unsigned int* usepal;
     int i;
@@ -1394,7 +1394,7 @@ void TexMgr_ReloadNobrightImages(void)
 
 int currenttexture = -1; // to avoid unnecessary texture sets
 GLenum TEXTURE0, TEXTURE1; //johnfitz
-qboolean mtexenabled = false;
+bool mtexenabled = false;
 
 /*
 ================

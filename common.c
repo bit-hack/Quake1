@@ -32,15 +32,15 @@ static char* safeargvs[NUM_SAFE_ARGVS] = { "-stdvid", "-nolan", "-nosound", "-no
 cvar_t registered = { "registered", "0" };
 cvar_t cmdline = { "cmdline", "", false, true };
 
-qboolean com_modified; // set true if using non-id files
+bool com_modified; // set true if using non-id files
 
 int com_nummissionpacks; //johnfitz
 
-qboolean proghack;
+bool proghack;
 
 int static_registered = 1; // only for startup check, then set
 
-qboolean msg_suppress_1 = 0;
+bool msg_suppress_1 = 0;
 
 void COM_InitFilesystem(void);
 
@@ -55,7 +55,7 @@ char** com_argv;
 #define CMDLINE_LENGTH 256 //johnfitz -- mirrored in cmd.c
 char com_cmdline[CMDLINE_LENGTH];
 
-qboolean standard_quake = true, rogue, hipnotic;
+bool standard_quake = true, rogue, hipnotic;
 
 // this graphic needs to be in the pak file to use registered features
 unsigned short pop[] = {
@@ -428,7 +428,7 @@ float Q_atof(char* str)
 ============================================================================
 */
 
-qboolean bigendien;
+bool bigendien;
 
 short (*BigShort)(short l);
 short (*LittleShort)(short l);
@@ -614,7 +614,7 @@ void MSG_WriteAngle16(sizebuf_t* sb, float f)
 // reading functions
 //
 int msg_readcount;
-qboolean msg_badread;
+bool msg_badread;
 
 void MSG_BeginReading(void)
 {
@@ -1088,7 +1088,7 @@ COM_InitArgv
 */
 void COM_InitArgv(int argc, char** argv)
 {
-    qboolean safe;
+    bool safe;
     int i, j, n;
 
     // reconstitute the command line for the cmdline externally visible cvar

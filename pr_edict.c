@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-qboolean pr_alpha_supported; //johnfitz
+bool pr_alpha_supported; //johnfitz
 
 dprograms_t* progs;
 dfunction_t* pr_functions;
@@ -39,7 +39,7 @@ unsigned short pr_crc;
 int type_size[8] = { 1, sizeof(string_t) / 4, 1, 3, 1, 1, sizeof(func_t) / 4, sizeof(void*) / 4 };
 
 ddef_t* ED_FieldAtOfs(int ofs);
-qboolean ED_ParseEpair(void* base, ddef_t* key, char* s);
+bool ED_ParseEpair(void* base, ddef_t* key, char* s);
 
 cvar_t nomonsters = { "nomonsters", "0" };
 cvar_t gamecfg = { "gamecfg", "0" };
@@ -732,7 +732,7 @@ Can parse either fields or globals
 returns false if error
 =============
 */
-qboolean ED_ParseEpair(void* base, ddef_t* key, char* s)
+bool ED_ParseEpair(void* base, ddef_t* key, char* s)
 {
     int i;
     char string[128];
@@ -811,8 +811,8 @@ Used for initial level load and for savegames.
 char* ED_ParseEdict(char* data, edict_t* ent)
 {
     ddef_t* key;
-    qboolean anglehack;
-    qboolean init;
+    bool anglehack;
+    bool init;
     char keyname[256];
     int n;
 

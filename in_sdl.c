@@ -38,14 +38,14 @@ int mouse_oldbuttonstate;
 POINT current_pos;
 int mouse_x, mouse_y, old_mouse_x, old_mouse_y, mx_accum, my_accum;
 
-static qboolean restore_spi;
+static bool restore_spi;
 static int originalmouseparms[3], newmouseparms[3] = { 0, 0, 1 };
 
 unsigned int uiWheelMessage;
-qboolean mouseactive;
-qboolean mouseinitialized;
-static qboolean mouseparmsvalid, mouseactivatetoggle;
-static qboolean mouseshowtoggle = 1;
+bool mouseactive;
+bool mouseinitialized;
+static bool mouseparmsvalid, mouseactivatetoggle;
+static bool mouseshowtoggle = 1;
 
 static unsigned int mstate_di;
 
@@ -103,7 +103,7 @@ cvar_t joy_yawsensitivity = { "joyyawsensitivity", "-1.0" };
 cvar_t joy_wwhack1 = { "joywwhack1", "0.0" };
 cvar_t joy_wwhack2 = { "joywwhack2", "0.0" };
 
-qboolean joy_avail, joy_advancedinit, joy_haspov;
+bool joy_avail, joy_advancedinit, joy_haspov;
 DWORD joy_oldbuttonstate, joy_oldpovstate;
 
 int joy_id;
@@ -199,7 +199,7 @@ void IN_RestoreOriginalMouseState(void)
 {
 }
 
-qboolean IN_InitDInput(void)
+bool IN_InitDInput(void)
 {
     return false;
 }
@@ -319,7 +319,7 @@ void IN_Commands(void)
 {
 }
 
-qboolean IN_ReadJoystick(void)
+bool IN_ReadJoystick(void)
 {
   return false;
 }

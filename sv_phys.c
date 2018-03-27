@@ -117,7 +117,7 @@ in a frame.  Not used for pushmove objects, because they must be exact.
 Returns false if the entity removed itself.
 =============
 */
-qboolean SV_RunThink(edict_t* ent)
+bool SV_RunThink(edict_t* ent)
 {
     float thinktime;
     float oldframe; //johnfitz
@@ -660,7 +660,7 @@ void SV_CheckStuck(edict_t* ent)
 SV_CheckWater
 =============
 */
-qboolean SV_CheckWater(edict_t* ent)
+bool SV_CheckWater(edict_t* ent)
 {
     vec3_t point;
     int cont;
@@ -1143,7 +1143,7 @@ will fall if the floor is pulled out from under them.
 */
 void SV_Physics_Step(edict_t* ent)
 {
-    qboolean hitsound;
+    bool hitsound;
 
     // freefall if not onground
     if (!((int)ent->v.flags & (FL_ONGROUND | FL_FLY | FL_SWIM)))

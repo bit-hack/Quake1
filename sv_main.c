@@ -29,7 +29,7 @@ char localmodels[MAX_MODELS][5]; // inline model names for precache
 
 int sv_protocol = PROTOCOL_FITZQUAKE; //johnfitz
 
-extern qboolean pr_alpha_supported; //johnfitz
+extern bool pr_alpha_supported; //johnfitz
 
 //============================================================================
 
@@ -483,7 +483,7 @@ SV_VisibleToClient -- johnfitz
 PVS test encapsulated in a nice function
 =============
 */
-qboolean SV_VisibleToClient(edict_t* client, edict_t* test, model_t* worldmodel)
+bool SV_VisibleToClient(edict_t* client, edict_t* test, model_t* worldmodel)
 {
     byte* pvs;
     vec3_t org;
@@ -916,7 +916,7 @@ void SV_WriteClientdataToMessage(edict_t* ent, sizebuf_t* msg)
 SV_SendClientDatagram
 =======================
 */
-qboolean SV_SendClientDatagram(client_t* client)
+bool SV_SendClientDatagram(client_t* client)
 {
     byte buf[MAX_DATAGRAM];
     sizebuf_t msg;

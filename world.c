@@ -375,7 +375,7 @@ SV_LinkEdict
 
 ===============
 */
-void SV_LinkEdict(edict_t* ent, qboolean touch_triggers)
+void SV_LinkEdict(edict_t* ent, bool touch_triggers)
 {
     areanode_t* node;
     model_t* mod = NULL; //johnfitz
@@ -553,7 +553,7 @@ SV_RecursiveHullCheck
 
 ==================
 */
-qboolean SV_RecursiveHullCheck(hull_t* hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, trace_t* trace)
+bool SV_RecursiveHullCheck(hull_t* hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, trace_t* trace)
 {
     mclipnode_t* node; //johnfitz -- was dclipnode_t
     mplane_t* plane;

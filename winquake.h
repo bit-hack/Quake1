@@ -36,7 +36,7 @@ extern int global_nCmdShow;
 #ifndef SERVERONLY
 
 extern LPDIRECTDRAW lpDD;
-extern qboolean DDActive;
+extern bool DDActive;
 extern LPDIRECTDRAWSURFACE lpPrimary;
 extern LPDIRECTDRAWSURFACE lpFrontBuffer;
 extern LPDIRECTDRAWSURFACE lpBackBuffer;
@@ -60,7 +60,7 @@ typedef enum { MS_WINDOWED,
 extern modestate_t modestate;
 
 extern HWND mainwindow;
-extern qboolean ActiveApp, Minimized;
+extern bool ActiveApp, Minimized;
 
 int VID_ForceUnlockedAndReturnState(void);
 void VID_ForceLockState(int lk);
@@ -73,14 +73,14 @@ void IN_RestoreOriginalMouseState(void);
 void IN_SetQuakeMouseState(void);
 void IN_MouseEvent(int mstate);
 
-extern qboolean winsock_lib_initialized;
+extern bool winsock_lib_initialized;
 
 extern cvar_t _windowed_mouse;
 
 extern int window_center_x, window_center_y;
 extern RECT window_rect;
 
-extern qboolean mouseinitialized;
+extern bool mouseinitialized;
 extern HWND hwnd_dialog;
 
 extern HANDLE hinput, houtput;

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-qboolean r_cache_thrash; // compatability
+bool r_cache_thrash; // compatability
 
 vec3_t modelorg, r_entorigin;
 entity_t* currententity;
@@ -37,7 +37,7 @@ int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
 int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
 float rs_megatexels;
 
-qboolean envmap; // true during envmap command capture
+bool envmap; // true during envmap command capture
 
 //
 // view origin
@@ -108,7 +108,7 @@ R_CullBox -- johnfitz -- replaced with new function from lordhavoc
 Returns true if the box is completely outside the frustum
 =================
 */
-qboolean R_CullBox(vec3_t emins, vec3_t emaxs)
+bool R_CullBox(vec3_t emins, vec3_t emaxs)
 {
     int i;
     mplane_t* p;
@@ -159,7 +159,7 @@ qboolean R_CullBox(vec3_t emins, vec3_t emaxs)
 R_CullModelForEntity -- johnfitz -- uses correct bounds based on rotation
 ===============
 */
-qboolean R_CullModelForEntity(entity_t* e)
+bool R_CullModelForEntity(entity_t* e)
 {
     vec3_t mins, maxs;
 
@@ -459,7 +459,7 @@ void R_SetupView(void)
 R_DrawEntitiesOnList
 =============
 */
-void R_DrawEntitiesOnList(qboolean alphapass) //johnfitz -- added parameter
+void R_DrawEntitiesOnList(bool alphapass) //johnfitz -- added parameter
 {
     extern cvar_t r_vfog; //johnfitz
     int i;

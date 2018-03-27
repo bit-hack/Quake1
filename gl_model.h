@@ -78,7 +78,7 @@ typedef struct texture_s
     struct gltexture_s* gltexture; //johnfitz -- pointer to gltexture
     struct gltexture_s* fullbright; //johnfitz -- fullbright mask texture
     struct gltexture_s* warpimage; //johnfitz -- for water animation
-    qboolean update_warp; //johnfitz -- update warp this frame
+    bool update_warp; //johnfitz -- update warp this frame
     struct msurface_s* texturechain; // for texture chains
     int anim_total; // total tenths in sequence ( 0 = no)
     int anim_min, anim_max; // time for this frame min <=time< max
@@ -124,7 +124,7 @@ typedef struct glpoly_s
 typedef struct msurface_s
 {
     int visframe; // should be drawn when node is crossed
-    qboolean culled; // johnfitz -- for frustum culling
+    bool culled; // johnfitz -- for frustum culling
     float mins[3]; // johnfitz -- for frustum culling
     float maxs[3]; // johnfitz -- for frustum culling
 
@@ -151,7 +151,7 @@ typedef struct msurface_s
     int lightmaptexturenum;
     byte styles[MAXLIGHTMAPS];
     int cached_light[MAXLIGHTMAPS]; // values currently used in lightmap
-    qboolean cached_dlight; // true if dynamic light in cache
+    bool cached_dlight; // true if dynamic light in cache
     byte* samples; // [numstyles*surfsize]
 } msurface_t;
 
@@ -359,7 +359,7 @@ typedef enum { mod_brush,
 typedef struct model_s
 {
     char name[MAX_QPATH];
-    qboolean needload; // bmodels and sprites don't cache normally
+    bool needload; // bmodels and sprites don't cache normally
 
     modtype_t type;
     int numframes;
@@ -378,7 +378,7 @@ typedef struct model_s
     //
     // solid volume for clipping
     //
-    qboolean clipbox;
+    bool clipbox;
     vec3_t clipmins, clipmaxs;
 
     //
@@ -439,7 +439,7 @@ typedef struct model_s
 
 void Mod_Init(void);
 void Mod_ClearAll(void);
-model_t* Mod_ForName(char* name, qboolean crash);
+model_t* Mod_ForName(char* name, bool crash);
 void* Mod_Extradata(model_t* mod); // handles caching
 void Mod_TouchModel(char* name);
 

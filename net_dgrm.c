@@ -86,7 +86,7 @@ struct
 
 extern int m_return_state;
 extern int m_state;
-extern qboolean m_return_onerror;
+extern bool m_return_onerror;
 extern char m_return_reason[32];
 
 #ifdef DEBUG
@@ -271,7 +271,7 @@ int ReSendMessage(qsocket_t* sock)
     return 1;
 }
 
-qboolean Datagram_CanSendMessage(qsocket_t* sock)
+bool Datagram_CanSendMessage(qsocket_t* sock)
 {
     if (sock->sendNext)
         SendMessageNext(sock);
@@ -279,7 +279,7 @@ qboolean Datagram_CanSendMessage(qsocket_t* sock)
     return sock->canSend;
 }
 
-qboolean Datagram_CanSendUnreliableMessage(qsocket_t* sock)
+bool Datagram_CanSendUnreliableMessage(qsocket_t* sock)
 {
     return true;
 }
@@ -506,7 +506,7 @@ void NET_Stats_f(void)
     }
 }
 
-static qboolean testInProgress = false;
+static bool testInProgress = false;
 static int testPollCount;
 static int testDriver;
 static int testSocket;
@@ -634,7 +634,7 @@ JustDoIt:
     SchedulePollProcedure(&testPollProcedure, 0.1);
 }
 
-static qboolean test2InProgress = false;
+static bool test2InProgress = false;
 static int test2Driver;
 static int test2Socket;
 
@@ -801,7 +801,7 @@ void Datagram_Close(qsocket_t* sock)
     sfunc.CloseSocket(sock->socket);
 }
 
-void Datagram_Listen(qboolean state)
+void Datagram_Listen(bool state)
 {
     int i;
 
@@ -1082,7 +1082,7 @@ qsocket_t* Datagram_CheckNewConnections(void)
     return ret;
 }
 
-static void _Datagram_SearchForHosts(qboolean xmit)
+static void _Datagram_SearchForHosts(bool xmit)
 {
     int ret;
     int n;
@@ -1181,7 +1181,7 @@ static void _Datagram_SearchForHosts(qboolean xmit)
     }
 }
 
-void Datagram_SearchForHosts(qboolean xmit)
+void Datagram_SearchForHosts(bool xmit)
 {
     for (net_landriverlevel = 0; net_landriverlevel < net_numlandrivers; net_landriverlevel++)
     {

@@ -37,15 +37,11 @@ HRESULT(WINAPI* pDirectSoundCreate)
 #define WAV_BUFFER_SIZE 0x0400
 #define SECONDARY_BUFFER_SIZE 0x10000
 
-typedef enum { SIS_SUCCESS,
-    SIS_FAILURE,
-    SIS_NOTAVAIL } sndinitstat;
-
-static qboolean wavonly;
-static qboolean dsound_init;
-static qboolean wav_init;
-static qboolean snd_firsttime = true, snd_isdirect, snd_iswave;
-static qboolean primary_format_set;
+static bool wavonly;
+static bool dsound_init;
+static bool wav_init;
+static bool snd_firsttime = true, snd_isdirect, snd_iswave;
+static bool primary_format_set;
 
 static int sample16;
 static int snd_sent, snd_completed;
@@ -74,8 +70,8 @@ LPDIRECTSOUNDBUFFER pDSBuf, pDSPBuf;
 
 HINSTANCE hInstDS;
 
-qboolean SNDDMA_InitDirect(void);
-qboolean SNDDMA_InitWav(void);
+bool SNDDMA_InitDirect(void);
+bool SNDDMA_InitWav(void);
 
 static HWND get_hwnd()
 {
@@ -194,7 +190,7 @@ SNDDMA_InitDirect
 Direct-Sound support
 ==================
 */
-sndinitstat SNDDMA_InitDirect(void)
+bool SNDDMA_InitDirect(void)
 {
     DSBUFFERDESC dsbuf;
     DSBCAPS dsbcaps;
@@ -230,7 +226,7 @@ sndinitstat SNDDMA_InitDirect(void)
         if (hInstDS == NULL)
         {
             Con_SafePrintf("Couldn't load dsound.dll\n");
-            return SIS_FAILURE;
+            return false;
         }
 
         pDirectSoundCreate = (void*)GetProcAddress(hInstDS, "DirectSoundCreate");
@@ -238,7 +234,7 @@ sndinitstat SNDDMA_InitDirect(void)
         if (!pDirectSoundCreate)
         {
             Con_SafePrintf("Couldn't get DS proc addr\n");
-            return SIS_FAILURE;
+            return false;
         }
     }
 
@@ -247,7 +243,7 @@ sndinitstat SNDDMA_InitDirect(void)
         if (hresult != DSERR_ALLOCATED)
         {
             Con_SafePrintf("DirectSound create failed\n");
-            return SIS_FAILURE;
+            return false;
         }
 
         if (MessageBox(NULL,
@@ -259,7 +255,7 @@ sndinitstat SNDDMA_InitDirect(void)
         {
             Con_SafePrintf("DirectSoundCreate failure\n"
                            "  hardware already in use\n");
-            return SIS_NOTAVAIL;
+            return false;
         }
     }
 
@@ -274,7 +270,7 @@ sndinitstat SNDDMA_InitDirect(void)
     {
         Con_SafePrintf("No DirectSound driver installed\n");
         FreeSound();
-        return SIS_FAILURE;
+        return false;
     }
 
     HWND hwnd = get_hwnd();
@@ -282,7 +278,7 @@ sndinitstat SNDDMA_InitDirect(void)
     {
         Con_SafePrintf("Set coop level failed\n");
         FreeSound();
-        return SIS_FAILURE;
+        return false;
     }
 
     // get access to the primary buffer, if possible, so we can set the
@@ -334,7 +330,7 @@ sndinitstat SNDDMA_InitDirect(void)
         {
             Con_SafePrintf("DS:CreateSoundBuffer Failed");
             FreeSound();
-            return SIS_FAILURE;
+            return false;
         }
 
         shm->channels = format.nChannels;
@@ -345,7 +341,7 @@ sndinitstat SNDDMA_InitDirect(void)
         {
             Con_SafePrintf("DS:GetCaps failed\n");
             FreeSound();
-            return SIS_FAILURE;
+            return false;
         }
 
         if (snd_firsttime)
@@ -358,13 +354,13 @@ sndinitstat SNDDMA_InitDirect(void)
         {
             Con_SafePrintf("Set coop level failed\n");
             FreeSound();
-            return SIS_FAILURE;
+            return false;
         }
 
         if (DS_OK != pDSPBuf->lpVtbl->GetCaps(pDSPBuf, &dsbcaps))
         {
             Con_Printf("DS:GetCaps failed\n");
-            return SIS_FAILURE;
+            return false;
         }
 
         pDSBuf = pDSPBuf;
@@ -391,23 +387,25 @@ sndinitstat SNDDMA_InitDirect(void)
         {
             Con_SafePrintf("SNDDMA_InitDirect: DS::Lock Sound Buffer Failed\n");
             FreeSound();
-            return SIS_FAILURE;
+            return false;
         }
 
         if (++reps > 10000)
         {
             Con_SafePrintf("SNDDMA_InitDirect: DS: couldn't restore buffer\n");
             FreeSound();
-            return SIS_FAILURE;
+            return false;
         }
     }
 
     memset(lpData, 0, dwSize);
-    //		lpData[4] = lpData[5] = 0x7f;	// force a pop for debugging
+    // lpData[4] = lpData[5] = 0x7f;	// force a pop for debugging
 
     pDSBuf->lpVtbl->Unlock(pDSBuf, lpData, dwSize, NULL, 0);
 
-    /* we don't want anyone to access the buffer directly w/o locking it first. */
+    //
+    // we don't want anyone to access the buffer directly w/o locking it first.
+    //
     lpData = NULL;
 
     pDSBuf->lpVtbl->Stop(pDSBuf);
@@ -424,7 +422,7 @@ sndinitstat SNDDMA_InitDirect(void)
 
     dsound_init = true;
 
-    return SIS_SUCCESS;
+    return true;
 }
 
 /*
@@ -434,7 +432,7 @@ SNDDM_InitWav
 Crappy windows multimedia base
 ==================
 */
-qboolean SNDDMA_InitWav(void)
+bool SNDDMA_InitWav(void)
 {
     WAVEFORMATEX format;
     int i;
@@ -460,7 +458,9 @@ qboolean SNDDMA_InitWav(void)
     format.nAvgBytesPerSec = format.nSamplesPerSec
         * format.nBlockAlign;
 
-    /* Open a waveform device for output using window callback. */
+    //
+    // Open a waveform device for output using window callback.
+    //
     while ((hr = waveOutOpen((LPHWAVEOUT)&hWaveOut, WAVE_MAPPER,
                 &format,
                 0, 0L, CALLBACK_NULL))
@@ -485,11 +485,11 @@ qboolean SNDDMA_InitWav(void)
         }
     }
 
-    /*
-    * Allocate and lock memory for the waveform data. The memory
-    * for waveform data must be globally allocated with
-    * GMEM_MOVEABLE and GMEM_SHARE flags.
-    */
+    //
+    // Allocate and lock memory for the waveform data. The memory
+    // for waveform data must be globally allocated with
+    // GMEM_MOVEABLE and GMEM_SHARE flags.
+    //
     gSndBufSize = WAV_BUFFERS * WAV_BUFFER_SIZE;
     hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE, gSndBufSize);
     if (!hData)
@@ -507,11 +507,11 @@ qboolean SNDDMA_InitWav(void)
     }
     memset(lpData, 0, gSndBufSize);
 
-    /*
-    * Allocate and lock memory for the header. This memory must
-    * also be globally allocated with GMEM_MOVEABLE and
-    * GMEM_SHARE flags.
-    */
+    //
+    // Allocate and lock memory for the header. This memory must
+    // also be globally allocated with GMEM_MOVEABLE and
+    // GMEM_SHARE flags.
+    //
     hWaveHdr = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE,
         (DWORD)sizeof(WAVEHDR) * WAV_BUFFERS);
 
@@ -533,7 +533,9 @@ qboolean SNDDMA_InitWav(void)
 
     memset(lpWaveHdr, 0, sizeof(WAVEHDR) * WAV_BUFFERS);
 
-    /* After allocation, set up and prepare headers. */
+    //
+    // After allocation, set up and prepare headers.
+    //
     for (i = 0; i < WAV_BUFFERS; i++)
     {
         lpWaveHdr[i].dwBufferLength = WAV_BUFFER_SIZE;
@@ -568,27 +570,21 @@ Try to find a sound device to mix for.
 Returns false if nothing is found.
 ==================
 */
-
-int SNDDMA_Init(void)
+bool SNDDMA_Init(void)
 {
-    sndinitstat stat;
-
     if (COM_CheckParm("-wavonly"))
         wavonly = true;
 
     dsound_init = wav_init = 0;
 
-    stat = SIS_FAILURE; // assume DirectSound won't initialize
+    bool stat = false; // assume DirectSound won't initialize
 
-    /* Init DirectSound */
+    // Init DirectSound
     if (!wavonly)
     {
         if (snd_firsttime || snd_isdirect)
         {
-            stat = SNDDMA_InitDirect();
-            ;
-
-            if (stat == SIS_SUCCESS)
+            if (SNDDMA_InitDirect())
             {
                 snd_isdirect = true;
 
@@ -607,11 +603,10 @@ int SNDDMA_Init(void)
     // waveOut sound, unless DirectSound failed because the hardware is
     // already allocated (in which case the user has already chosen not
     // to have sound)
-    if (!dsound_init && (stat != SIS_NOTAVAIL))
+    if (!dsound_init && (stat != false))
     {
         if (snd_firsttime || snd_iswave)
         {
-
             snd_iswave = SNDDMA_InitWav();
 
             if (snd_iswave)
@@ -714,11 +709,11 @@ void SNDDMA_Submit(void)
         h = lpWaveHdr + (snd_sent & WAV_MASK);
 
         snd_sent++;
-        /*
-		 * Now the data block can be sent to the output device. The
-		 * waveOutWrite function returns immediately and waveform
-		 * data is sent to the output device in the background.
-		 */
+        //
+        // Now the data block can be sent to the output device. The
+        // waveOutWrite function returns immediately and waveform
+        // data is sent to the output device in the background.
+        //
         wResult = waveOutWrite(hWaveOut, h, sizeof(WAVEHDR));
 
         if (wResult != MMSYSERR_NOERROR)

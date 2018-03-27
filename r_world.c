@@ -48,7 +48,7 @@ void R_MarkSurfaces(void)
     mnode_t* node;
     msurface_t *surf, **mark;
     int i, j;
-    qboolean nearwaterportal;
+    bool nearwaterportal;
 
     // clear lightmap chains
     memset(lightmap_polys, 0, sizeof(lightmap_polys));
@@ -136,7 +136,7 @@ void R_MarkSurfaces(void)
 R_BackFaceCull -- johnfitz -- returns true if the surface is facing away from vieworg
 ================
 */
-qboolean R_BackFaceCull(msurface_t* surf)
+bool R_BackFaceCull(msurface_t* surf)
 {
     double dot;
 
@@ -314,7 +314,7 @@ void R_DrawTextureChains_Glow(void)
     msurface_t* s;
     texture_t* t;
     gltexture_t* glt;
-    qboolean bound;
+    bool bound;
 
     for (i = 0; i < cl.worldmodel->numtextures; i++)
     {
@@ -350,7 +350,7 @@ void R_DrawTextureChains_Multitexture(void)
     msurface_t* s;
     texture_t* t;
     float* v;
-    qboolean bound;
+    bool bound;
 
     for (i = 0; i < cl.worldmodel->numtextures; i++)
     {
@@ -399,7 +399,7 @@ void R_DrawTextureChains_NoTexture(void)
     int i;
     msurface_t* s;
     texture_t* t;
-    qboolean bound;
+    bool bound;
 
     for (i = 0; i < cl.worldmodel->numtextures; i++)
     {
@@ -434,7 +434,7 @@ void R_DrawTextureChains_TextureOnly(void)
     int i;
     msurface_t* s;
     texture_t* t;
-    qboolean bound;
+    bool bound;
 
     for (i = 0; i < cl.worldmodel->numtextures; i++)
     {
@@ -472,7 +472,7 @@ void R_DrawTextureChains_Water(void)
     texture_t* t;
     glpoly_t* p;
     float* v;
-    qboolean bound;
+    bool bound;
 
     if (r_drawflat_cheatsafe || r_lightmap_cheatsafe || !r_drawworld_cheatsafe)
         return;

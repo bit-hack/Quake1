@@ -88,7 +88,7 @@ void S_StopSound(int entnum, int entchannel)
 {
 }
 
-void S_StopAllSounds(qboolean clear)
+void S_StopAllSounds(bool clear)
 {
 }
 

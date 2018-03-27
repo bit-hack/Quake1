@@ -100,7 +100,7 @@ returns true if successful
 TODO: support BGRA and BGR formats (since opengl can return them, and we don't have to swap)
 ============
 */
-qboolean Image_WriteTGA(char* name, byte* data, int width, int height, int bpp, qboolean upsidedown)
+bool Image_WriteTGA(char* name, byte* data, int width, int height, int bpp, bool upsidedown)
 {
     int handle, i, size, temp, bytes;
     char pathname[MAX_OSPATH];
@@ -151,7 +151,7 @@ byte* Image_LoadTGA(FILE* fin, int* width, int* height)
     int row, column;
     byte* targa_rgba;
     int realrow; //johnfitz -- fix for upside-down targas
-    qboolean upside_down; //johnfitz -- fix for upside-down targas
+    bool upside_down; //johnfitz -- fix for upside-down targas
 
     targa_header.id_length = fgetc(fin);
     targa_header.colormap_type = fgetc(fin);

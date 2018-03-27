@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //#define	GLTEST			// experimental stuff
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #define QUAKE_GAME // as opposed to utilities
 
 #define VERSION 1.09
@@ -274,7 +276,7 @@ typedef struct
 
 //=============================================================================
 
-extern qboolean noclip_anglehack;
+extern bool noclip_anglehack;
 
 //
 // host
@@ -286,7 +288,7 @@ extern cvar_t sys_nostdout;
 extern cvar_t developer;
 extern cvar_t max_edicts; //johnfitz
 
-extern qboolean host_initialized; // true if into command execution
+extern bool host_initialized; // true if into command execution
 extern double host_frametime;
 extern byte* host_colormap;
 extern int host_framecount; // incremented every frame, never reset
@@ -303,15 +305,15 @@ void Host_EndGame(char* message, ...);
 void Host_Frame(float time);
 void Host_Quit_f(void);
 void Host_ClientCommands(char* fmt, ...);
-void Host_ShutdownServer(qboolean crash);
+void Host_ShutdownServer(bool crash);
 
-extern qboolean msg_suppress_1; // suppresses resolution and cache size console output
+extern bool msg_suppress_1; // suppresses resolution and cache size console output
 //  an fullscreen DIB focus gain/loss
 extern int current_skill; // skill level for currently loaded level (in case
 //  the user changes the cvar while the level is
 //  running, this reflects the level actually in use)
 
-extern qboolean isDedicated;
+extern bool isDedicated;
 
 extern int minimum_memory;
 

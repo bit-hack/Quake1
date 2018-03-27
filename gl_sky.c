@@ -149,7 +149,7 @@ void Sky_LoadSkyBox(char* name)
     FILE* f;
     char filename[MAX_OSPATH];
     byte* data;
-    qboolean nonefound = true;
+    bool nonefound = true;
 
     if (strcmp(skybox_name, name) == 0)
         return; //no change
@@ -396,7 +396,7 @@ void Sky_ClipPoly(int nump, vec3_t vecs, int stage)
 {
     float* norm;
     float* v;
-    qboolean front, back;
+    bool front, back;
     float d, e;
     float dists[MAX_CLIP_VERTS];
     int sides[MAX_CLIP_VERTS];
@@ -546,7 +546,7 @@ void Sky_ProcessEntities(void)
     glpoly_t* p;
     int i, j, k, mark;
     float dot;
-    qboolean rotated;
+    bool rotated;
     vec3_t temp, forward, right, up;
 
     if (!r_drawentities.value)

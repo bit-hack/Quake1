@@ -44,11 +44,11 @@ int key_count; // incremented every key event
 char* keybindings[256];
 int keyshift[256]; // key to map to if shift held down in console
 int key_repeats[256]; // if > 1, it is autorepeating
-qboolean consolekeys[256]; // if true, can't be rebound while in console
-qboolean menubound[256]; // if true, can't be rebound while in menu
-qboolean keydown[256];
+bool consolekeys[256]; // if true, can't be rebound while in console
+bool menubound[256]; // if true, can't be rebound while in menu
+bool keydown[256];
 
-qboolean repeatkeys[256]; //johnfitz -- if true, autorepeat is enabled for this key
+bool repeatkeys[256]; //johnfitz -- if true, autorepeat is enabled for this key
 
 typedef struct
 {
@@ -413,7 +413,7 @@ void Key_Console(int key)
 //============================================================================
 
 char chat_buffer[32];
-qboolean team_message = false;
+bool team_message = false;
 
 void Key_Message(int key)
 {
@@ -767,7 +767,7 @@ Called by the system between frames for both key up and key down events
 Should NOT be called during an interrupt!
 ===================
 */
-void Key_Event(int key, qboolean down)
+void Key_Event(int key, bool down)
 {
     char* kb;
     char cmd[1024];

@@ -76,7 +76,7 @@ typedef struct searchpath_s
     struct searchpath_s* next;
 } searchpath_t;
 
-extern qboolean com_modified;
+extern bool com_modified;
 extern searchpath_t* com_searchpaths;
 pack_t* COM_LoadPackFile(char* packfile);
 
@@ -603,7 +603,7 @@ void Host_Notarget_f(void)
     //johnfitz
 }
 
-qboolean noclip_anglehack;
+bool noclip_anglehack;
 
 /*
 ==================
@@ -1220,14 +1220,14 @@ void Host_Version_f(void)
                "\n");
 }
 
-void Host_Say(qboolean teamonly)
+void Host_Say(bool teamonly)
 {
     client_t* client;
     client_t* save;
     int j;
     char* p;
     unsigned char text[64];
-    qboolean fromServer = false;
+    bool fromServer = false;
 
     if (cmd_source == src_command)
     {
@@ -1633,7 +1633,7 @@ void Host_Kick_f(void)
     char* message = NULL;
     client_t* save;
     int i;
-    qboolean byNumber = false;
+    bool byNumber = false;
 
     if (cmd_source == src_command)
     {

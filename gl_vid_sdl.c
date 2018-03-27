@@ -77,8 +77,8 @@ const char* gl_version;
 const char* gl_extensions = "";
 const char* wgl_extensions = "";
 
-qboolean DDActive;
-qboolean scr_skipupdate;
+bool DDActive;
+bool scr_skipupdate;
 
 // XXX: default init this list
 static vmode_t modelist[MAX_MODE_LIST];
@@ -88,12 +88,12 @@ static vmode_t* pcurrentmode;
 static vmode_t badmode;
 
 static DEVMODE gdevmode;
-static qboolean vid_initialized = false;
-static qboolean windowed, leavecurrentmode;
-static qboolean vid_canalttab = false;
-static qboolean vid_wassuspended = false;
+static bool vid_initialized = false;
+static bool windowed, leavecurrentmode;
+static bool vid_canalttab = false;
+static bool vid_wassuspended = false;
 static int windowed_mouse;
-extern qboolean mouseactive; // from in_win.c
+extern bool mouseactive; // from in_win.c
 
 int DIBWidth, DIBHeight;
 RECT WindowRect;
@@ -105,7 +105,7 @@ int vid_realmode;
 int vid_default = MODE_WINDOWED;
 static int windowed_default;
 unsigned char vid_curpal[256 * 3];
-static qboolean fullsbardraw = false;
+static bool fullsbardraw = false;
 
 glvert_t glv;
 
@@ -141,18 +141,18 @@ typedef int(APIENTRY* GETSWAPFUNC)(void); //johnfitz
 SETSWAPFUNC wglSwapIntervalEXT = NULL; //johnfitz
 GETSWAPFUNC wglGetSwapIntervalEXT = NULL; //johnfitz
 
-qboolean isPermedia = false;
-qboolean isIntelVideo = false; //johnfitz -- intel video workarounds from Baker
-qboolean gl_mtexable = false;
-qboolean gl_texture_env_combine = false; //johnfitz
-qboolean gl_texture_env_add = false; //johnfitz
-qboolean gl_swap_control = false; //johnfitz
-qboolean gl_anisotropy_able = false; //johnfitz
+bool isPermedia = false;
+bool isIntelVideo = false; //johnfitz -- intel video workarounds from Baker
+bool gl_mtexable = false;
+bool gl_texture_env_combine = false; //johnfitz
+bool gl_texture_env_add = false; //johnfitz
+bool gl_swap_control = false; //johnfitz
+bool gl_anisotropy_able = false; //johnfitz
 float gl_max_anisotropy; //johnfitz
 
 int gl_stencilbits; //johnfitz
 
-qboolean vid_locked = false; //johnfitz
+bool vid_locked = false; //johnfitz
 
 void GL_SetupState(void); //johnfitz
 
@@ -295,7 +295,7 @@ void VID_Gamma_Init(void)
 
 // direct draw software compatability stuff
 
-void VID_HandlePause(qboolean pause)
+void VID_HandlePause(bool pause)
 {
 }
 
@@ -324,7 +324,7 @@ void D_EndDirectRect(int x, int y, int width, int height)
 {
 }
 
-static qboolean CreateSDLWindow(int modenum, qboolean fullscreen)
+static bool CreateSDLWindow(int modenum, bool fullscreen)
 {
     // make sure that sdl was initalized
     if (!SDL_WasInit(SDL_INIT_VIDEO))
@@ -382,7 +382,7 @@ static qboolean CreateSDLWindow(int modenum, qboolean fullscreen)
 VID_SetWindowedMode
 ================
 */
-qboolean VID_SetWindowedMode(int modenum)
+bool VID_SetWindowedMode(int modenum)
 {
     modestate = MS_WINDOWED;
     return CreateSDLWindow(modenum, false);
@@ -393,7 +393,7 @@ qboolean VID_SetWindowedMode(int modenum)
 VID_SetFullDIBMode
 ================
 */
-qboolean VID_SetFullDIBMode(int modenum)
+bool VID_SetFullDIBMode(int modenum)
 {
     modestate = MS_FULLDIB;
     return CreateSDLWindow(modenum, true);
@@ -407,7 +407,7 @@ VID_SetMode
 int VID_SetMode(int modenum)
 {
     int original_mode, temp;
-    qboolean stat;
+    bool stat;
 
     // so Con_Printfs don't mess us up by forcing vid and snd updates
     temp = scr_disabled_for_loading;
@@ -518,7 +518,7 @@ VID_Test -- johnfitz -- like vid_restart, but asks for confirmation after switch
 void VID_Test(void)
 {
     vmode_t oldmode;
-    qboolean mode_changed = false;
+    bool mode_changed = false;
 
     if (vid_locked)
         return;
@@ -1284,7 +1284,7 @@ extern void M_DrawTransPic(int x, int y, qpic_t* pic);
 extern void M_DrawPic(int x, int y, qpic_t* pic);
 extern void M_DrawCheckbox(int x, int y, int on);
 
-extern qboolean m_entersound;
+extern bool m_entersound;
 
 enum
 {

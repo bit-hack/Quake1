@@ -127,7 +127,7 @@ typedef struct particle_s
 
 //====================================================
 
-extern qboolean r_cache_thrash; // compatability
+extern bool r_cache_thrash; // compatability
 extern vec3_t modelorg, r_entorigin;
 extern entity_t* currententity;
 extern int r_visframecount; // ??? what difs?
@@ -149,7 +149,7 @@ extern refdef_t r_refdef;
 extern mleaf_t *r_viewleaf, *r_oldviewleaf;
 extern int d_lightstylevalue[256]; // 8.8 fraction of base light value
 
-extern qboolean envmap;
+extern bool envmap;
 
 extern cvar_t r_norefresh;
 extern cvar_t r_drawentities;
@@ -230,12 +230,12 @@ void GL_PolygonOffset(int);
 #define GL_SOURCE1_RGB_EXT 0x8581
 #define GL_SOURCE0_ALPHA_EXT 0x8588
 #define GL_SOURCE1_ALPHA_EXT 0x8589
-extern qboolean gl_texture_env_combine;
+extern bool gl_texture_env_combine;
 //johnfitz
 
-extern qboolean gl_texture_env_add; //johnfitz -- for GL_EXT_texture_env_add
+extern bool gl_texture_env_add; //johnfitz -- for GL_EXT_texture_env_add
 
-extern qboolean isIntelVideo; //johnfitz -- intel video workarounds from Baker
+extern bool isIntelVideo; //johnfitz -- intel video workarounds from Baker
 
 //johnfitz -- rendering statistics
 extern int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
@@ -276,7 +276,7 @@ gltexture_t* lightmap_textures[MAX_LIGHTMAPS]; //johnfitz -- changed to an array
 
 int gl_warpimagesize; //johnfitz -- for water warp
 
-qboolean r_drawflat_cheatsafe, r_fullbright_cheatsafe, r_lightmap_cheatsafe, r_drawworld_cheatsafe; //johnfitz
+bool r_drawflat_cheatsafe, r_fullbright_cheatsafe, r_lightmap_cheatsafe, r_drawworld_cheatsafe; //johnfitz
 
 //johnfitz -- fog functions called from outside gl_fog.c
 void Fog_ParseServerMessage(void);

@@ -34,13 +34,13 @@ typedef union eval_s {
 #define MAX_ENT_LEAFS 16
 typedef struct edict_s
 {
-    qboolean free;
+    bool free;
     link_t area; // linked to a division node or leaf
     int num_leafs;
     short leafnums[MAX_ENT_LEAFS];
     entity_state_t baseline;
     unsigned char alpha; // johnfitz -- hack to support alpha since it's not part of entvars_t
-    qboolean sendinterval; // johnfitz -- send time until nextthink to client for better lerp timing
+    bool sendinterval; // johnfitz -- send time until nextthink to client for better lerp timing
     float freetime; // sv.time when the object was freed
     entvars_t v; // C exported fields from progs
     // other fields from progs come immediately after
@@ -118,7 +118,7 @@ extern int pr_numbuiltins;
 
 extern int pr_argc;
 
-extern qboolean pr_trace;
+extern bool pr_trace;
 extern dfunction_t* pr_xfunction;
 extern int pr_xstatement;
 
