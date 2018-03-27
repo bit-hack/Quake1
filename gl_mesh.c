@@ -30,26 +30,26 @@ ALIAS MODEL DISPLAY LIST GENERATION
 =================================================================
 */
 
-model_t* aliasmodel;
-aliashdr_t* paliashdr;
+static model_t* aliasmodel;
+static aliashdr_t* paliashdr;
 
-bool used[8192];
+static byte used[8192];
 
 // the command list holds counts and s/t values that are valid for
 // every frame
-int commands[8192];
-int numcommands;
+static int commands[8192];
+static int numcommands;
 
 // all frames will have their vertexes rearranged and expanded
 // so they are in the order expected by the command list
-int vertexorder[8192];
-int numorder;
+static int vertexorder[8192];
+static int numorder;
 
-int allverts, alltris;
+static int allverts, alltris;
 
-int stripverts[128];
-int striptris[128];
-int stripcount;
+static int stripverts[128];
+static int striptris[128];
+static int stripcount;
 
 /*
 ================
