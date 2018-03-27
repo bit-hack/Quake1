@@ -18,9 +18,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-
-#ifndef __ASM_I386__
-#define __ASM_I386__
+#pragma once
 
 #ifdef ELF
 #define C(label) label
@@ -93,5 +91,3 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define psp_left 0
 #define psp_right 4
 #define psp_size 8
-
-#endif

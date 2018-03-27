@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 /* crc.h */
+#pragma once
 
 void CRC_Init(unsigned short* crcvalue);
 void CRC_ProcessByte(unsigned short* crcvalue, byte data);
