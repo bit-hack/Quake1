@@ -782,8 +782,6 @@ R_RenderView
 */
 void R_RenderView(void)
 {
-    double time1, time2;
-
     if (r_norefresh.value)
         return;
 
@@ -793,54 +791,33 @@ void R_RenderView(void)
     if (r_speeds.value)
     {
         glFinish();
-        time1 = Sys_FloatTime();
 
         //johnfitz -- rendering statistics
-        rs_brushpolys = rs_aliaspolys = rs_skypolys = rs_particles = rs_fogpolys = rs_megatexels = rs_dynamiclightmaps = rs_aliaspasses = rs_skypasses = rs_brushpasses = 0;
+        rs_brushpolys = 0;
+        rs_aliaspolys = 0;
+        rs_skypolys = 0;
+        rs_particles = 0;
+        rs_fogpolys = 0;
+        rs_megatexels = 0;
+        rs_dynamiclightmaps = 0;
+        rs_aliaspasses = 0;
+        rs_skypasses = 0;
+        rs_brushpasses = 0;
     }
-    else if (gl_finish.value)
-        glFinish();
+    else {
+        if (gl_finish.value) {
+            glFinish();
+        }
+    }
 
-    R_SetupView(); //johnfitz -- this does everything that should be done once per frame
-
-    //johnfitz -- stereo rendering -- full of hacky goodness
-    if (r_stereo.value)
+    // bracket for frame time statistics
+    double time1 = Sys_FloatTime();
     {
-        float eyesep = CLAMP(-8.0f, r_stereo.value, 8.0f);
-        float fdepth = CLAMP(32.0f, r_stereodepth.value, 1024.0f);
-
-        AngleVectors(r_refdef.viewangles, vpn, vright, vup);
-
-        //render left eye (red)
-        glColorMask(1, 0, 0, 1);
-        VectorMA(r_refdef.vieworg, -0.5f * eyesep, vright, r_refdef.vieworg);
-        frustum_skew = 0.5 * eyesep * NEARCLIP / fdepth;
-        srand((int)(cl.time * 1000)); //sync random stuff between eyes
-
-        R_RenderScene();
-
-        //render right eye (cyan)
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glColorMask(0, 1, 1, 1);
-        VectorMA(r_refdef.vieworg, 1.0f * eyesep, vright, r_refdef.vieworg);
-        frustum_skew = -frustum_skew;
-        srand((int)(cl.time * 1000)); //sync random stuff between eyes
-
-        R_RenderScene();
-
-        //restore
-        glColorMask(1, 1, 1, 1);
-        VectorMA(r_refdef.vieworg, -0.5f * eyesep, vright, r_refdef.vieworg);
-        frustum_skew = 0.0f;
-    }
-    else
-    {
+        R_SetupView();
         R_RenderScene();
     }
-    //johnfitz
+    double time2 = Sys_FloatTime();
 
-    //johnfitz -- modified r_speeds output
-    time2 = Sys_FloatTime();
     if (r_speeds.value == 2)
         Con_Printf("%3i ms  %4i/%4i wpoly %4i/%4i epoly %3i lmap %4i/%4i sky %1.1f mtex\n",
             (int)((time2 - time1) * 1000),
