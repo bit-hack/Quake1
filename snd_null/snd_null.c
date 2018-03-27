@@ -20,53 +20,53 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // snd_dma.c -- main control for any streaming sound output device
 
+#include "../api.h"
 #include "../quakedef.h"
 
-#ifdef _WIN32
-#include "../winquake.h"
-#endif
+const quake_api_t* api;
 
 cvar_t bgmvolume = { "bgmvolume", "1", true };
 cvar_t volume = { "volume", "0.7", true };
 cvar_t loadas8bit = { "loadas8bit", "0" };
 
-void S_AmbientOff(void)
+void SndNull_AmbientOff(void)
 {
 }
 
-void S_AmbientOn(void)
+void SndNull_AmbientOn(void)
 {
 }
 
-void S_SoundInfo_f(void)
+void SndNull_SoundInfo_f(void)
 {
 }
 
-void S_Startup(void)
+void SndNull_Startup(void)
 {
 }
 
-void S_Init(void)
+void SndNull_Init(void)
 {
-    Cvar_RegisterVariable(&bgmvolume, NULL);
-    Cvar_RegisterVariable(&volume, NULL);
-    Cvar_RegisterVariable(&loadas8bit, NULL);
+    assert(api && api->cvar);
+    api->cvar->RegisterVariable(&bgmvolume, NULL);
+    api->cvar->RegisterVariable(&volume, NULL);
+    api->cvar->RegisterVariable(&loadas8bit, NULL);
 }
 
-void S_Shutdown(void)
+void SndNull_Shutdown(void)
 {
 }
 
-sfx_t* S_FindName(char* name)
+sfx_t* SndNull_FindName(char* name)
 {
     return NULL;
 }
 
-void S_TouchSound(char* name)
+void SndNull_TouchSound(char* name)
 {
 }
 
-sfx_t* S_PrecacheSound(char* name)
+sfx_t* SndNull_PrecacheSound(char* name)
 {
     return NULL;
 }
@@ -80,35 +80,35 @@ void SND_Spatialize(channel_t* ch)
 {
 }
 
-void S_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float fvol, float attenuation)
+void SndNull_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float fvol, float attenuation)
 {
 }
 
-void S_StopSound(int entnum, int entchannel)
+void SndNull_StopSound(int entnum, int entchannel)
 {
 }
 
-void S_StopAllSounds(bool clear)
+void SndNull_StopAllSounds(bool clear)
 {
 }
 
-void S_StopAllSoundsC(void)
+void SndNull_StopAllSoundsC(void)
 {
 }
 
-void S_ClearBuffer(void)
+void SndNull_ClearBuffer(void)
 {
 }
 
-void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
+void SndNull_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 {
 }
 
-void S_UpdateAmbientSounds(void)
+void SndNull_UpdateAmbientSounds(void)
 {
 }
 
-void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
+void SndNull_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
 }
 
@@ -116,46 +116,71 @@ void GetSoundtime(void)
 {
 }
 
-void S_ExtraUpdate(void)
+void SndNull_ExtraUpdate(void)
 {
 }
 
-void S_Play(void)
+void SndNull_Play(void)
 {
 }
 
-void S_PlayVol(void)
+void SndNull_PlayVol(void)
 {
 }
 
-void S_SoundList(void)
+void SndNull_SoundList(void)
 {
 }
 
-void S_LocalSound(char* sound)
+void SndNull_LocalSound(char* sound)
 {
 }
 
-void S_BeginPrecaching(void)
+void SndNull_BeginPrecaching(void)
 {
 }
 
-void S_EndPrecaching(void)
+void SndNull_EndPrecaching(void)
 {
 }
 
-void S_ClearPrecache(void)
+void SndNull_ClearPrecache(void)
 {
 }
 
-void S_BlockSound(void)
+void SndNull_BlockSound(void)
 {
 }
 
-void S_UnblockSound(void)
+void SndNull_UnblockSound(void)
 {
 }
 
-int S_SampleRate(void) {
-  return 22050;
+int SndNull_SampleRate(void)
+{
+    return 22050;
+}
+
+static const sound_api_t SndNullAPI = {
+    SndNull_StartSound,
+    SndNull_StopSound,
+    SndNull_StopAllSounds,
+    SndNull_StaticSound,
+    SndNull_BeginPrecaching,
+    SndNull_TouchSound,
+    SndNull_PrecacheSound,
+    SndNull_EndPrecaching,
+    SndNull_LocalSound,
+    SndNull_ClearBuffer,
+    SndNull_Init,
+    SndNull_Shutdown,
+    SndNull_Update,
+    SndNull_ExtraUpdate,
+    SndNull_SampleRate
+};
+
+__declspec(dllexport) extern const sound_api_t* getSoundApi(const quake_api_t *quake_api)
+{
+    api = quake_api;
+    return &SndNullAPI;
 }

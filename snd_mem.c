@@ -52,7 +52,8 @@ static void ResampleSfx(sfx_t* sfx, int inrate, int inwidth, byte* data)
         sc->loopstart = sc->loopstart / stepscale;
 
     sc->speed = S_SampleRate();
-    if (loadas8bit.value)
+    const cvar_t* loadas8bit = Cvar_FindVar("loadas8bit");
+    if (loadas8bit && loadas8bit->value)
         sc->width = 1;
     else
         sc->width = inwidth;

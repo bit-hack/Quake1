@@ -38,8 +38,8 @@ add_executable(
 
 target_link_libraries(
     fitzquake
-#    snd_win32
     snd_null
+    #snd_win32
     OPENGL32.lib
     ws2_32.lib
     winmm.lib
