@@ -11,7 +11,7 @@ static const sound_api_t* api;
 void S_Init(void)
 {
 #if 1
-    extern const sound_api_t *getSoundApi();
+    extern const sound_api_t *getSoundApi(const quake_api_t *);
 #else
     const char* dllpath = "sdl_null.dll";
     void* object = SDL_LoadObject(dllpath);
@@ -28,7 +28,7 @@ void S_Init(void)
         abort();
     }
 #endif
-    api = getSoundApi();
+    api = getSoundApi(GetQuakeAPI());
     if (!api)
     {
         Sys_Error("call to GetSoundApi() failed\n");

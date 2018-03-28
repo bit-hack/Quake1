@@ -213,7 +213,9 @@ void VID_UnlockBuffer(void);
 
 #define SOUND_CHANNELS 8
 
-#include "common.h"
+#include "common/common.h"
+#include "common/crc.h"
+
 #include "bspfile.h"
 #include "vid.h"
 #include "sys.h"
@@ -256,7 +258,6 @@ typedef struct
 #include "console.h"
 #include "view.h"
 #include "menu.h"
-#include "crc.h"
 #include "cdaudio.h"
 #include "glquake.h"
 

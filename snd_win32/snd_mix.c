@@ -28,6 +28,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define DWORD unsigned long
 #endif
 
+#include "../api.h"
+
+extern const quake_api_t *api;
+
 #define PAINTBUFFER_SIZE 512
 portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
 int snd_scaletable[32][256];
@@ -91,17 +95,17 @@ void S_TransferStereo16(int endtime)
         {
             if (hresult != DSERR_BUFFERLOST)
             {
-                Con_Printf("S_TransferStereo16: DS::Lock Sound Buffer Failed\n");
-                S_Shutdown();
-                S_Startup();
+                api->con->Printf("S_TransferStereo16: DS::Lock Sound Buffer Failed\n");
+//                S_Shutdown();
+//                S_Startup();
                 return;
             }
 
             if (++reps > 10000)
             {
-                Con_Printf("S_TransferStereo16: DS: couldn't restore buffer\n");
-                S_Shutdown();
-                S_Startup();
+                api->con->Printf("S_TransferStereo16: DS: couldn't restore buffer\n");
+//                S_Shutdown();
+//                S_Startup();
                 return;
             }
         }
@@ -179,17 +183,17 @@ void S_TransferPaintBuffer(int endtime)
         {
             if (hresult != DSERR_BUFFERLOST)
             {
-                Con_Printf("S_TransferPaintBuffer: DS::Lock Sound Buffer Failed\n");
-                S_Shutdown();
-                S_Startup();
+                api->con->Printf("S_TransferPaintBuffer: DS::Lock Sound Buffer Failed\n");
+//                S_Shutdown();
+//                S_Startup();
                 return;
             }
 
             if (++reps > 10000)
             {
-                Con_Printf("S_TransferPaintBuffer: DS: couldn't restore buffer\n");
-                S_Shutdown();
-                S_Startup();
+                api->con->Printf("S_TransferPaintBuffer: DS: couldn't restore buffer\n");
+//                S_Shutdown();
+//                S_Startup();
                 return;
             }
         }
@@ -245,7 +249,7 @@ void S_TransferPaintBuffer(int endtime)
         pDSBuf->lpVtbl->GetCurrentPosition(pDSBuf, &dwNewpos, &dwWrite);
 
         //		if ((dwNewpos >= il) && (dwNewpos <= ir))
-        //			Con_Printf("%d-%d p %d c\n", il, ir, dwNewpos);
+        //			api->con->Printf("%d-%d p %d c\n", il, ir, dwNewpos);
     }
 #endif
 }

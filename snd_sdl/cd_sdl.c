@@ -19,13 +19,33 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include "../api.h"
 #include "../quakedef.h"
 #include "../cdaudio.h"
 
-int CDAudio_Init(void) { return 1; }
-void CDAudio_Play(byte track, qboolean looping) {}
-void CDAudio_Stop(void) {}
-void CDAudio_Pause(void) {}
-void CDAudio_Resume(void) {}
-void CDAudio_Shutdown(void) {}
-void CDAudio_Update(void) {}
+const quake_api_t *api;
+
+int  CDSDL_Init(void) { return 1; }
+void CDSDL_Play(byte track, bool looping) {}
+void CDSDL_Stop(void) {}
+void CDSDL_Pause(void) {}
+void CDSDL_Resume(void) {}
+void CDSDL_Shutdown(void) {}
+void CDSDL_Update(void) {}
+
+static const cdaudio_api_t CDSDLAPI = {
+    CDSDL_Init,
+    CDSDL_Play,
+    CDSDL_Stop,
+    CDSDL_Pause,
+    CDSDL_Resume,
+    CDSDL_Shutdown,
+    CDSDL_Update
+};
+
+__declspec(dllexport)
+const cdaudio_api_t* getCDAudioApi(const quake_api_t *quake_api)
+{
+    api = quake_api;
+    return &CDSDLAPI;
+}

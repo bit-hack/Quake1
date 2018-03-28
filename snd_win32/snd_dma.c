@@ -20,18 +20,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // snd_dma.c -- main control for any streaming sound output device
 
+#include "../api.h"
 #include "../quakedef.h"
 
 #ifdef _WIN32
 #include "../winquake.h"
 #endif
 
-void S_Play(void);
-void S_PlayVol(void);
-void S_SoundList(void);
-void S_Update_();
-void S_StopAllSounds(bool clear);
-void S_StopAllSoundsC(void);
+const quake_api_t *api;
+
+static void S_Play(void);
+static void S_PlayVol(void);
+static void S_SoundList(void);
+static void S_Update_();
+static void S_StopAllSounds(bool clear);
+static void S_StopAllSoundsC(void);
 
 // =======================================================================
 // Internal sound data & structures
@@ -94,7 +97,7 @@ cvar_t _snd_mixahead = { "_snd_mixahead", "0.1", true };
 bool fakedma = false;
 int fakedma_updates = 15;
 
-int S_SampleRate(void)
+static int S_SampleRate(void)
 {
     if (shm)
     {
@@ -106,32 +109,32 @@ int S_SampleRate(void)
     }
 }
 
-void S_AmbientOff(void)
+static void S_AmbientOff(void)
 {
     snd_ambient = false;
 }
 
-void S_AmbientOn(void)
+static void S_AmbientOn(void)
 {
     snd_ambient = true;
 }
 
-void S_SoundInfo_f(void)
+static void S_SoundInfo_f(void)
 {
     if (!sound_started || !shm)
     {
-        Con_Printf("sound system not started\n");
+        api->con->Printf("sound system not started\n");
         return;
     }
 
-    Con_Printf("%5d stereo\n", shm->channels - 1);
-    Con_Printf("%5d samples\n", shm->samples);
-    Con_Printf("%5d samplepos\n", shm->samplepos);
-    Con_Printf("%5d samplebits\n", shm->samplebits);
-    Con_Printf("%5d submission_chunk\n", shm->submission_chunk);
-    Con_Printf("%5d speed\n", shm->speed);
-    Con_Printf("0x%x dma buffer\n", shm->buffer);
-    Con_Printf("%5d total_channels\n", total_channels);
+    api->con->Printf("%5d stereo\n", shm->channels - 1);
+    api->con->Printf("%5d samples\n", shm->samples);
+    api->con->Printf("%5d samplepos\n", shm->samplepos);
+    api->con->Printf("%5d samplebits\n", shm->samplebits);
+    api->con->Printf("%5d submission_chunk\n", shm->submission_chunk);
+    api->con->Printf("%5d speed\n", shm->speed);
+    api->con->Printf("0x%x dma buffer\n", shm->buffer);
+    api->con->Printf("%5d total_channels\n", total_channels);
 }
 
 /*
@@ -140,7 +143,7 @@ S_Startup
 ================
 */
 
-void S_Startup(void)
+static void S_Startup(void)
 {
     int rc;
 
@@ -154,7 +157,7 @@ void S_Startup(void)
         if (!rc)
         {
 #ifndef _WIN32
-            Con_Printf("S_Startup: SNDDMA_Init failed.\n");
+            api->con->Printf("S_Startup: SNDDMA_Init failed.\n");
 #endif
             sound_started = 0;
             return;
@@ -169,42 +172,42 @@ void S_Startup(void)
 S_Init
 ================
 */
-void S_Init(void)
+static void S_Init(void)
 {
-    if (COM_CheckParm("-nosound"))
+    if (api->cmd->CheckParm("-nosound"))
         return;
 
     //johnfitz -- clean up init readouts
-    Con_Printf("Sound Initialization\n");
-    //Con_Printf("------------- Init Sound -------------\n");
-    //Con_Printf("%cSound Init\n", 2);
+    api->con->Printf("Sound Initialization\n");
+    //api->con->Printf("------------- Init Sound -------------\n");
+    //api->con->Printf("%cSound Init\n", 2);
     //johnfitz
 
-    if (COM_CheckParm("-simsound"))
+    if (api->cmd->CheckParm("-simsound"))
         fakedma = true;
 
-    Cmd_AddCommand("play", S_Play);
-    Cmd_AddCommand("playvol", S_PlayVol);
-    Cmd_AddCommand("stopsound", S_StopAllSoundsC);
-    Cmd_AddCommand("soundlist", S_SoundList);
-    Cmd_AddCommand("soundinfo", S_SoundInfo_f);
+    api->cmd->AddCommand("play", S_Play);
+    api->cmd->AddCommand("playvol", S_PlayVol);
+    api->cmd->AddCommand("stopsound", S_StopAllSoundsC);
+    api->cmd->AddCommand("soundlist", S_SoundList);
+    api->cmd->AddCommand("soundinfo", S_SoundInfo_f);
 
-    Cvar_RegisterVariable(&nosound, NULL);
-    Cvar_RegisterVariable(&volume, NULL);
-    Cvar_RegisterVariable(&precache, NULL);
-    Cvar_RegisterVariable(&loadas8bit, NULL);
-    Cvar_RegisterVariable(&bgmvolume, NULL);
-    Cvar_RegisterVariable(&bgmbuffer, NULL);
-    Cvar_RegisterVariable(&ambient_level, NULL);
-    Cvar_RegisterVariable(&ambient_fade, NULL);
-    Cvar_RegisterVariable(&snd_noextraupdate, NULL);
-    Cvar_RegisterVariable(&snd_show, NULL);
-    Cvar_RegisterVariable(&_snd_mixahead, NULL);
+    api->cvar->RegisterVariable(&nosound, NULL);
+    api->cvar->RegisterVariable(&volume, NULL);
+    api->cvar->RegisterVariable(&precache, NULL);
+    api->cvar->RegisterVariable(&loadas8bit, NULL);
+    api->cvar->RegisterVariable(&bgmvolume, NULL);
+    api->cvar->RegisterVariable(&bgmbuffer, NULL);
+    api->cvar->RegisterVariable(&ambient_level, NULL);
+    api->cvar->RegisterVariable(&ambient_fade, NULL);
+    api->cvar->RegisterVariable(&snd_noextraupdate, NULL);
+    api->cvar->RegisterVariable(&snd_show, NULL);
+    api->cvar->RegisterVariable(&_snd_mixahead, NULL);
 
     if (host_parms.memsize < 0x800000)
     {
-        Cvar_Set("loadas8bit", "1");
-        Con_Printf("loading all sounds as 8bit\n");
+        api->cvar->Set("loadas8bit", "1");
+        api->con->Printf("loading all sounds as 8bit\n");
     }
 
     snd_initialized = true;
@@ -233,12 +236,12 @@ void S_Init(void)
         shm->buffer = Hunk_AllocName(1 << 16, "shmbuf");
     }
 
-    Con_Printf("Sound sampling rate: %i\n", shm->speed);
+    api->con->Printf("Sound sampling rate: %i\n", shm->speed);
 
     // provides a tick sound until washed clean
 
-    //	if (shm->buffer)
-    //		shm->buffer[4] = shm->buffer[5] = 0x7f;	// force a pop for debugging
+    // if (shm->buffer)
+    //     shm->buffer[4] = shm->buffer[5] = 0x7f; // force a pop for debugging
 
     ambient_sfx[AMBIENT_WATER] = S_PrecacheSound("ambience/water1.wav");
     ambient_sfx[AMBIENT_SKY] = S_PrecacheSound("ambience/wind2.wav");
@@ -250,19 +253,18 @@ void S_Init(void)
 // Shutdown sound engine
 // =======================================================================
 
-void S_Shutdown(void)
+static void S_Shutdown(void)
 {
-
     if (!sound_started)
+    {
         return;
-
-    if (shm) {
+    }
+    if (shm)
+    {
         shm->gamealive = 0;
     }
-
     shm = 0;
     sound_started = 0;
-
     if (!fakedma)
     {
         SNDDMA_Shutdown();
@@ -273,16 +275,16 @@ void S_Shutdown(void)
 // Load a sound
 // =======================================================================
 
-sfx_t* S_FindName(char* name)
+static sfx_t* S_FindName(char* name)
 {
     int i;
     sfx_t* sfx;
 
     if (!name)
-        Sys_Error("S_FindName: NULL\n");
+        api->sys->Error("S_FindName: NULL\n");
 
     if (Q_strlen(name) >= MAX_QPATH)
-        Sys_Error("Sound name too long: %s", name);
+        api->sys->Error("Sound name too long: %s", name);
 
     // see if already loaded
     for (i = 0; i < num_sfx; i++)
@@ -292,7 +294,7 @@ sfx_t* S_FindName(char* name)
         }
 
     if (num_sfx == MAX_SFX)
-        Sys_Error("S_FindName: out of sfx_t");
+        api->sys->Error("S_FindName: out of sfx_t");
 
     sfx = &known_sfx[i];
     strcpy(sfx->name, name);
@@ -302,7 +304,7 @@ sfx_t* S_FindName(char* name)
     return sfx;
 }
 
-void S_TouchSound(char* name)
+static void S_TouchSound(char* name)
 {
     sfx_t* sfx;
 
@@ -313,7 +315,7 @@ void S_TouchSound(char* name)
     Cache_Check(&sfx->cache);
 }
 
-sfx_t* S_PrecacheSound(char* name)
+static sfx_t* S_PrecacheSound(char* name)
 {
     sfx_t* sfx;
 
@@ -331,7 +333,7 @@ sfx_t* S_PrecacheSound(char* name)
 
 //=============================================================================
 
-channel_t* SND_PickChannel(int entnum, int entchannel)
+static channel_t* SND_PickChannel(int entnum, int entchannel)
 {
     int ch_idx;
     int first_to_die;
@@ -370,7 +372,7 @@ channel_t* SND_PickChannel(int entnum, int entchannel)
     return &channels[first_to_die];
 }
 
-void SND_Spatialize(channel_t* ch)
+static void SND_Spatialize(channel_t* ch)
 {
     vec_t dot;
     vec_t ldist, rdist, dist;
@@ -422,7 +424,7 @@ void SND_Spatialize(channel_t* ch)
 // Start a sound effect
 // =======================================================================
 
-void S_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float fvol, float attenuation)
+static void S_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float fvol, float attenuation)
 {
     channel_t *target_chan, *check;
     sfxcache_t* sc;
@@ -489,7 +491,7 @@ void S_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float f
     }
 }
 
-void S_StopSound(int entnum, int entchannel)
+static void S_StopSound(int entnum, int entchannel)
 {
     int i;
 
@@ -505,7 +507,7 @@ void S_StopSound(int entnum, int entchannel)
     }
 }
 
-void S_StopAllSounds(bool clear)
+static void S_StopAllSounds(bool clear)
 {
     int i;
 
@@ -524,12 +526,12 @@ void S_StopAllSounds(bool clear)
         S_ClearBuffer();
 }
 
-void S_StopAllSoundsC(void)
+static void S_StopAllSoundsC(void)
 {
     S_StopAllSounds(true);
 }
 
-void S_ClearBuffer(void)
+static void S_ClearBuffer(void)
 {
     int clear;
 
@@ -559,14 +561,14 @@ void S_ClearBuffer(void)
         {
             if (hresult != DSERR_BUFFERLOST)
             {
-                Con_Printf("S_ClearBuffer: DS::Lock Sound Buffer Failed\n");
+                api->con->Printf("S_ClearBuffer: DS::Lock Sound Buffer Failed\n");
                 S_Shutdown();
                 return;
             }
 
             if (++reps > 10000)
             {
-                Con_Printf("S_ClearBuffer: DS: couldn't restore buffer\n");
+                api->con->Printf("S_ClearBuffer: DS: couldn't restore buffer\n");
                 S_Shutdown();
                 return;
             }
@@ -583,7 +585,7 @@ void S_ClearBuffer(void)
     }
 }
 
-void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
+static void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 {
     channel_t* ss;
     sfxcache_t* sc;
@@ -593,7 +595,7 @@ void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 
     if (total_channels == MAX_CHANNELS)
     {
-        Con_Printf("total_channels == MAX_CHANNELS\n");
+        api->con->Printf("total_channels == MAX_CHANNELS\n");
         return;
     }
 
@@ -606,7 +608,7 @@ void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 
     if (sc->loopstart == -1)
     {
-        Con_Printf("Sound %s not looped\n", sfx->name);
+        api->con->Printf("Sound %s not looped\n", sfx->name);
         return;
     }
 
@@ -621,7 +623,7 @@ void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 
 //=============================================================================
 
-void S_UpdateAmbientSounds(void)
+static void S_UpdateAmbientSounds(void)
 {
     mleaf_t* l;
     float vol;
@@ -676,7 +678,7 @@ void S_UpdateAmbientSounds(void)
 }
 
 // Called once each time through the main loop
-void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
+static void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
     int i, j;
     int total;
@@ -752,18 +754,18 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
         for (i = 0; i < total_channels; i++, ch++)
             if (ch->sfx && (ch->leftvol || ch->rightvol))
             {
-                //Con_Printf ("%3i %3i %s\n", ch->leftvol, ch->rightvol, ch->sfx->name);
+                //api->con->Printf ("%3i %3i %s\n", ch->leftvol, ch->rightvol, ch->sfx->name);
                 total++;
             }
 
-        Con_Printf("----(%i)----\n", total);
+        api->con->Printf("----(%i)----\n", total);
     }
 
     // mix some sound
     S_Update_();
 }
 
-void GetSoundtime(void)
+static void GetSoundtime(void)
 {
     int samplepos;
     static int buffers;
@@ -796,7 +798,7 @@ void GetSoundtime(void)
 #endif
 }
 
-void S_ExtraUpdate(void)
+static void S_ExtraUpdate(void)
 {
 
 #ifdef _WIN32
@@ -822,7 +824,7 @@ static void S_Update_(void)
     // check to make sure that we haven't overshot
     if (paintedtime < soundtime)
     {
-        //Con_Printf ("S_Update_ : overflow\n");
+        //api->con->Printf ("S_Update_ : overflow\n");
         paintedtime = soundtime;
     }
 
@@ -840,7 +842,7 @@ static void S_Update_(void)
         if (pDSBuf)
         {
             if (pDSBuf->lpVtbl->GetStatus(pDSBuf, &dwStatus) != DD_OK)
-                Con_Printf("Couldn't get sound buffer status\n");
+                api->con->Printf("Couldn't get sound buffer status\n");
 
             if (dwStatus & DSBSTATUS_BUFFERLOST)
                 pDSBuf->lpVtbl->Restore(pDSBuf);
@@ -862,7 +864,7 @@ console functions
 ===============================================================================
 */
 
-void S_Play(void)
+static void S_Play(void)
 {
     static int hash = 345;
     int i;
@@ -870,22 +872,22 @@ void S_Play(void)
     sfx_t* sfx;
 
     i = 1;
-    while (i < Cmd_Argc())
+    while (i < api->cmd->Argc())
     {
-        if (!Q_strrchr(Cmd_Argv(i), '.'))
+        if (!Q_strrchr(api->cmd->Argv(i), '.'))
         {
-            Q_strcpy(name, Cmd_Argv(i));
+            Q_strcpy(name, api->cmd->Argv(i));
             Q_strcat(name, ".wav");
         }
         else
-            Q_strcpy(name, Cmd_Argv(i));
+            Q_strcpy(name, api->cmd->Argv(i));
         sfx = S_PrecacheSound(name);
         S_StartSound(hash++, 0, sfx, listener_origin, 1.0, 1.0);
         i++;
     }
 }
 
-void S_PlayVol(void)
+static void S_PlayVol(void)
 {
     static int hash = 543;
     int i;
@@ -894,23 +896,23 @@ void S_PlayVol(void)
     sfx_t* sfx;
 
     i = 1;
-    while (i < Cmd_Argc())
+    while (i < api->cmd->Argc())
     {
-        if (!Q_strrchr(Cmd_Argv(i), '.'))
+        if (!Q_strrchr(api->cmd->Argv(i), '.'))
         {
-            Q_strcpy(name, Cmd_Argv(i));
+            Q_strcpy(name, api->cmd->Argv(i));
             Q_strcat(name, ".wav");
         }
         else
-            Q_strcpy(name, Cmd_Argv(i));
+            Q_strcpy(name, api->cmd->Argv(i));
         sfx = S_PrecacheSound(name);
-        vol = Q_atof(Cmd_Argv(i + 1));
+        vol = Q_atof(api->cmd->Argv(i + 1));
         S_StartSound(hash++, 0, sfx, listener_origin, vol, 1.0);
         i += 2;
     }
 }
 
-void S_SoundList(void)
+static void S_SoundList(void)
 {
     int i;
     sfx_t* sfx;
@@ -926,15 +928,15 @@ void S_SoundList(void)
         size = sc->length * sc->width * (sc->stereo + 1);
         total += size;
         if (sc->loopstart >= 0)
-            Con_SafePrintf("L"); //johnfitz -- was Con_Printf
+            api->con->SafePrintf("L"); //johnfitz -- was Con_Printf
         else
-            Con_SafePrintf(" "); //johnfitz -- was Con_Printf
-        Con_SafePrintf("(%2db) %6i : %s\n", sc->width * 8, size, sfx->name); //johnfitz -- was Con_Printf
+            api->con->SafePrintf(" "); //johnfitz -- was Con_Printf
+        api->con->SafePrintf("(%2db) %6i : %s\n", sc->width * 8, size, sfx->name); //johnfitz -- was Con_Printf
     }
-    Con_Printf("%i sounds, %i bytes\n", num_sfx, total); //johnfitz -- added count
+    api->con->Printf("%i sounds, %i bytes\n", num_sfx, total); //johnfitz -- added count
 }
 
-void S_LocalSound(char* sound)
+static void S_LocalSound(char* sound)
 {
     sfx_t* sfx;
 
@@ -946,20 +948,44 @@ void S_LocalSound(char* sound)
     sfx = S_PrecacheSound(sound);
     if (!sfx)
     {
-        Con_Printf("S_LocalSound: can't cache %s\n", sound);
+        api->con->Printf("S_LocalSound: can't cache %s\n", sound);
         return;
     }
     S_StartSound(cl.viewentity, -1, sfx, vec3_origin, 1, 1);
 }
 
-void S_ClearPrecache(void)
+static void S_ClearPrecache(void)
 {
 }
 
-void S_BeginPrecaching(void)
+static void S_BeginPrecaching(void)
 {
 }
 
-void S_EndPrecaching(void)
+static void S_EndPrecaching(void)
 {
+}
+
+static const sound_api_t SndNullAPI = {
+    S_StartSound,
+    S_StopSound,
+    S_StopAllSounds,
+    S_StaticSound,
+    S_BeginPrecaching,
+    S_TouchSound,
+    S_PrecacheSound,
+    S_EndPrecaching,
+    S_LocalSound,
+    S_ClearBuffer,
+    S_Init,
+    S_Shutdown,
+    S_Update,
+    S_ExtraUpdate,
+    S_SampleRate
+};
+
+__declspec(dllexport) extern const sound_api_t* getSoundApi(const quake_api_t *quake_api)
+{
+    api = quake_api;
+    return &SndNullAPI;
 }

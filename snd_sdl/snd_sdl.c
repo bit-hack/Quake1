@@ -1,161 +1,171 @@
-/*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
+#include <SDL/SDL.h>
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
-// snd_dma.c -- main control for any streaming sound output device
-
+#include "../api.h"
 #include "../quakedef.h"
 
-#ifdef _WIN32
-#include "../winquake.h"
-#endif
+const quake_api_t* api;
 
 cvar_t bgmvolume = { "bgmvolume", "1", true };
 cvar_t volume = { "volume", "0.7", true };
 cvar_t loadas8bit = { "loadas8bit", "0" };
 
-void S_AmbientOff(void)
+SDL_AudioSpec spec;
+bool active;
+
+void SDLCALL SndSDL_Callback(void *userdata, Uint8 *stream, int len) {
+}
+
+static void SndSDL_AmbientOff(void)
 {
 }
 
-void S_AmbientOn(void)
+static void SndSDL_AmbientOn(void)
 {
 }
 
-void S_SoundInfo_f(void)
+static void SndSDL_Startup(void)
+{
+  SDL_AudioSpec in;
+  memset(&in, 0, sizeof(SDL_AudioSpec));
+  in.callback = SndSDL_Callback;
+  in.channels = 2;
+  in.freq = 22050;
+  in.samples = 1024 * 2;
+  in.format = AUDIO_S16LSB;
+  if (SDL_OpenAudio(&in, &spec) != 0) {
+    api->sys->Error("Unable to open audio device\n");
+    return;
+  }
+  active = true;
+}
+
+static void SndSDL_Init(void)
+{
+    assert(api && api->cvar);
+    api->cvar->RegisterVariable(&bgmvolume, NULL);
+    api->cvar->RegisterVariable(&volume, NULL);
+    api->cvar->RegisterVariable(&loadas8bit, NULL);
+}
+
+static void SndSDL_Shutdown(void)
 {
 }
 
-void S_Startup(void)
-{
-}
-
-void S_Init(void)
-{
-    Cvar_RegisterVariable(&bgmvolume, NULL);
-    Cvar_RegisterVariable(&volume, NULL);
-    Cvar_RegisterVariable(&loadas8bit, NULL);
-}
-
-void S_Shutdown(void)
-{
-}
-
-sfx_t* S_FindName(char* name)
+static sfx_t* SndSDL_FindName(char* name)
 {
     return NULL;
 }
 
-void S_TouchSound(char* name)
+static void SndSDL_TouchSound(char* name)
 {
 }
 
-sfx_t* S_PrecacheSound(char* name)
-{
-    return NULL;
-}
-
-channel_t* SND_PickChannel(int entnum, int entchannel)
+static sfx_t* SndSDL_PrecacheSound(char* name)
 {
     return NULL;
 }
 
-void SND_Spatialize(channel_t* ch)
+static void SndSDL_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float fvol, float attenuation)
 {
 }
 
-void S_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float fvol, float attenuation)
+static void SndSDL_StopSound(int entnum, int entchannel)
 {
 }
 
-void S_StopSound(int entnum, int entchannel)
+static void SndSDL_StopAllSounds(bool clear)
 {
 }
 
-void S_StopAllSounds(qboolean clear)
+static void SndSDL_StopAllSoundsC(void)
 {
 }
 
-void S_StopAllSoundsC(void)
+static void SndSDL_ClearBuffer(void)
 {
 }
 
-void S_ClearBuffer(void)
+static void SndSDL_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
 {
 }
 
-void S_StaticSound(sfx_t* sfx, vec3_t origin, float vol, float attenuation)
+static void SndSDL_UpdateAmbientSounds(void)
 {
 }
 
-void S_UpdateAmbientSounds(void)
+static void SndSDL_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
 }
 
-void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
+static void GetSoundtime(void)
 {
 }
 
-void GetSoundtime(void)
+static void SndSDL_ExtraUpdate(void)
 {
 }
 
-void S_ExtraUpdate(void)
+static void SndSDL_Play(void)
 {
 }
 
-void S_Play(void)
+static void SndSDL_PlayVol(void)
 {
 }
 
-void S_PlayVol(void)
+static void SndSDL_SoundList(void)
 {
 }
 
-void S_SoundList(void)
+static void SndSDL_LocalSound(char* sound)
 {
 }
 
-void S_LocalSound(char* sound)
+static void SndSDL_BeginPrecaching(void)
 {
 }
 
-void S_BeginPrecaching(void)
+static void SndSDL_EndPrecaching(void)
 {
 }
 
-void S_EndPrecaching(void)
+static void SndSDL_ClearPrecache(void)
 {
 }
 
-void S_ClearPrecache(void)
+static void SndSDL_BlockSound(void)
 {
 }
 
-void S_BlockSound(void)
+static void SndSDl_UnblockSound(void)
 {
 }
 
-void S_UnblockSound(void)
+static int SndSDL_SampleRate(void)
 {
+    return spec.freq;
 }
 
-int S_SampleRate(void) {
-  return 22050;
+static const sound_api_t SndSDLAPI = {
+    SndSDL_StartSound,
+    SndSDL_StopSound,
+    SndSDL_StopAllSounds,
+    SndSDL_StaticSound,
+    SndSDL_BeginPrecaching,
+    SndSDL_TouchSound,
+    SndSDL_PrecacheSound,
+    SndSDL_EndPrecaching,
+    SndSDL_LocalSound,
+    SndSDL_ClearBuffer,
+    SndSDL_Init,
+    SndSDL_Shutdown,
+    SndSDL_Update,
+    SndSDL_ExtraUpdate,
+    SndSDL_SampleRate
+};
+
+__declspec(dllexport) extern const sound_api_t* getSoundApi(const quake_api_t *quake_api)
+{
+    api = quake_api;
+    return &SndSDLAPI;
 }

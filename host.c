@@ -834,13 +834,13 @@ void Host_Init(quakeparms_t* parms)
 #ifndef _WIN32 // on non win32, mouse comes before video for security reasons
         IN_Init();
 #endif
+        CDAudio_Init();
         VID_Init();
         TexMgr_Init(); //johnfitz
         Draw_Init();
         SCR_Init();
         R_Init();
         S_Init();
-        CDAudio_Init();
         Sbar_Init();
         CL_Init();
 #ifdef _WIN32 // on non win32, mouse comes before video for security reasons

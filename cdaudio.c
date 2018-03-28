@@ -4,8 +4,8 @@
 static const cdaudio_api_t *api;
 
 int CDAudio_Init(void) {
-  extern const cdaudio_api_t *getCDAudioApi();
-  api = getCDAudioApi();
+  extern const cdaudio_api_t *getCDAudioApi(const quake_api_t *);
+  api = getCDAudioApi(GetQuakeAPI());
   if (!api) {
     Sys_Error("getCDAudioApi failed\n");
     abort();
