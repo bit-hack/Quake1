@@ -1578,11 +1578,9 @@ int loadsize;
 byte* COM_LoadFile(char* path, int usehunk)
 {
     int h;
-    byte* buf;
+    byte* buf = NULL;
     char base[32];
     int len;
-
-    buf = NULL; // quiet compiler warning
 
     // look for it in the filesystem or pack files
     len = COM_OpenFile(path, &h);

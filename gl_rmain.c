@@ -22,6 +22,27 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+
+void R_AnimateLight(void);
+void V_CalcBlend(void);
+void R_MarkSurfaces(void);
+void R_CullSurfaces(void);
+void R_UpdateWarpTextures(void);
+void R_DrawAliasModel(entity_t* e);
+void R_DrawBrushModel(entity_t* e);
+void R_DrawSpriteModel(entity_t* e);
+void R_DrawTextureChains_ShowTris(void);
+void R_DrawBrushModel_ShowTris(entity_t* e);
+void R_DrawAliasModel_ShowTris(entity_t* e);
+void R_DrawParticles_ShowTris(void);
+void GL_DrawAliasShadow(entity_t* e);
+void Sky_DrawSky(void);
+void R_DrawWorld(void);
+void R_DrawTextureChains_Water(void);
+void R_RenderDlights(void);
+void R_DrawParticles(void);
+
+
 bool r_cache_thrash; // compatability
 
 vec3_t modelorg, r_entorigin;
@@ -229,7 +250,7 @@ void GL_PolygonOffset(int offset)
 //
 //==============================================================================
 
-int SignbitsForPlane(mplane_t* out)
+static int SignbitsForPlane(mplane_t* out)
 {
     int bits, j;
 
@@ -459,7 +480,7 @@ void R_SetupView(void)
 R_DrawEntitiesOnList
 =============
 */
-void R_DrawEntitiesOnList(bool alphapass) //johnfitz -- added parameter
+static void R_DrawEntitiesOnList(bool alphapass) //johnfitz -- added parameter
 {
     extern cvar_t r_vfog; //johnfitz
     int i;
@@ -479,7 +500,7 @@ void R_DrawEntitiesOnList(bool alphapass) //johnfitz -- added parameter
 
         //johnfitz -- chasecam
         if (currententity == &cl_entities[cl.viewentity])
-            currententity->angles[0] *= 0.3;
+            currententity->angles[0] *= 0.3f;
         //johnfitz
 
         switch (currententity->model->type)
@@ -502,7 +523,7 @@ void R_DrawEntitiesOnList(bool alphapass) //johnfitz -- added parameter
 R_DrawViewModel -- johnfitz -- gutted
 =============
 */
-void R_DrawViewModel(void)
+static void R_DrawViewModel(void)
 {
     if (!r_drawviewmodel.value || !r_drawentities.value || chase_active.value || envmap)
         return;
@@ -530,7 +551,7 @@ void R_DrawViewModel(void)
 R_EmitWirePoint -- johnfitz -- draws a wireframe cross shape for point entities
 ================
 */
-void R_EmitWirePoint(vec3_t origin)
+static void R_EmitWirePoint(vec3_t origin)
 {
     int size = 8;
 
@@ -549,7 +570,7 @@ void R_EmitWirePoint(vec3_t origin)
 R_EmitWireBox -- johnfitz -- draws one axis aligned bounding box
 ================
 */
-void R_EmitWireBox(vec3_t mins, vec3_t maxs)
+static void R_EmitWireBox(vec3_t mins, vec3_t maxs)
 {
     glBegin(GL_QUAD_STRIP);
     glVertex3f(mins[0], mins[1], mins[2]);
@@ -572,7 +593,7 @@ R_ShowBoundingBoxes -- johnfitz
 draw bounding boxes -- the server-side boxes, not the renderer cullboxes
 ================
 */
-void R_ShowBoundingBoxes(void)
+static void R_ShowBoundingBoxes(void)
 {
     extern edict_t* sv_player;
     vec3_t mins, maxs;
@@ -627,7 +648,7 @@ void R_ShowBoundingBoxes(void)
 R_ShowTris -- johnfitz
 ================
 */
-void R_ShowTris(void)
+static void R_ShowTris(void)
 {
     extern cvar_t r_particles;
     int i;
@@ -656,7 +677,7 @@ void R_ShowTris(void)
             currententity = cl_visedicts[i];
 
             if (currententity == &cl_entities[cl.viewentity]) // chasecam
-                currententity->angles[0] *= 0.3;
+                currententity->angles[0] *= 0.3f;
 
             switch (currententity->model->type)
             {
@@ -712,7 +733,7 @@ void R_ShowTris(void)
 R_DrawShadows
 ================
 */
-void R_DrawShadows(void)
+static void R_DrawShadows(void)
 {
     int i;
 

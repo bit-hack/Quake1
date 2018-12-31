@@ -43,7 +43,8 @@ target_link_libraries(
     fitzquake
     common
     #snd_null
-    snd_win32
+    #snd_win32
+    snd_sdl
     OPENGL32.lib
     ws2_32.lib
     winmm.lib

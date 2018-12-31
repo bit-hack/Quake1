@@ -20,11 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // snd_mem.c: sound caching
 
-#include "quakedef.h"
+#include "../quakedef.h"
 
-int cache_full_cycle;
-
-byte* S_Alloc(int size);
+//int cache_full_cycle;
 
 /*
 ================
@@ -119,7 +117,6 @@ sfxcache_t* S_LoadSound(sfx_t* s)
     //	Con_Printf ("loading %s\n",namebuffer);
 
     data = COM_LoadStackFile(namebuffer, stackbuf, sizeof(stackbuf));
-
     if (!data)
     {
         Con_Printf("Couldn't load %s\n", namebuffer);

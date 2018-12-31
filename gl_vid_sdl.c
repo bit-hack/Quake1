@@ -344,10 +344,13 @@ static bool CreateSDLWindow(int modenum, bool fullscreen)
     // window creation flags
     const uint32_t flags = SDL_OPENGL | (fullscreen ? SDL_FULLSCREEN : 0);
 
+    const int width = modelist[modenum].width;
+    const int height = modelist[modenum].height;
+
     // create an opengl window
     SDL_Surface* surface = SDL_SetVideoMode(
-        modelist[modenum].width,
-        modelist[modenum].height,
+        width,
+        height,
         32, flags);
     if (surface == NULL)
     {

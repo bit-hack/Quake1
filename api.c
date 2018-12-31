@@ -59,11 +59,25 @@ static const sys_api_t api_sys = {
     Sys_Sleep
 };
 
+static const com_api_t api_com = {
+    COM_WriteFile,
+    COM_OpenFile,
+    COM_FOpenFile,
+    COM_CloseFile,
+    COM_LoadStackFile,
+    COM_LoadTempFile,
+    COM_LoadHunkFile,
+    COM_LoadCacheFile,
+//    COM_LoadFile
+    NULL
+};
+
 static const quake_api_t api_quake = {
     &api_cvar,
     &api_cmd,
     &api_con,
-    &api_sys
+    &api_sys,
+    &api_com
 };
 
 const quake_api_t* GetQuakeAPI()

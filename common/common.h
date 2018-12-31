@@ -167,9 +167,16 @@ int COM_OpenFile(char* filename, int* hndl);
 int COM_FOpenFile(char* filename, FILE** file);
 void COM_CloseFile(int h);
 
+// load a file to a buffer on the stack
 byte* COM_LoadStackFile(char* path, void* buffer, int bufsize);
+
+// ?
 byte* COM_LoadTempFile(char* path);
+
+// load a file and allocate a hunk for it
 byte* COM_LoadHunkFile(char* path);
+
+// load a file into the cache ?
 void COM_LoadCacheFile(char* path, struct cache_user_s* cu);
 
 extern struct cvar_s registered;

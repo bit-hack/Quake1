@@ -21,9 +21,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-/*
 
-*/
+// used by pr_cmds
+bool pr_trace;
+dfunction_t* pr_xfunction;
+int pr_argc;
+
 
 typedef struct
 {
@@ -32,20 +35,17 @@ typedef struct
 } prstack_t;
 
 #define MAX_STACK_DEPTH 32
-prstack_t pr_stack[MAX_STACK_DEPTH];
-int pr_depth;
+static prstack_t pr_stack[MAX_STACK_DEPTH];
+static int pr_depth;
 
 #define LOCALSTACK_SIZE 2048
-int localstack[LOCALSTACK_SIZE];
-int localstack_used;
+static int localstack[LOCALSTACK_SIZE];
+static int localstack_used;
 
-bool pr_trace;
-dfunction_t* pr_xfunction;
-int pr_xstatement;
+static int pr_xstatement;
 
-int pr_argc;
 
-char* pr_opnames[] = {
+static char* pr_opnames[] = {
     "DONE",
 
     "MUL_F",
@@ -143,7 +143,7 @@ char* PR_GlobalStringNoContents(int ofs);
 PR_PrintStatement
 =================
 */
-void PR_PrintStatement(dstatement_t* s)
+static void PR_PrintStatement(dstatement_t* s)
 {
     int i;
 
@@ -183,7 +183,7 @@ void PR_PrintStatement(dstatement_t* s)
 PR_StackTrace
 ============
 */
-void PR_StackTrace(void)
+static void PR_StackTrace(void)
 {
     dfunction_t* f;
     int i;
@@ -285,7 +285,7 @@ PR_EnterFunction
 Returns the new program statement counter
 ====================
 */
-int PR_EnterFunction(dfunction_t* f)
+static int PR_EnterFunction(dfunction_t* f)
 {
     int i, j, c, o;
 
@@ -324,7 +324,7 @@ int PR_EnterFunction(dfunction_t* f)
 PR_LeaveFunction
 ====================
 */
-int PR_LeaveFunction(void)
+static int PR_LeaveFunction(void)
 {
     int i, c;
 
@@ -624,7 +624,7 @@ void PR_ExecuteProgram(func_t fnum)
 
         case OP_DONE:
         case OP_RETURN:
-            pr_globals[OFS_RETURN] = pr_globals[st->a];
+            pr_globals[OFS_RETURN + 0] = pr_globals[st->a + 0];
             pr_globals[OFS_RETURN + 1] = pr_globals[st->a + 1];
             pr_globals[OFS_RETURN + 2] = pr_globals[st->a + 2];
 
