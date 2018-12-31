@@ -467,11 +467,10 @@ R_DrawTextureChains_Water -- johnfitz
 */
 void R_DrawTextureChains_Water(void)
 {
-    int i, j;
+    int i;
     msurface_t* s;
     texture_t* t;
     glpoly_t* p;
-    float* v;
     bool bound;
 
     if (r_drawflat_cheatsafe || r_lightmap_cheatsafe || !r_drawworld_cheatsafe)

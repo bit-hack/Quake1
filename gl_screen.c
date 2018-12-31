@@ -23,52 +23,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-/*
+// gl_draw.c
+void GL_Set2D(void);
+// view.c
+void V_UpdateBlend(void);
 
-background clear
-rendering
-turtle/net/ram icons
-sbar
-centerprint / slow centerprint
-notify lines
-intermission / finale overlay
-loading plaque
-console
-menu
-
-required background clears
-required update regions
-
-
-syncronous draw mode or async
-One off screen buffer, with updates either copied or xblited
-Need to double buffer?
-
-
-async draw will require the refresh area to be cleared, because it will be
-xblited, but sync draw can just ignore it.
-
-sync
-draw
-
-CenterPrint ()
-SlowPrint ()
-Screen_Update ();
-Con_Printf ();
-
-net
-turn off messages option
-
-the refresh is allways rendered, unless the console is full screen
-
-
-console is:
-	notify lines
-	half
-	full
-
-
-*/
 
 int glx, gly, glwidth, glheight;
 
@@ -260,9 +219,7 @@ Internal use only
 */
 static void SCR_CalcRefdef(void)
 {
-    vrect_t vrect;
     float size, scale; //johnfitz -- scale
-    int h;
 
     vid.recalc_refdef = 0;
 
@@ -978,8 +935,6 @@ needs almost the entire 256k of stack space!
 */
 void SCR_UpdateScreen(void)
 {
-    vrect_t vrect;
-
     if (block_drawing)
         return;
 

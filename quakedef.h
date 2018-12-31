@@ -245,7 +245,7 @@ typedef struct
 #include "sound.h"
 #include "render.h"
 #include "client.h"
-#include "progs.h"
+//#include "progs.h"
 #include "server.h"
 #include "gl_model.h"
 

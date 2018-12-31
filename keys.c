@@ -182,7 +182,6 @@ void Key_Console(int key)
 {
     extern int con_vislines;
     extern char key_tabpartial[MAXCMDLINE];
-    char* cmd;
 
     switch (key)
     {

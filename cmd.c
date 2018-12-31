@@ -214,7 +214,6 @@ void Cmd_StuffCmds_f(void)
 {
     extern cvar_t cmdline;
     char cmds[CMDLINE_LENGTH];
-    char c;
     int i, j, plus;
 
     plus = true;

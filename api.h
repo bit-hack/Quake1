@@ -37,6 +37,13 @@ typedef struct cdaudio_api_t
     void (*Update)(void);
 } cdaudio_api_t;
 
+// progs API
+typedef struct progs_api_t {
+    void (*PR_Init)(void);
+    void (*PR_ExecuteProgram)(func_t fnum);
+    void (*PR_LoadProgs)(void);
+} progs_api_t;
+
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 // Quake -> Module
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
@@ -153,6 +160,40 @@ typedef struct ren_api_t
   void (*R_SetVrect)(vrect_t* pvrect, vrect_t* pvrectin, int lineadj);
 } ren_api_t;
 
+typedef struct str_api_t
+{
+  void  (*Q_memset     )(void* dest, int fill, int count);
+  void  (*Q_memcpy     )(void* dest, void* src, int count);
+  int   (*Q_memcmp     )(void* m1, void* m2, int count);
+  void  (*Q_strcpy     )(char* dest, char* src);
+  void  (*Q_strncpy    )(char* dest, char* src, int count);
+  int   (*Q_strlen     )(char* str);
+  char* (*Q_strrchr    )(char* s, char c);
+  void  (*Q_strcat     )(char* dest, char* src);
+  int   (*Q_strcmp     )(char* s1, char* s2);
+  int   (*Q_strncmp    )(char* s1, char* s2, int count);
+  int   (*Q_strcasecmp )(char* s1, char* s2);
+  int   (*Q_strncasecmp)(char* s1, char* s2, int n);
+  int   (*Q_atoi       )(char* str);
+  float (*Q_atof       )(char* str);
+} str_api_t;
+
+typedef struct math_api_t
+{
+  vec_t (*_DotProduct    )(vec3_t v1, vec3_t v2);
+  void  (*_VectorSubtract)(vec3_t veca, vec3_t vecb, vec3_t out);
+  void  (*_VectorAdd     )(vec3_t veca, vec3_t vecb, vec3_t out);
+  void  (*_VectorCopy    )(vec3_t in, vec3_t out);
+} math_api_t;
+
+typedef struct mem_api_t {
+  void  (*Cache_Flush)(void);
+  void* (*Cache_Check)(cache_user_t* c);
+  void  (*Cache_Free)(cache_user_t* c, bool freetextures);
+  void* (*Cache_Alloc)(cache_user_t* c, int size, char* name);
+  void  (*Cache_Report)(void);
+} mem_api_t;
+
 // api agregator
 typedef struct quake_api_t
 {
@@ -162,6 +203,9 @@ typedef struct quake_api_t
     const sys_api_t* sys;
     const com_api_t* com;
     const ren_api_t* ren;
+    const str_api_t* str;
+    const math_api_t* math;
+    const mem_api_t* mem;
 } quake_api_t;
 
 extern const quake_api_t* GetQuakeAPI();

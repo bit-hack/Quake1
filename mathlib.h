@@ -69,8 +69,7 @@ extern int nanmask;
 
 //johnfitz -- courtesy of lordhavoc
 #define VectorNormalizeFast(_v)                                     \
-    \
-{                                                            \
+{                                                                   \
         float _y, _number;                                          \
         _number = DotProduct(_v, _v);                               \
         if (_number != 0.0)                                         \
@@ -79,7 +78,6 @@ extern int nanmask;
             _y = _y * (1.5f - (_number * 0.5f * _y * _y));          \
             VectorScale(_v, _y, _v);                                \
         }                                                           \
-    \
 }
 
 void TurnVector(vec3_t out, const vec3_t forward, const vec3_t side, float angle); //johnfitz

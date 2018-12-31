@@ -1,3 +1,6 @@
+#include <map>
+#include <string>
+
 #include <SDL/SDL.h>
 
 #include "../api.h"
@@ -5,15 +8,31 @@
 
 const quake_api_t* api;
 
-cvar_t bgmvolume = { "bgmvolume", "1", true };
 cvar_t volume = { "volume", "0.7", true };
+cvar_t bgmvolume = { "bgmvolume", "1", true };
 cvar_t loadas8bit = { "loadas8bit", "0" };
 
-SDL_AudioSpec spec;
 bool active;
+SDL_AudioSpec spec;
+SDL_mutex *mutex = NULL;
 
-static const size_t MAX_SFX = 512;
-sfx_t *known_sfx;
+std::map<std::string, sfx_t> sfx_map;
+
+struct foo_t {
+  sfx_t *sfx;
+};
+
+std::map<std::pair<int, int>, foo_t> channel_map;
+
+struct listener_t {
+  vec3_t origin;
+  vec3_t forward;
+  vec3_t right;
+  vec3_t up;
+};
+
+listener_t listener;
+
 
 void SDLCALL SndSDL_Callback(void *userdata, Uint8 *stream, int len)
 {
@@ -30,6 +49,12 @@ static void SndSDL_AmbientOn(void)
 static void SndSDL_Startup(void)
 {
   assert(!active);
+
+  mutex = SDL_CreateMutex();
+  if (!mutex) {
+    api->sys->Error("Unable to create audio mutex\n");
+    return;
+  }
 
   SDL_AudioSpec in;
   memset(&in, 0, sizeof(SDL_AudioSpec));
@@ -49,8 +74,6 @@ static void SndSDL_Startup(void)
 
 static void SndSDL_Init(void)
 {
-    known_sfx = Hunk_AllocName(MAX_SFX * sizeof(sfx_t), "sfx_t");
-
     assert(api && api->cvar);
     api->cvar->RegisterVariable(&bgmvolume, NULL);
     api->cvar->RegisterVariable(&volume, NULL);
@@ -61,16 +84,26 @@ static void SndSDL_Init(void)
 
 static void SndSDL_Shutdown(void)
 {
-    if (active) {
+    if (active)
+    {
         SDL_CloseAudio();
         active = false;
+    }
+    if (mutex)
+    {
+        SDL_DestroyMutex(mutex);
+        mutex = NULL;
     }
 }
 
 static sfx_t* SndSDL_FindName(char* name)
 {
     api->con->Printf("%s: %s\n", __FUNCDNAME__, name);
-    return NULL;
+    auto itt = sfx_map.find(std::string(name));
+    if (itt == sfx_map.end()) {
+      return NULL;
+    }
+    return &(itt->second);
 }
 
 static void SndSDL_TouchSound(char* name)
@@ -82,32 +115,75 @@ static sfx_t* SndSDL_PrecacheSound(char* name)
 {
     api->con->Printf("%s: %s\n", __FUNCDNAME__, name);
 
+    // check if its already cached
+    {
+      auto itt = sfx_map.find(std::string(name));
+      if (itt != sfx_map.end()) {
+        return &(itt->second);
+      }
+    }
+
     char namebuffer[256];
-    byte stackbuf[1024];
+    api->str->Q_strcpy(namebuffer, "sound/");
+    api->str->Q_strcat(namebuffer, name);
 
-    Q_strcpy(namebuffer, "sound/");
-    Q_strcat(namebuffer, name);
+    // load the data from disk
+    byte *data = api->com->LoadHunkFile(namebuffer);
 
-    const byte *data = api->com->LoadStackFile(namebuffer, stackbuf, sizeof(stackbuf));
+    sfx_map.emplace(std::string(name), sfx_t{0});
+    sfx_t &sfx = sfx_map[std::string(name)];
+    strncpy(sfx.name, name, sizeof(sfx.name));
 
-    return NULL;
+
+
+    sfx.cache.data = (void*)data;
+    return &sfx;
 }
 
 static void SndSDL_StartSound(int entnum, int entchannel, sfx_t* sfx, vec3_t origin, float fvol, float attenuation)
 {
     api->con->Printf("%s\n", __FUNCDNAME__);
+
+    if (!SDL_mutexP(mutex)) {
+
+      foo_t chan;
+      chan.sfx = sfx;
+      channel_map[std::make_pair(entnum, entchannel)] = chan;
+
+      SDL_mutexV(mutex);
+    }
 }
 
 static void SndSDL_StopSound(int entnum, int entchannel)
 {
+    if (!SDL_mutexP(mutex)) {
+
+      auto itt = channel_map.find(std::make_pair(entnum, entchannel));
+      if (itt != channel_map.end()) {
+
+        channel_map.erase(itt);
+      }
+
+      SDL_mutexV(mutex);
+    }
 }
 
 static void SndSDL_StopAllSounds(bool clear)
 {
+    if (!SDL_mutexP(mutex))
+    {
+        channel_map.clear();
+        SDL_mutexV(mutex);
+    }
 }
 
 static void SndSDL_StopAllSoundsC(void)
 {
+    if (!SDL_mutexP(mutex))
+    {
+        channel_map.clear();
+        SDL_mutexV(mutex);
+    }
 }
 
 static void SndSDL_ClearBuffer(void)
@@ -125,7 +201,10 @@ static void SndSDL_UpdateAmbientSounds(void)
 
 static void SndSDL_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
-//    api->con->Printf("%s\n", __FUNCDNAME__);
+    api->math->_VectorCopy(origin, listener.origin);
+    api->math->_VectorCopy(forward, listener.forward);
+    api->math->_VectorCopy(right, listener.right);
+    api->math->_VectorCopy(up, listener.up);
 }
 
 static void GetSoundtime(void)
@@ -198,8 +277,10 @@ static const sound_api_t SndSDLAPI = {
     SndSDL_SampleRate
 };
 
-__declspec(dllexport) extern const sound_api_t* getSoundApi(const quake_api_t *quake_api)
+extern "C" {
+__declspec(dllexport) extern const sound_api_t* getSoundApi(const quake_api_t* quake_api)
 {
     api = quake_api;
     return &SndSDLAPI;
 }
+} // extern "C"

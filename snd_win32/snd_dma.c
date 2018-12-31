@@ -375,7 +375,7 @@ static channel_t* SND_PickChannel(int entnum, int entchannel)
 static void SND_Spatialize(channel_t* ch)
 {
     vec_t dot;
-    vec_t ldist, rdist, dist;
+    vec_t dist;
     vec_t lscale, rscale, scale;
     vec3_t source_vec;
     sfx_t* snd;

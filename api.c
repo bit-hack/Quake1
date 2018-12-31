@@ -72,12 +72,48 @@ static const com_api_t api_com = {
     NULL
 };
 
+static const str_api_t api_str = {
+    Q_memset,
+    Q_memcpy,
+    Q_memcmp,
+    Q_strcpy,
+    Q_strncpy,
+    Q_strlen,
+    Q_strrchr,
+    Q_strcat,
+    Q_strcmp,
+    Q_strncmp,
+    Q_strcasecmp,
+    Q_strncasecmp,
+    Q_atoi,
+    Q_atof
+};
+
+static const math_api_t api_math = {
+    _DotProduct,
+    _VectorSubtract,
+    _VectorAdd,
+    _VectorCopy
+};
+
+static const mem_api_t api_mem = {
+    Cache_Flush,
+    Cache_Check,
+    Cache_Free,
+    Cache_Alloc,
+    Cache_Report,
+};
+
 static const quake_api_t api_quake = {
     &api_cvar,
     &api_cmd,
     &api_con,
     &api_sys,
-    &api_com
+    &api_com,
+    NULL,
+    &api_str,
+    &api_math,
+    &api_mem,
 };
 
 const quake_api_t* GetQuakeAPI()
