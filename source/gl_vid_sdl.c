@@ -931,40 +931,9 @@ void GL_EndRendering(void)
 {
     if (!scr_skipupdate || block_drawing)
     {
-#if 0
-        SwapBuffers(maindc);
-#else
         SDL_GL_SwapBuffers();
-#endif
     }
 
-    // handle the mouse state when windowed if that's changed
-    if (modestate == MS_WINDOWED)
-    {
-        if (!_windowed_mouse.value)
-        {
-            if (windowed_mouse)
-            {
-                IN_DeactivateMouse();
-                IN_ShowMouse();
-                windowed_mouse = false;
-            }
-        }
-        else
-        {
-            windowed_mouse = true;
-            if (key_dest == key_game && !mouseactive && ActiveApp)
-            {
-                IN_ActivateMouse();
-                IN_HideMouse();
-            }
-            else if (mouseactive && key_dest != key_game)
-            {
-                IN_DeactivateMouse();
-                IN_ShowMouse();
-            }
-        }
-    }
     if (fullsbardraw)
         Sbar_Changed();
 }

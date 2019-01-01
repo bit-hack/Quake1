@@ -24,15 +24,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../quakedef.h"
 #include "../winquake.h"
 
-#define DINPUT_BUFFERSIZE 16
-#define iDirectInputCreate(a, b, c, d) pDirectInputCreate(a, b, c, d)
-
 // mouse variables
 cvar_t m_filter = { "m_filter", "0" };
 
 //johnfitz -- compatibility with old Quake -- setting to 0 disables KP_* codes
 cvar_t cl_keypad = { "cl_keypad", "1" };
 
+bool mouseactive;
+
+static bool mouse_avail;
 static int mouse_buttons;
 static int mouse_oldbuttonstate;
 static POINT current_pos;
@@ -42,81 +42,9 @@ static bool restore_spi;
 static int originalmouseparms[3], newmouseparms[3] = { 0, 0, 1 };
 
 static unsigned int uiWheelMessage;
-bool mouseactive;
 static bool mouseinitialized;
 static bool mouseparmsvalid, mouseactivatetoggle;
 static bool mouseshowtoggle = 1;
-
-static unsigned int mstate_di;
-
-// joystick defines and variables
-// where should defines be moved?
-#define JOY_ABSOLUTE_AXIS 0x00000000 // control like a joystick
-#define JOY_RELATIVE_AXIS 0x00000010 // control like a mouse, spinner, trackball
-#define JOY_MAX_AXES 6 // X, Y, Z, R, U, V
-#define JOY_AXIS_X 0
-#define JOY_AXIS_Y 1
-#define JOY_AXIS_Z 2
-#define JOY_AXIS_R 3
-#define JOY_AXIS_U 4
-#define JOY_AXIS_V 5
-
-enum _ControlList
-{
-    AxisNada = 0,
-    AxisForward,
-    AxisLook,
-    AxisSide,
-    AxisTurn
-};
-
-DWORD dwAxisFlags[JOY_MAX_AXES] = {
-    JOY_RETURNX, JOY_RETURNY, JOY_RETURNZ, JOY_RETURNR, JOY_RETURNU, JOY_RETURNV
-};
-
-DWORD dwAxisMap[JOY_MAX_AXES];
-DWORD dwControlMap[JOY_MAX_AXES];
-PDWORD pdwRawValue[JOY_MAX_AXES];
-
-// none of these cvars are saved over a session
-// this means that advanced controller configuration needs to be executed
-// each time.  this avoids any problems with getting back to a default usage
-// or when changing from one controller to another.  this way at least something
-// works.
-cvar_t in_joystick = { "joystick", "0", true };
-cvar_t joy_name = { "joyname", "joystick" };
-cvar_t joy_advanced = { "joyadvanced", "0" };
-cvar_t joy_advaxisx = { "joyadvaxisx", "0" };
-cvar_t joy_advaxisy = { "joyadvaxisy", "0" };
-cvar_t joy_advaxisz = { "joyadvaxisz", "0" };
-cvar_t joy_advaxisr = { "joyadvaxisr", "0" };
-cvar_t joy_advaxisu = { "joyadvaxisu", "0" };
-cvar_t joy_advaxisv = { "joyadvaxisv", "0" };
-cvar_t joy_forwardthreshold = { "joyforwardthreshold", "0.15" };
-cvar_t joy_sidethreshold = { "joysidethreshold", "0.15" };
-cvar_t joy_pitchthreshold = { "joypitchthreshold", "0.15" };
-cvar_t joy_yawthreshold = { "joyyawthreshold", "0.15" };
-cvar_t joy_forwardsensitivity = { "joyforwardsensitivity", "-1.0" };
-cvar_t joy_sidesensitivity = { "joysidesensitivity", "-1.0" };
-cvar_t joy_pitchsensitivity = { "joypitchsensitivity", "1.0" };
-cvar_t joy_yawsensitivity = { "joyyawsensitivity", "-1.0" };
-cvar_t joy_wwhack1 = { "joywwhack1", "0.0" };
-cvar_t joy_wwhack2 = { "joywwhack2", "0.0" };
-
-bool joy_avail, joy_advancedinit, joy_haspov;
-DWORD joy_oldbuttonstate, joy_oldpovstate;
-
-int joy_id;
-DWORD joy_flags;
-DWORD joy_numbuttons;
-
-static JOYINFOEX ji;
-
-static HINSTANCE hInstDI;
-
-void IN_StartupJoystick(void);
-void Joy_AdvancedUpdate_f(void);
-void IN_JoyMove(usercmd_t* cmd);
 
 /* Map from SDL to quake keynums */
 static int MapKey(int key)
@@ -179,14 +107,18 @@ void IN_UpdateClipCursor(void)
 
 void IN_ShowMouse(void)
 {
+    SDL_ShowCursor(1);
 }
 
 void IN_HideMouse(void)
 {
+    SDL_ShowCursor(0);
 }
 
 void IN_ActivateMouse(void)
 {
+    SDL_WM_GrabInput(SDL_GRAB_ON);
+    SDL_ShowCursor(0);
 }
 
 void IN_SetQuakeMouseState(void)
@@ -195,6 +127,8 @@ void IN_SetQuakeMouseState(void)
 
 void IN_DeactivateMouse(void)
 {
+    SDL_WM_GrabInput(SDL_GRAB_OFF);
+    SDL_ShowCursor(1);
 }
 
 void IN_RestoreOriginalMouseState(void)
@@ -206,7 +140,12 @@ void IN_StartupMouse(void)
     if (COM_CheckParm("-nomouse"))
         return;
 
+    SDL_WM_GrabInput(SDL_GRAB_ON);
+
+    mouse_x = mouse_y = 0.0;
+    mouse_avail = 1;
     mouseinitialized = true;
+    mouseactive = true;
 
     mouseparmsvalid = SystemParametersInfo(SPI_GETMOUSE, 0, originalmouseparms, 0);
 
@@ -237,6 +176,10 @@ void IN_StartupMouse(void)
         IN_ActivateMouse();
 }
 
+void IN_ClearStates(void)
+{
+}
+
 void IN_Init(void)
 {
     //johnfitz -- clean up init readouts
@@ -250,89 +193,96 @@ void IN_Init(void)
     //johnfitz
     Cvar_RegisterVariable(&cl_keypad, NULL);
 
-    // joystick variables
-    Cvar_RegisterVariable(&in_joystick, NULL);
-    Cvar_RegisterVariable(&joy_name, NULL);
-    Cvar_RegisterVariable(&joy_advanced, NULL);
-    Cvar_RegisterVariable(&joy_advaxisx, NULL);
-    Cvar_RegisterVariable(&joy_advaxisy, NULL);
-    Cvar_RegisterVariable(&joy_advaxisz, NULL);
-    Cvar_RegisterVariable(&joy_advaxisr, NULL);
-    Cvar_RegisterVariable(&joy_advaxisu, NULL);
-    Cvar_RegisterVariable(&joy_advaxisv, NULL);
-    Cvar_RegisterVariable(&joy_forwardthreshold, NULL);
-    Cvar_RegisterVariable(&joy_sidethreshold, NULL);
-    Cvar_RegisterVariable(&joy_pitchthreshold, NULL);
-    Cvar_RegisterVariable(&joy_yawthreshold, NULL);
-    Cvar_RegisterVariable(&joy_forwardsensitivity, NULL);
-    Cvar_RegisterVariable(&joy_sidesensitivity, NULL);
-    Cvar_RegisterVariable(&joy_pitchsensitivity, NULL);
-    Cvar_RegisterVariable(&joy_yawsensitivity, NULL);
-    Cvar_RegisterVariable(&joy_wwhack1, NULL);
-    Cvar_RegisterVariable(&joy_wwhack2, NULL);
-
     Cmd_AddCommand("force_centerview", Force_CenterView_f);
-    Cmd_AddCommand("joyadvancedupdate", Joy_AdvancedUpdate_f);
 
     uiWheelMessage = RegisterWindowMessage("MSWHEEL_ROLLMSG");
 
     IN_StartupMouse();
-    IN_StartupJoystick();
 }
 
 void IN_Shutdown(void)
 {
-}
-
-void IN_MouseEvent(int mstate)
-{
-}
-
-void IN_MouseMove(usercmd_t* cmd)
-{
-}
-
-void IN_Move(usercmd_t* cmd)
-{
-}
-
-void IN_Accumulate(void)
-{
-}
-
-void IN_ClearStates(void)
-{
-}
-
-void IN_StartupJoystick(void)
-{
-}
-
-void Joy_AdvancedUpdate_f(void)
-{
+    mouse_avail = 0;
 }
 
 void IN_Commands(void)
 {
+    int i;
+    int mouse_buttonstate;
+
+    if (!mouse_avail)
+        return;
+
+    i = SDL_GetMouseState(NULL, NULL);
+    /* Quake swaps the second and third buttons */
+    mouse_buttonstate = (i & ~0x06) | ((i & 0x02) << 1) | ((i & 0x04) >> 1);
+    for (i = 0; i < 3; i++)
+    {
+        if ((mouse_buttonstate & (1 << i)) && !(mouse_oldbuttonstate & (1 << i)))
+            Key_Event(K_MOUSE1 + i, true);
+
+        if (!(mouse_buttonstate & (1 << i)) && (mouse_oldbuttonstate & (1 << i)))
+            Key_Event(K_MOUSE1 + i, false);
+    }
+    mouse_oldbuttonstate = mouse_buttonstate;
 }
 
-bool IN_ReadJoystick(void)
+void IN_Move(usercmd_t* cmd)
 {
-  return false;
-}
+    if (!mouse_avail)
+        return;
 
-void IN_JoyMove(usercmd_t* cmd)
-{
+    mouse_x *= sensitivity.value;
+    mouse_y *= sensitivity.value;
+
+    if ((in_strafe.state & 1) || (lookstrafe.value && (in_mlook.state & 1)))
+        cmd->sidemove += m_side.value * mouse_x;
+    else
+        cl.viewangles[YAW] -= m_yaw.value * mouse_x;
+    if (in_mlook.state & 1)
+        V_StopPitchDrift();
+
+    if ((in_mlook.state & 1) && !(in_strafe.state & 1))
+    {
+        cl.viewangles[PITCH] += m_pitch.value * mouse_y;
+        // clamp viewing angles
+        if (cl.viewangles[PITCH] > 80)
+            cl.viewangles[PITCH] = 80;
+        if (cl.viewangles[PITCH] < -70)
+            cl.viewangles[PITCH] = -70;
+    }
+    else
+    {
+        if ((in_strafe.state & 1) && noclip_anglehack)
+            cmd->upmove -= m_forward.value * mouse_y;
+        else
+            cmd->forwardmove -= m_forward.value * mouse_y;
+    }
+    mouse_x = mouse_y = 0.0f;
 }
 
 // process SDL input related events
-void IN_SDLEvent(const SDL_Event *event) {
-  switch (event->type) {
-  case SDL_KEYDOWN:
-    Key_Event(MapKey(event->key.keysym.sym), true);
-    break;
-  case SDL_KEYUP:
-    Key_Event(MapKey(event->key.keysym.sym), false);
-    break;
-  }
+void IN_SDLEvent(const SDL_Event* event)
+{
+    switch (event->type)
+    {
+    case SDL_KEYDOWN:
+        Key_Event(MapKey(event->key.keysym.sym), true);
+        break;
+    case SDL_KEYUP:
+        Key_Event(MapKey(event->key.keysym.sym), false);
+        break;
+    case SDL_MOUSEMOTION:
+        if ((event->motion.x != (vid.width / 2)) || (event->motion.y != (vid.height / 2)))
+        {
+            mouse_x = event->motion.xrel * 10;
+            mouse_y = event->motion.yrel * 10;
+        }
+        break;
+    case SDL_QUIT:
+        CL_Disconnect();
+        Host_ShutdownServer(false);
+        Sys_Quit();
+        break;
+    }
 }

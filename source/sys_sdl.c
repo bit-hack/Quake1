@@ -503,6 +503,7 @@ void Sys_PumpEvents(void)
         {
         case SDL_KEYDOWN:
         case SDL_KEYUP:
+        case SDL_MOUSEMOTION:
             IN_SDLEvent(&event);
             break;
         case SDL_QUIT:
