@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 const quake_api_t *api;
 
 int CDNull_Init(void) { return 1; }
-void CDNull_Play(byte track, bool looping) {}
+void CDNull_Play(uint8_t track, bool looping) {}
 void CDNull_Stop(void) {}
 void CDNull_Pause(void) {}
 void CDNull_Resume(void) {}

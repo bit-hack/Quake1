@@ -14,7 +14,7 @@ int CDAudio_Init(void) {
   return api->Init();
 }
 
-void CDAudio_Play(byte track, bool looping) {
+void CDAudio_Play(uint8_t track, bool looping) {
   assert(api && api->Play);
   api->Play(track, looping);
 }

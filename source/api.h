@@ -29,7 +29,7 @@ typedef struct sound_api_t
 typedef struct cdaudio_api_t
 {
     int (*Init)(void);
-    void (*Play)(byte track, bool looping);
+    void (*Play)(uint8_t track, bool looping);
     void (*Stop)(void);
     void (*Pause)(void);
     void (*Resume)(void);
@@ -122,13 +122,11 @@ typedef struct com_api_t
     int (*OpenFile)(char* filename, int* hndl);
     int (*FOpenFile)(char* filename, FILE** file);
     void (*CloseFile)(int h);
-    byte* (*LoadStackFile)(char* path, void* buffer, int bufsize);
-    byte* (*LoadTempFile)(char* path);
-    byte* (*LoadHunkFile)(char* path);
+    uint8_t* (*LoadStackFile)(char* path, void* buffer, int bufsize);
+    uint8_t* (*LoadTempFile)(char* path);
+    uint8_t* (*LoadHunkFile)(char* path);
     void (*LoadCacheFile)(char* path, struct cache_user_s* cu);
-
-    //
-    byte* (*LoadFile)(char* path, int usehunk);
+    uint8_t* (*LoadFile)(char* path, int usehunk);
 } com_api_t;
 
 typedef struct ren_api_t

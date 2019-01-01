@@ -65,13 +65,13 @@ typedef struct
     server_state_t state; // some actions are only valid during load
 
     sizebuf_t datagram;
-    byte datagram_buf[MAX_DATAGRAM];
+    uint8_t datagram_buf[MAX_DATAGRAM];
 
     sizebuf_t reliable_datagram; // copied to all clients at end of frame
-    byte reliable_datagram_buf[MAX_DATAGRAM];
+    uint8_t reliable_datagram_buf[MAX_DATAGRAM];
 
     sizebuf_t signon;
-    byte signon_buf[MAX_MSGLEN - 2]; //johnfitz -- was 8192, now uses MAX_MSGLEN
+    uint8_t signon_buf[MAX_MSGLEN - 2]; //johnfitz -- was 8192, now uses MAX_MSGLEN
 
     unsigned protocol; //johnfitz
 } server_t;
@@ -97,7 +97,7 @@ typedef struct client_s
 
     sizebuf_t message; // can be added to at any time,
     // copied and clear once per frame
-    byte msgbuf[MAX_MSGLEN];
+    uint8_t msgbuf[MAX_MSGLEN];
     edict_t* edict; // EDICT_NUM(clientnum+1)
     char name[32]; // for printing to other people
     int colors;
@@ -182,7 +182,7 @@ void SV_RunClients(void);
 void SV_WriteClientdataToMessage(edict_t* ent, sizebuf_t* msg);
 void SV_SaveSpawnparms();
 void SV_SpawnServer(char* server);
-//byte* SV_FatPVS(vec3_t org, model_t* worldmodel);
+//uint8_t* SV_FatPVS(vec3_t org, model_t* worldmodel);
 void SV_MoveToGoal(void);
 void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count);
 void SV_StartSound(edict_t* entity, int channel, char* sample, int volume, float attenuation);

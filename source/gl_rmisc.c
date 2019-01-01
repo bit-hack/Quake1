@@ -79,11 +79,11 @@ R_SetClearColor_f -- johnfitz
 */
 void R_SetClearColor_f(void)
 {
-    byte* rgb;
+    uint8_t* rgb;
     int s;
 
     s = (int)r_clearcolor.value & 0xFF;
-    rgb = (byte*)(d_8to24table + s);
+    rgb = (uint8_t*)(d_8to24table + s);
     glClearColor(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0, 0);
 }
 
@@ -118,7 +118,7 @@ Grab six views for environment mapping tests
 */
 void R_Envmap_f(void)
 {
-    byte buffer[256 * 256 * 4];
+    uint8_t buffer[256 * 256 * 4];
 
     glDrawBuffer(GL_FRONT);
     glReadBuffer(GL_FRONT);
@@ -182,7 +182,7 @@ R_Init
 */
 void R_Init(void)
 {
-    extern byte* hunk_base;
+    extern uint8_t* hunk_base;
     extern cvar_t gl_finish;
 
     Cmd_AddCommand("timerefresh", R_TimeRefresh_f);
@@ -286,7 +286,7 @@ added bug fix from bengt jardup
 void R_TranslateNewPlayerSkin(int playernum)
 {
     char name[64];
-    byte* pixels;
+    uint8_t* pixels;
     aliashdr_t* paliashdr;
     int skinnum;
 
@@ -307,7 +307,7 @@ void R_TranslateNewPlayerSkin(int playernum)
         skinnum = 0;
     }
 
-    pixels = (byte*)paliashdr + paliashdr->texels[skinnum]; // This is not a persistent place!
+    pixels = (uint8_t*)paliashdr + paliashdr->texels[skinnum]; // This is not a persistent place!
 
     //upload new image
     sprintf(name, "player_%i", playernum);

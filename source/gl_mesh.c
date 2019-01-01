@@ -33,7 +33,7 @@ ALIAS MODEL DISPLAY LIST GENERATION
 static model_t* aliasmodel;
 static aliashdr_t* paliashdr;
 
-static byte used[8192];
+static uint8_t used[8192];
 
 // the command list holds counts and s/t values that are valid for
 // every frame
@@ -365,7 +365,7 @@ void GL_MakeAliasModelDisplayLists(model_t* m, aliashdr_t* hdr)
     paliashdr->poseverts = numorder;
 
     cmds = Hunk_Alloc(numcommands * 4);
-    paliashdr->commands = (byte*)cmds - (byte*)paliashdr;
+    paliashdr->commands = (uint8_t*)cmds - (uint8_t*)paliashdr;
 
     //johnfitz -- precompute texcoords for padded skins
     loadcmds = commands;
@@ -388,7 +388,7 @@ void GL_MakeAliasModelDisplayLists(model_t* m, aliashdr_t* hdr)
     //johnfitz
 
     verts = Hunk_Alloc(paliashdr->numposes * paliashdr->poseverts * sizeof(trivertx_t));
-    paliashdr->posedata = (byte*)verts - (byte*)paliashdr;
+    paliashdr->posedata = (uint8_t*)verts - (uint8_t*)paliashdr;
     for (i = 0; i < paliashdr->numposes; i++)
         for (j = 0; j < numorder; j++)
             *verts++ = poseverts[i][vertexorder[j]];

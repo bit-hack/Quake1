@@ -47,10 +47,10 @@ int allocated[MAX_LIGHTMAPS][BLOCK_WIDTH];
 
 // the lightmap texture data needs to be kept in
 // main memory so texsubimage can update properly
-byte lightmaps[4 * MAX_LIGHTMAPS * BLOCK_WIDTH * BLOCK_HEIGHT];
+uint8_t lightmaps[4 * MAX_LIGHTMAPS * BLOCK_WIDTH * BLOCK_HEIGHT];
 
 void R_RenderDynamicLightmaps(msurface_t* fa);
-void R_BuildLightMap(msurface_t* surf, byte* dest, int stride);
+void R_BuildLightMap(msurface_t* surf, uint8_t* dest, int stride);
 void R_UploadLightmap(int lmap);
 
 /*
@@ -648,7 +648,7 @@ called during rendering
 */
 void R_RenderDynamicLightmaps(msurface_t* fa)
 {
-    byte* base;
+    uint8_t* base;
     int maps;
     glRect_t* theRect;
     int smax, tmax;
@@ -755,7 +755,7 @@ GL_CreateSurfaceLightmap
 void GL_CreateSurfaceLightmap(msurface_t* surf)
 {
     int smax, tmax;
-    byte* base;
+    uint8_t* base;
 
     smax = (surf->extents[0] >> 4) + 1;
     tmax = (surf->extents[1] >> 4) + 1;
@@ -852,7 +852,7 @@ with all the surfaces from all brush models
 void GL_BuildLightmaps(void)
 {
     char name[16];
-    byte* data;
+    uint8_t* data;
     int i, j;
     model_t* m;
 
@@ -1015,12 +1015,12 @@ R_BuildLightMap -- johnfitz -- revised for lit support via lordhavoc
 Combine and scale multiple lightmaps into the 8.8 format in blocklights
 ===============
 */
-void R_BuildLightMap(msurface_t* surf, byte* dest, int stride)
+void R_BuildLightMap(msurface_t* surf, uint8_t* dest, int stride)
 {
     int smax, tmax;
     int t;
     int i, j, size;
-    byte* lightmap;
+    uint8_t* lightmap;
     unsigned scale;
     int maps;
     unsigned* bl;
@@ -1153,7 +1153,7 @@ void R_RebuildAllLightmaps(void)
     int i, j;
     model_t* mod;
     msurface_t* fa;
-    byte* base;
+    uint8_t* base;
 
     if (!cl.worldmodel) // is this the correct test?
         return;

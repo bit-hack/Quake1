@@ -33,7 +33,7 @@ returns a pointer to hunk allocated RGBA data
 TODO: search order: tga png jpg pcx lmp
 ============
 */
-byte* Image_LoadImage(char* name, int* width, int* height)
+uint8_t* Image_LoadImage(char* name, int* width, int* height)
 {
     FILE* f;
 
@@ -71,7 +71,7 @@ targaheader_t targa_header;
 
 int fgetLittleShort(FILE* f)
 {
-    byte b1, b2;
+    uint8_t b1, b2;
 
     b1 = fgetc(f);
     b2 = fgetc(f);
@@ -81,7 +81,7 @@ int fgetLittleShort(FILE* f)
 
 int fgetLittleLong(FILE* f)
 {
-    byte b1, b2, b3, b4;
+    uint8_t b1, b2, b3, b4;
 
     b1 = fgetc(f);
     b2 = fgetc(f);
@@ -100,11 +100,11 @@ returns true if successful
 TODO: support BGRA and BGR formats (since opengl can return them, and we don't have to swap)
 ============
 */
-bool Image_WriteTGA(char* name, byte* data, int width, int height, int bpp, bool upsidedown)
+bool Image_WriteTGA(char* name, uint8_t* data, int width, int height, int bpp, bool upsidedown)
 {
     int handle, i, size, temp, bytes;
     char pathname[MAX_OSPATH];
-    byte header[TARGAHEADERSIZE];
+    uint8_t header[TARGAHEADERSIZE];
 
     Sys_mkdir(com_gamedir); //if we've switched to a nonexistant gamedir, create it now so we don't crash
     sprintf(pathname, "%s/%s", com_gamedir, name);
@@ -144,12 +144,12 @@ bool Image_WriteTGA(char* name, byte* data, int width, int height, int bpp, bool
 Image_LoadTGA
 =============
 */
-byte* Image_LoadTGA(FILE* fin, int* width, int* height)
+uint8_t* Image_LoadTGA(FILE* fin, int* width, int* height)
 {
     int columns, rows, numPixels;
-    byte* pixbuf;
+    uint8_t* pixbuf;
     int row, column;
-    byte* targa_rgba;
+    uint8_t* targa_rgba;
     int realrow; //johnfitz -- fix for upside-down targas
     bool upside_down; //johnfitz -- fix for upside-down targas
 
@@ -338,7 +338,7 @@ typedef struct
     char bits_per_pixel;
     unsigned short xmin, ymin, xmax, ymax;
     unsigned short hdpi, vdpi;
-    byte colortable[48];
+    uint8_t colortable[48];
     char reserved;
     char color_planes;
     unsigned short bytes_per_line;
@@ -351,12 +351,12 @@ typedef struct
 Image_LoadPCX
 ============
 */
-byte* Image_LoadPCX(FILE* f, int* width, int* height)
+uint8_t* Image_LoadPCX(FILE* f, int* width, int* height)
 {
     pcxheader_t pcx;
     int x, y, w, h, readbyte, runlength, start;
-    byte *p, *data;
-    byte palette[768];
+    uint8_t *p, *data;
+    uint8_t palette[768];
 
     start = ftell(f); //save start of file (since we might be inside a pak file, SEEK_SET might not be the start of the pcx)
 

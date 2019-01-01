@@ -137,12 +137,12 @@ typedef struct qsocket_s
     unsigned int sendSequence;
     unsigned int unreliableSendSequence;
     int sendMessageLength;
-    byte sendMessage[NET_MAXMESSAGE];
+    uint8_t sendMessage[NET_MAXMESSAGE];
 
     unsigned int receiveSequence;
     unsigned int unreliableReceiveSequence;
     int receiveMessageLength;
-    byte receiveMessage[NET_MAXMESSAGE];
+    uint8_t receiveMessage[NET_MAXMESSAGE];
 
     struct qsockaddr addr;
     char address[NET_NAMELEN];
@@ -165,9 +165,9 @@ typedef struct
     int (*CloseSocket)(int socket);
     int (*Connect)(int socket, struct qsockaddr* addr);
     int (*CheckNewConnections)(void);
-    int (*Read)(int socket, byte* buf, int len, struct qsockaddr* addr);
-    int (*Write)(int socket, byte* buf, int len, struct qsockaddr* addr);
-    int (*Broadcast)(int socket, byte* buf, int len);
+    int (*Read)(int socket, uint8_t* buf, int len, struct qsockaddr* addr);
+    int (*Write)(int socket, uint8_t* buf, int len, struct qsockaddr* addr);
+    int (*Broadcast)(int socket, uint8_t* buf, int len);
     char* (*AddrToString)(struct qsockaddr* addr);
     int (*StringToAddr)(char* string, struct qsockaddr* addr);
     int (*GetSocketAddr)(int socket, struct qsockaddr* addr);

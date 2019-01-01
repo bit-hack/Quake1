@@ -31,7 +31,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "winquake.h"
 #include "errno.h"
 #include "resource.h"
-#include "conproc.h"
 
 #define MINIMUM_WIN_MEMORY 0x0880000
 #define MAXIMUM_WIN_MEMORY 0x2000000 //johnfitz -- 32 mb, was 16 mb
@@ -305,7 +304,6 @@ void Sys_Error(char* error, ...)
     if (!in_sys_error2)
     {
         in_sys_error2 = 1;
-        DeinitConProc();
     }
 
     exit(1);
@@ -324,7 +322,6 @@ void Sys_Quit(void)
     if (isDedicated)
         FreeConsole();
     // shut down QHOST hooks if necessary
-    DeinitConProc();
     exit(0);
 }
 
@@ -690,8 +687,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             //            if (t < com_argc)
             //                heventChild = (HANDLE)Q_atoi(com_argv[t + 1]);
         }
-
-        InitConProc(NULL, NULL, NULL);
     }
 
     Sys_Init();

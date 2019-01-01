@@ -90,12 +90,12 @@ void Sky_LoadTexture(texture_t* mt)
 {
     char texturename[64];
     int i, j, p, r, g, b, count;
-    byte* src;
-    static byte front_data[128 * 128]; //FIXME: Hunk_Alloc
-    static byte back_data[128 * 128]; //FIXME: Hunk_Alloc
+    uint8_t* src;
+    static uint8_t front_data[128 * 128]; //FIXME: Hunk_Alloc
+    static uint8_t back_data[128 * 128]; //FIXME: Hunk_Alloc
     unsigned* rgba;
 
-    src = (byte*)mt + mt->offsets[0];
+    src = (uint8_t*)mt + mt->offsets[0];
 
     // extract back layer and upload
     for (i = 0; i < 128; i++)
@@ -126,9 +126,9 @@ void Sky_LoadTexture(texture_t* mt)
             if (p != 0)
             {
                 rgba = &d_8to24table[p];
-                r += ((byte*)rgba)[0];
-                g += ((byte*)rgba)[1];
-                b += ((byte*)rgba)[2];
+                r += ((uint8_t*)rgba)[0];
+                g += ((uint8_t*)rgba)[1];
+                b += ((uint8_t*)rgba)[2];
                 count++;
             }
         }
@@ -147,7 +147,7 @@ void Sky_LoadSkyBox(char* name)
 {
     int i, mark, width, height;
     char filename[MAX_OSPATH];
-    byte* data;
+    uint8_t* data;
     bool nonefound = true;
 
     if (strcmp(skybox_name, name) == 0)

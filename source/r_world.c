@@ -26,8 +26,8 @@ extern cvar_t gl_fullbrights, r_drawflat, gl_overbright, r_oldwater, r_oldskylea
 
 extern glpoly_t* lightmap_polys[MAX_LIGHTMAPS];
 
-byte* SV_FatPVS(vec3_t org, model_t* worldmodel);
-extern byte mod_novis[MAX_MAP_LEAFS / 8];
+uint8_t* SV_FatPVS(vec3_t org, model_t* worldmodel);
+extern uint8_t mod_novis[MAX_MAP_LEAFS / 8];
 int vis_changed; //if true, force pvs to be refreshed
 
 //==============================================================================
@@ -43,7 +43,7 @@ R_MarkSurfaces -- johnfitz -- mark surfaces based on PVS and rebuild texture cha
 */
 void R_MarkSurfaces(void)
 {
-    byte* vis;
+    uint8_t* vis;
     mleaf_t* leaf;
     mnode_t* node;
     msurface_t *surf, **mark;

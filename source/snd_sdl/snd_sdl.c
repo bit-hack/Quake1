@@ -65,7 +65,8 @@ bool SNDDMA_Init(void)
         break;
     case AUDIO_S16LSB:
     case AUDIO_S16MSB:
-        if (((obtained.format == AUDIO_S16LSB) && (SDL_BYTEORDER == SDL_LIL_ENDIAN)) || ((obtained.format == AUDIO_S16MSB) && (SDL_BYTEORDER == SDL_BIG_ENDIAN)))
+        if (((obtained.format == AUDIO_S16LSB) && (SDL_BYTEORDER == SDL_LIL_ENDIAN)) ||
+            ((obtained.format == AUDIO_S16MSB) && (SDL_BYTEORDER == SDL_BIG_ENDIAN)))
         {
             /* Supported */
             break;

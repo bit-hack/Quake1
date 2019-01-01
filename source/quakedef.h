@@ -50,21 +50,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdbool.h>
 #include <assert.h> //johnfitz
 
-#if defined(_WIN32) && !defined(WINDED)
-
-#if defined(_M_IX86)
-#define __i386__ 1
-#endif
-
 void VID_LockBuffer(void);
 void VID_UnlockBuffer(void);
-
-#else
-
-#define VID_LockBuffer()
-#define VID_UnlockBuffer()
-
-#endif
 
 #if defined __i386__ // && !defined __sun__
 #define id386 1
@@ -294,7 +281,7 @@ extern cvar_t max_edicts; //johnfitz
 
 extern bool host_initialized; // true if into command execution
 extern double host_frametime;
-extern byte* host_colormap;
+extern uint8_t* host_colormap;
 extern int host_framecount; // incremented every frame, never reset
 extern double realtime; // not bounded in any way, changed at
 // start of every frame, never reset

@@ -96,7 +96,7 @@ void GL_DrawAliasFrame(aliashdr_t* paliashdr, lerpdata_t lerpdata)
     if (lerpdata.pose1 != lerpdata.pose2)
     {
         lerping = true;
-        verts1 = (trivertx_t*)((byte*)paliashdr + paliashdr->posedata);
+        verts1 = (trivertx_t*)((uint8_t*)paliashdr + paliashdr->posedata);
         verts2 = verts1;
         verts1 += lerpdata.pose1 * paliashdr->poseverts;
         verts2 += lerpdata.pose2 * paliashdr->poseverts;
@@ -106,11 +106,11 @@ void GL_DrawAliasFrame(aliashdr_t* paliashdr, lerpdata_t lerpdata)
     else // poses the same means either 1. the entity has paused its animation, or 2. r_lerpmodels is disabled
     {
         lerping = false;
-        verts1 = (trivertx_t*)((byte*)paliashdr + paliashdr->posedata);
+        verts1 = (trivertx_t*)((uint8_t*)paliashdr + paliashdr->posedata);
         verts1 += lerpdata.pose1 * paliashdr->poseverts;
     }
 
-    commands = (int*)((byte*)paliashdr + paliashdr->commands);
+    commands = (int*)((uint8_t*)paliashdr + paliashdr->commands);
 
     vertcolor[3] = entalpha; //never changes, so there's no need to put this inside the loop
 

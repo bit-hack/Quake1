@@ -33,7 +33,7 @@ void Mod_LoadBrushModel(model_t* mod, void* buffer);
 void Mod_LoadAliasModel(model_t* mod, void* buffer);
 model_t* Mod_LoadModel(model_t* mod, bool crash);
 
-byte mod_novis[MAX_MAP_LEAFS / 8];
+uint8_t mod_novis[MAX_MAP_LEAFS / 8];
 
 #define MAX_MOD_KNOWN 2048 //johnfitz -- was 512
 model_t mod_known[MAX_MOD_KNOWN];
@@ -119,11 +119,11 @@ mleaf_t* Mod_PointInLeaf(vec3_t p, model_t* model)
 Mod_DecompressVis
 ===================
 */
-byte* Mod_DecompressVis(byte* in, model_t* model)
+uint8_t* Mod_DecompressVis(uint8_t* in, model_t* model)
 {
-    static byte decompressed[MAX_MAP_LEAFS / 8];
+    static uint8_t decompressed[MAX_MAP_LEAFS / 8];
     int c;
-    byte* out;
+    uint8_t* out;
     int row;
 
     row = (model->numleafs + 7) >> 3;
@@ -163,7 +163,7 @@ byte* Mod_DecompressVis(byte* in, model_t* model)
     return decompressed;
 }
 
-byte* Mod_LeafPVS(mleaf_t* leaf, model_t* model)
+uint8_t* Mod_LeafPVS(mleaf_t* leaf, model_t* model)
 {
     if (leaf == model->leafs)
         return mod_novis;
@@ -251,7 +251,7 @@ model_t* Mod_LoadModel(model_t* mod, bool crash)
 {
     void* d;
     unsigned* buf;
-    byte stackbuf[1024]; // avoid dirtying the cache heap
+    uint8_t stackbuf[1024]; // avoid dirtying the cache heap
 
     if (!mod->needload)
     {
@@ -339,14 +339,14 @@ model_t* Mod_ForName(char* name, bool crash)
 ===============================================================================
 */
 
-byte* mod_base;
+uint8_t* mod_base;
 
 /*
 =================
 Mod_CheckFullbrights -- johnfitz
 =================
 */
-bool Mod_CheckFullbrights(byte* pixels, int count)
+bool Mod_CheckFullbrights(uint8_t* pixels, int count)
 {
     int i;
     for (i = 0; i < count; i++)
@@ -374,8 +374,8 @@ void Mod_LoadTextures(lump_t* l)
     unsigned offset;
     int mark, fwidth, fheight;
     char filename[MAX_OSPATH], filename2[MAX_OSPATH], mapname[MAX_OSPATH];
-    byte* data;
-    extern byte* hunk_base;
+    uint8_t* data;
+    extern uint8_t* hunk_base;
     //johnfitz
 
     //johnfitz -- don't return early if no textures; still need to create dummy texture
@@ -400,7 +400,7 @@ void Mod_LoadTextures(lump_t* l)
         m->dataofs[i] = LittleLong(m->dataofs[i]);
         if (m->dataofs[i] == -1)
             continue;
-        mt = (miptex_t*)((byte*)m + m->dataofs[i]);
+        mt = (miptex_t*)((uint8_t*)m + m->dataofs[i]);
         mt->width = LittleLong(mt->width);
         mt->height = LittleLong(mt->height);
         for (j = 0; j < MIPLEVELS; j++)
@@ -454,7 +454,7 @@ void Mod_LoadTextures(lump_t* l)
                     sprintf(texturename, "%s:%s", loadmodel->name, tx->name);
                     offset = (unsigned)(mt + 1) - (unsigned)mod_base;
                     tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
-                        SRC_INDEXED, (byte*)(tx + 1), loadmodel->name, offset, TEXPREF_NONE);
+                        SRC_INDEXED, (uint8_t*)(tx + 1), loadmodel->name, offset, TEXPREF_NONE);
                 }
 
                 //now create the warpimage, using dummy data from the hunk to create the initial image
@@ -500,18 +500,18 @@ void Mod_LoadTextures(lump_t* l)
                 {
                     sprintf(texturename, "%s:%s", loadmodel->name, tx->name);
                     offset = (unsigned)(mt + 1) - (unsigned)mod_base;
-                    if (Mod_CheckFullbrights((byte*)(tx + 1), pixels))
+                    if (Mod_CheckFullbrights((uint8_t*)(tx + 1), pixels))
                     {
                         tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
-                            SRC_INDEXED, (byte*)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_NOBRIGHT);
+                            SRC_INDEXED, (uint8_t*)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_NOBRIGHT);
                         sprintf(texturename, "%s:%s_glow", loadmodel->name, tx->name);
                         tx->fullbright = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
-                            SRC_INDEXED, (byte*)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT);
+                            SRC_INDEXED, (uint8_t*)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT);
                     }
                     else
                     {
                         tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
-                            SRC_INDEXED, (byte*)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP);
+                            SRC_INDEXED, (uint8_t*)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP);
                     }
                 }
                 Hunk_FreeToLowMark(mark);
@@ -627,15 +627,15 @@ void Mod_LoadLighting(lump_t* l)
 {
     //
     int i;
-    byte *in, *out, *data;
-    byte d;
+    uint8_t *in, *out, *data;
+    uint8_t d;
     char litfilename[1024];
     loadmodel->lightdata = NULL;
     // LordHavoc: check for a .lit file
     strcpy(litfilename, loadmodel->name);
     COM_StripExtension(litfilename, litfilename);
     strcat(litfilename, ".lit");
-    data = (byte*)COM_LoadHunkFile(litfilename);
+    data = (uint8_t*)COM_LoadHunkFile(litfilename);
     if (data)
     {
         if (data[0] == 'Q' && data[1] == 'L' && data[2] == 'I' && data[3] == 'T')
@@ -1515,7 +1515,7 @@ void Mod_LoadBrushModel(model_t* mod, void* buffer)
         Sys_Error("Mod_LoadBrushModel: %s has wrong version number (%i should be %i)", mod->name, i, BSPVERSION);
 
     // swap all the lumps
-    mod_base = (byte*)header;
+    mod_base = (uint8_t*)header;
 
     for (i = 0; i < sizeof(dheader_t) / 4; i++)
         ((int*)header)[i] = LittleLong(((int*)header)[i]);
@@ -1619,8 +1619,8 @@ mtriangle_t triangles[MAXALIASTRIS];
 trivertx_t* poseverts[MAXALIASFRAMES];
 int posenum;
 
-byte** player_8bit_texels_tbl;
-byte* player_8bit_texels;
+uint8_t** player_8bit_texels_tbl;
+uint8_t* player_8bit_texels;
 
 /*
 =================
@@ -1737,9 +1737,9 @@ extern unsigned d_8to24table[];
     \
 }
 
-void Mod_FloodFillSkin(byte* skin, int skinwidth, int skinheight)
+void Mod_FloodFillSkin(uint8_t* skin, int skinwidth, int skinheight)
 {
-    byte fillcolor = *skin; // assume this is the pixel to fill
+    uint8_t fillcolor = *skin; // assume this is the pixel to fill
     floodfill_t fifo[FLOODFILL_FIFO_SIZE];
     int inpt = 0, outpt = 0;
     int filledcolor = -1;
@@ -1771,7 +1771,7 @@ void Mod_FloodFillSkin(byte* skin, int skinwidth, int skinheight)
     {
         int x = fifo[outpt].x, y = fifo[outpt].y;
         int fdc = filledcolor;
-        byte* pos = &skin[x + skinwidth * y];
+        uint8_t* pos = &skin[x + skinwidth * y];
 
         outpt = (outpt + 1) & FLOODFILL_FIFO_MASK;
 
@@ -1796,13 +1796,13 @@ void* Mod_LoadAllSkins(int numskins, daliasskintype_t* pskintype)
 {
     int i, j, k, size, groupskins;
     char name[32];
-    byte *skin, *texels;
+    uint8_t *skin, *texels;
     daliasskingroup_t* pinskingroup;
     daliasskininterval_t* pinskinintervals;
     char fbr_mask_name[64]; //johnfitz -- added for fullbright support
     unsigned offset; //johnfitz
 
-    skin = (byte*)(pskintype + 1);
+    skin = (uint8_t*)(pskintype + 1);
 
     if (numskins < 1 || numskins > MAX_SKINS)
         Sys_Error("Mod_LoadAliasModel: Invalid # of skins: %d\n", numskins);
@@ -1817,24 +1817,24 @@ void* Mod_LoadAllSkins(int numskins, daliasskintype_t* pskintype)
 
             // save 8 bit texels for the player model to remap
             texels = Hunk_AllocName(size, loadname);
-            pheader->texels[i] = texels - (byte*)pheader;
-            memcpy(texels, (byte*)(pskintype + 1), size);
+            pheader->texels[i] = texels - (uint8_t*)pheader;
+            memcpy(texels, (uint8_t*)(pskintype + 1), size);
 
             //johnfitz -- rewritten
             sprintf(name, "%s:frame%i", loadmodel->name, i);
             offset = (unsigned)(pskintype + 1) - (unsigned)mod_base;
-            if (Mod_CheckFullbrights((byte*)(pskintype + 1), size))
+            if (Mod_CheckFullbrights((uint8_t*)(pskintype + 1), size))
             {
                 pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-                    SRC_INDEXED, (byte*)(pskintype + 1), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_NOBRIGHT);
+                    SRC_INDEXED, (uint8_t*)(pskintype + 1), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_NOBRIGHT);
                 sprintf(fbr_mask_name, "%s:frame%i_glow", loadmodel->name, i);
                 pheader->fbtextures[i][0] = TexMgr_LoadImage(loadmodel, fbr_mask_name, pheader->skinwidth, pheader->skinheight,
-                    SRC_INDEXED, (byte*)(pskintype + 1), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_FULLBRIGHT);
+                    SRC_INDEXED, (uint8_t*)(pskintype + 1), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_FULLBRIGHT);
             }
             else
             {
                 pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-                    SRC_INDEXED, (byte*)(pskintype + 1), loadmodel->name, offset, TEXPREF_PAD);
+                    SRC_INDEXED, (uint8_t*)(pskintype + 1), loadmodel->name, offset, TEXPREF_PAD);
                 pheader->fbtextures[i][0] = NULL;
             }
 
@@ -1842,7 +1842,7 @@ void* Mod_LoadAllSkins(int numskins, daliasskintype_t* pskintype)
             pheader->fbtextures[i][3] = pheader->fbtextures[i][2] = pheader->fbtextures[i][1] = pheader->fbtextures[i][0];
             //johnfitz
 
-            pskintype = (daliasskintype_t*)((byte*)(pskintype + 1) + size);
+            pskintype = (daliasskintype_t*)((uint8_t*)(pskintype + 1) + size);
         }
         else
         {
@@ -1860,30 +1860,30 @@ void* Mod_LoadAllSkins(int numskins, daliasskintype_t* pskintype)
                 if (j == 0)
                 {
                     texels = Hunk_AllocName(size, loadname);
-                    pheader->texels[i] = texels - (byte*)pheader;
-                    memcpy(texels, (byte*)(pskintype), size);
+                    pheader->texels[i] = texels - (uint8_t*)pheader;
+                    memcpy(texels, (uint8_t*)(pskintype), size);
                 }
 
                 //johnfitz -- rewritten
                 sprintf(name, "%s:frame%i_%i", loadmodel->name, i, j);
                 offset = (unsigned)(pskintype) - (unsigned)mod_base; //johnfitz
-                if (Mod_CheckFullbrights((byte*)(pskintype), size))
+                if (Mod_CheckFullbrights((uint8_t*)(pskintype), size))
                 {
                     pheader->gltextures[i][j & 3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-                        SRC_INDEXED, (byte*)(pskintype), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_NOBRIGHT);
+                        SRC_INDEXED, (uint8_t*)(pskintype), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_NOBRIGHT);
                     sprintf(fbr_mask_name, "%s:frame%i_%i_glow", loadmodel->name, i, j);
                     pheader->fbtextures[i][j & 3] = TexMgr_LoadImage(loadmodel, fbr_mask_name, pheader->skinwidth, pheader->skinheight,
-                        SRC_INDEXED, (byte*)(pskintype), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_FULLBRIGHT);
+                        SRC_INDEXED, (uint8_t*)(pskintype), loadmodel->name, offset, TEXPREF_PAD | TEXPREF_FULLBRIGHT);
                 }
                 else
                 {
                     pheader->gltextures[i][j & 3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-                        SRC_INDEXED, (byte*)(pskintype), loadmodel->name, offset, TEXPREF_PAD);
+                        SRC_INDEXED, (uint8_t*)(pskintype), loadmodel->name, offset, TEXPREF_PAD);
                     pheader->fbtextures[i][j & 3] = NULL;
                 }
                 //johnfitz
 
-                pskintype = (daliasskintype_t*)((byte*)(pskintype) + size);
+                pskintype = (daliasskintype_t*)((uint8_t*)(pskintype) + size);
             }
             k = j;
             for (/* */; j < 4; j++)
@@ -2008,7 +2008,7 @@ void Mod_LoadAliasModel(model_t* mod, void* buffer)
     start = Hunk_LowMark();
 
     pinmodel = (mdl_t*)buffer;
-    mod_base = (byte*)buffer; //johnfitz
+    mod_base = (uint8_t*)buffer; //johnfitz
 
     version = LittleLong(pinmodel->version);
     if (version != ALIAS_VERSION)
@@ -2186,10 +2186,10 @@ void* Mod_LoadSpriteFrame(void* pin, mspriteframe_t** ppframe, int framenum)
 
     sprintf(name, "%s:frame%i", loadmodel->name, framenum);
     offset = (unsigned)(pinframe + 1) - (unsigned)mod_base; //johnfitz
-    pspriteframe->gltexture = TexMgr_LoadImage(loadmodel, name, width, height, SRC_INDEXED, (byte*)(pinframe + 1),
+    pspriteframe->gltexture = TexMgr_LoadImage(loadmodel, name, width, height, SRC_INDEXED, (uint8_t*)(pinframe + 1),
         loadmodel->name, offset, TEXPREF_PAD | TEXPREF_ALPHA | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 
-    return (void*)((byte*)pinframe + sizeof(dspriteframe_t) + size);
+    return (void*)((uint8_t*)pinframe + sizeof(dspriteframe_t) + size);
 }
 
 /*
@@ -2258,7 +2258,7 @@ void Mod_LoadSpriteModel(model_t* mod, void* buffer)
     dspriteframetype_t* pframetype;
 
     pin = (dsprite_t*)buffer;
-    mod_base = (byte*)buffer; //johnfitz
+    mod_base = (uint8_t*)buffer; //johnfitz
 
     version = LittleLong(pin->version);
     if (version != SPRITE_VERSION)

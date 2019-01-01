@@ -146,7 +146,7 @@ int Loop_GetMessage(qsocket_t* sock)
 
 int Loop_SendMessage(qsocket_t* sock, sizebuf_t* data)
 {
-    byte* buffer;
+    uint8_t* buffer;
     int* bufferLength;
 
     if (!sock->driverdata)
@@ -179,7 +179,7 @@ int Loop_SendMessage(qsocket_t* sock, sizebuf_t* data)
 
 int Loop_SendUnreliableMessage(qsocket_t* sock, sizebuf_t* data)
 {
-    byte* buffer;
+    uint8_t* buffer;
     int* bufferLength;
 
     if (!sock->driverdata)
@@ -187,7 +187,7 @@ int Loop_SendUnreliableMessage(qsocket_t* sock, sizebuf_t* data)
 
     bufferLength = &((qsocket_t*)sock->driverdata)->receiveMessageLength;
 
-    if ((*bufferLength + data->cursize + sizeof(byte) + sizeof(short)) > NET_MAXMESSAGE)
+    if ((*bufferLength + data->cursize + sizeof(uint8_t) + sizeof(short)) > NET_MAXMESSAGE)
         return 0;
 
     buffer = ((qsocket_t*)sock->driverdata)->receiveMessage + *bufferLength;

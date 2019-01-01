@@ -23,8 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //image.h -- image reading / writing
 
 //be sure to free the hunk after using these loading functions
-byte* Image_LoadTGA(FILE* f, int* width, int* height);
-byte* Image_LoadPCX(FILE* f, int* width, int* height);
-byte* Image_LoadImage(char* name, int* width, int* height);
+uint8_t* Image_LoadTGA(FILE* f, int* width, int* height);
+uint8_t* Image_LoadPCX(FILE* f, int* width, int* height);
+uint8_t* Image_LoadImage(char* name, int* width, int* height);
 
-bool Image_WriteTGA(char* name, byte* data, int width, int height, int bpp, bool upsidedown);
+bool Image_WriteTGA(char* name, uint8_t* data, int width, int height, int bpp, bool upsidedown);

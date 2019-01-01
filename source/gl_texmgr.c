@@ -216,7 +216,7 @@ void TexMgr_Imagedump_f(void)
 {
     char tganame[MAX_OSPATH], tempname[MAX_OSPATH], dirname[MAX_OSPATH];
     gltexture_t* glt;
-    byte* buffer;
+    uint8_t* buffer;
     char* c;
 
     //create directory
@@ -420,9 +420,9 @@ TexMgr_LoadPalette -- johnfitz -- was VID_SetPalette, moved here, renamed, rewri
 */
 void TexMgr_LoadPalette(void)
 {
-    byte mask[] = { 255, 255, 255, 0 };
-    byte black[] = { 0, 0, 0, 255 };
-    byte *pal, *src, *dst;
+    uint8_t mask[] = { 255, 255, 255, 0 };
+    uint8_t black[] = { 0, 0, 0, 255 };
+    uint8_t *pal, *src, *dst;
     int i, mark;
     FILE* f;
 
@@ -436,7 +436,7 @@ void TexMgr_LoadPalette(void)
     fclose(f);
 
     //standard palette, 255 is transparent
-    dst = (byte*)d_8to24table;
+    dst = (uint8_t*)d_8to24table;
     src = pal;
     for (i = 0; i < 256; i++)
     {
@@ -449,7 +449,7 @@ void TexMgr_LoadPalette(void)
 
     //fullbright palette, 0-223 are black (for additive blending)
     src = pal + 224 * 3;
-    dst = (byte*)(d_8to24table_fbright) + 224 * 4;
+    dst = (uint8_t*)(d_8to24table_fbright) + 224 * 4;
     for (i = 224; i < 256; i++)
     {
         *dst++ = *src++;
@@ -461,7 +461,7 @@ void TexMgr_LoadPalette(void)
         d_8to24table_fbright[i] = *(int*)black;
 
     //nobright palette, 224-255 are black (for additive blending)
-    dst = (byte*)d_8to24table_nobright;
+    dst = (uint8_t*)d_8to24table_nobright;
     src = pal;
     for (i = 0; i < 256; i++)
     {
@@ -502,7 +502,7 @@ void TexMgr_RecalcWarpImageSize(void)
 {
     int mark, oldsize;
     gltexture_t* glt;
-    byte* dummy;
+    uint8_t* dummy;
 
     //
     // find the new correct size
@@ -547,8 +547,8 @@ must be called before any texture loading
 */
 void TexMgr_Init(void)
 {
-    static byte notexture_data[16] = { 159, 91, 83, 255, 0, 0, 0, 255, 0, 0, 0, 255, 159, 91, 83, 255 }; //black and pink checker
-    static byte nulltexture_data[16] = { 127, 191, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 127, 191, 255, 255 }; //black and blue checker
+    static uint8_t notexture_data[16] = { 159, 91, 83, 255, 0, 0, 0, 255, 0, 0, 0, 255, 159, 91, 83, 255 }; //black and pink checker
+    static uint8_t nulltexture_data[16] = { 127, 191, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 127, 191, 255, 255 }; //black and blue checker
     extern texture_t *r_notexture_mip, *r_notexture_mip2;
 
     // init texture list
@@ -641,9 +641,9 @@ TexMgr_MipMapW
 unsigned* TexMgr_MipMapW(unsigned* data, int width, int height)
 {
     int i, size;
-    byte *out, *in;
+    uint8_t *out, *in;
 
-    out = in = (byte*)data;
+    out = in = (uint8_t*)data;
     size = (width * height) >> 1;
 
     for (i = 0; i < size; i++, out += 4, in += 8)
@@ -665,9 +665,9 @@ TexMgr_MipMapH
 unsigned* TexMgr_MipMapH(unsigned* data, int width, int height)
 {
     int i, j;
-    byte *out, *in;
+    uint8_t *out, *in;
 
-    out = in = (byte*)data;
+    out = in = (uint8_t*)data;
     height >>= 1;
     width <<= 2;
 
@@ -690,7 +690,7 @@ TexMgr_ResampleTexture -- bilinear resample
 */
 unsigned* TexMgr_ResampleTexture(unsigned* in, int inwidth, int inheight, bool alpha)
 {
-    byte *nwpx, *nepx, *swpx, *sepx, *dest;
+    uint8_t *nwpx, *nepx, *swpx, *sepx, *dest;
     unsigned xfrac, yfrac, x, y, modx, mody, imodx, imody, injump, outjump;
     unsigned* out;
     int i, j, outwidth, outheight;
@@ -718,12 +718,12 @@ unsigned* TexMgr_ResampleTexture(unsigned* in, int inwidth, int inheight, bool a
             modx = (x >> 8) & 0xFF;
             imodx = 256 - modx;
 
-            nwpx = (byte*)(in + (x >> 16) + injump);
+            nwpx = (uint8_t*)(in + (x >> 16) + injump);
             nepx = nwpx + 4;
             swpx = nwpx + inwidth * 4;
             sepx = swpx + 4;
 
-            dest = (byte*)(out + outjump + j);
+            dest = (uint8_t*)(out + outjump + j);
 
             dest[0] = (nwpx[0] * imodx * imody + nepx[0] * modx * imody + swpx[0] * imodx * mody + sepx[0] * modx * mody) >> 16;
             dest[1] = (nwpx[1] * imodx * imody + nepx[1] * modx * imody + swpx[1] * imodx * mody + sepx[1] * modx * mody) >> 16;
@@ -750,10 +750,10 @@ eliminate pink edges on sprites, etc.
 operates in place on 32bit data
 ===============
 */
-void TexMgr_AlphaEdgeFix(byte* data, int width, int height)
+void TexMgr_AlphaEdgeFix(uint8_t* data, int width, int height)
 {
     int i, j, n = 0, b, c[3] = { 0, 0, 0 }, lastrow, thisrow, nextrow, lastpix, thispix, nextpix;
-    byte* dest = data;
+    uint8_t* dest = data;
 
     for (i = 0; i < height; i++)
     {
@@ -838,9 +838,9 @@ void TexMgr_AlphaEdgeFix(byte* data, int width, int height)
             //average all non-transparent neighbors
             if (n)
             {
-                dest[0] = (byte)(c[0] / n);
-                dest[1] = (byte)(c[1] / n);
-                dest[2] = (byte)(c[2] / n);
+                dest[0] = (uint8_t)(c[0] / n);
+                dest[1] = (uint8_t)(c[1] / n);
+                dest[2] = (uint8_t)(c[2] / n);
 
                 n = c[0] = c[1] = c[2] = 0;
             }
@@ -855,9 +855,9 @@ TexMgr_PadEdgeFixW -- special case of AlphaEdgeFix for textures that only need i
 operates in place on 32bit data, and expects unpadded height and width values
 ===============
 */
-void TexMgr_PadEdgeFixW(byte* data, int width, int height)
+void TexMgr_PadEdgeFixW(uint8_t* data, int width, int height)
 {
-    byte *src, *dst;
+    uint8_t *src, *dst;
     int i, padw, padh;
 
     padw = TexMgr_PadConditional(width);
@@ -893,9 +893,9 @@ TexMgr_PadEdgeFixH -- special case of AlphaEdgeFix for textures that only need i
 operates in place on 32bit data, and expects unpadded height and width values
 ===============
 */
-void TexMgr_PadEdgeFixH(byte* data, int width, int height)
+void TexMgr_PadEdgeFixH(uint8_t* data, int width, int height)
 {
-    byte *src, *dst;
+    uint8_t *src, *dst;
     int i, padw, padh;
 
     padw = TexMgr_PadConditional(width);
@@ -931,7 +931,7 @@ void TexMgr_PadEdgeFixH(byte* data, int width, int height)
 TexMgr_8to32
 ================
 */
-unsigned* TexMgr_8to32(byte* in, int pixels, unsigned int* usepal)
+unsigned* TexMgr_8to32(uint8_t* in, int pixels, unsigned int* usepal)
 {
     int i;
     unsigned *out, *data;
@@ -949,10 +949,10 @@ unsigned* TexMgr_8to32(byte* in, int pixels, unsigned int* usepal)
 TexMgr_PadImageW -- return image with width padded up to power-of-two dimentions
 ================
 */
-byte* TexMgr_PadImageW(byte* in, int width, int height, byte padbyte)
+uint8_t* TexMgr_PadImageW(uint8_t* in, int width, int height, uint8_t padbyte)
 {
     int i, j, outwidth;
-    byte *out, *data;
+    uint8_t *out, *data;
 
     if (width == TexMgr_Pad(width))
         return in;
@@ -977,10 +977,10 @@ byte* TexMgr_PadImageW(byte* in, int width, int height, byte padbyte)
 TexMgr_PadImageH -- return image with height padded up to power-of-two dimentions
 ================
 */
-byte* TexMgr_PadImageH(byte* in, int width, int height, byte padbyte)
+uint8_t* TexMgr_PadImageH(uint8_t* in, int width, int height, uint8_t padbyte)
 {
     int i, srcpix, dstpix;
-    byte *data, *out;
+    uint8_t *data, *out;
 
     if (height == TexMgr_Pad(height))
         return in;
@@ -1021,14 +1021,14 @@ void TexMgr_LoadImage32(gltexture_t* glt, unsigned* data)
         TexMgr_MipMapW(data, glt->width, glt->height);
         glt->width >>= 1;
         if (glt->flags & TEXPREF_ALPHA)
-            TexMgr_AlphaEdgeFix((byte*)data, glt->width, glt->height);
+            TexMgr_AlphaEdgeFix((uint8_t*)data, glt->width, glt->height);
     }
     while (glt->height > mipheight)
     {
         TexMgr_MipMapH(data, glt->width, glt->height);
         glt->height >>= 1;
         if (glt->flags & TEXPREF_ALPHA)
-            TexMgr_AlphaEdgeFix((byte*)data, glt->width, glt->height);
+            TexMgr_AlphaEdgeFix((uint8_t*)data, glt->width, glt->height);
     }
 
     // upload
@@ -1067,11 +1067,11 @@ void TexMgr_LoadImage32(gltexture_t* glt, unsigned* data)
 TexMgr_LoadImage8 -- handles 8bit source data, then passes it to LoadImage32
 ================
 */
-void TexMgr_LoadImage8(gltexture_t* glt, byte* data)
+void TexMgr_LoadImage8(gltexture_t* glt, uint8_t* data)
 {
     extern cvar_t gl_fullbrights;
     bool padw = false, padh = false;
-    byte padbyte;
+    uint8_t padbyte;
     unsigned int* usepal;
     int i;
 
@@ -1134,7 +1134,7 @@ void TexMgr_LoadImage8(gltexture_t* glt, byte* data)
     }
 
     // convert to 32bit
-    data = (byte*)TexMgr_8to32(data, glt->width * glt->height, usepal);
+    data = (uint8_t*)TexMgr_8to32(data, glt->width * glt->height, usepal);
 
     // fix edges
     if (glt->flags & TEXPREF_ALPHA)
@@ -1156,7 +1156,7 @@ void TexMgr_LoadImage8(gltexture_t* glt, byte* data)
 TexMgr_LoadLightmap -- handles lightmap data
 ================
 */
-void TexMgr_LoadLightmap(gltexture_t* glt, byte* data)
+void TexMgr_LoadLightmap(gltexture_t* glt, uint8_t* data)
 {
     extern int gl_lightmap_format, lightmap_bytes;
 
@@ -1174,7 +1174,7 @@ TexMgr_LoadImage -- the one entry point for loading all textures
 ================
 */
 gltexture_t* TexMgr_LoadImage(model_t* owner, char* name, int width, int height, enum srcformat format,
-    byte* data, char* source_file, unsigned source_offset, unsigned flags)
+    uint8_t* data, char* source_file, unsigned source_offset, unsigned flags)
 {
     extern int lightmap_bytes;
     unsigned short crc;
@@ -1256,8 +1256,8 @@ TexMgr_ReloadImage -- reloads a texture, and colormaps it if needed
 */
 void TexMgr_ReloadImage(gltexture_t* glt, int shirt, int pants)
 {
-    byte translation[256];
-    byte *src, *dst, *data = NULL, *translated;
+    uint8_t translation[256];
+    uint8_t *src, *dst, *data = NULL, *translated;
     int mark, size, i;
     //
     // get source data
@@ -1275,7 +1275,7 @@ void TexMgr_ReloadImage(gltexture_t* glt, int shirt, int pants)
     else if (glt->source_file[0] && !glt->source_offset)
         data = Image_LoadImage(glt->source_file, &glt->source_width, &glt->source_height); //simple file
     else if (!glt->source_file[0] && glt->source_offset)
-        data = (byte*)glt->source_offset; //image in memory
+        data = (uint8_t*)glt->source_offset; //image in memory
 
     if (!data)
     {

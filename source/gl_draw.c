@@ -35,7 +35,7 @@ qpic_t *pic_ovr, *pic_ins; //johnfitz -- new cursor handling
 qpic_t* pic_nul; //johnfitz -- for missing gfx, don't crash
 
 //johnfitz -- new pics
-byte pic_ovr_data[8][8] = {
+uint8_t pic_ovr_data[8][8] = {
     { 255, 255, 255, 255, 255, 255, 255, 255 },
     { 255, 15, 15, 15, 15, 15, 15, 255 },
     { 255, 15, 15, 15, 15, 15, 15, 2 },
@@ -46,7 +46,7 @@ byte pic_ovr_data[8][8] = {
     { 255, 255, 2, 2, 2, 2, 2, 2 },
 };
 
-byte pic_ins_data[9][8] = {
+uint8_t pic_ins_data[9][8] = {
     { 15, 15, 255, 255, 255, 255, 255, 255 },
     { 15, 15, 2, 255, 255, 255, 255, 255 },
     { 15, 15, 2, 255, 255, 255, 255, 255 },
@@ -58,7 +58,7 @@ byte pic_ins_data[9][8] = {
     { 255, 2, 2, 255, 255, 255, 255, 255 },
 };
 
-byte pic_nul_data[8][8] = {
+uint8_t pic_nul_data[8][8] = {
     { 252, 252, 252, 252, 0, 0, 0, 0 },
     { 252, 252, 252, 252, 0, 0, 0, 0 },
     { 252, 252, 252, 252, 0, 0, 0, 0 },
@@ -69,7 +69,7 @@ byte pic_nul_data[8][8] = {
     { 0, 0, 0, 0, 252, 252, 252, 252 },
 };
 
-byte pic_stipple_data[8][8] = {
+uint8_t pic_stipple_data[8][8] = {
     { 255, 0, 0, 0, 255, 0, 0, 0 },
     { 0, 0, 255, 0, 0, 0, 255, 0 },
     { 255, 0, 0, 0, 255, 0, 0, 0 },
@@ -80,7 +80,7 @@ byte pic_stipple_data[8][8] = {
     { 0, 0, 255, 0, 0, 0, 255, 0 },
 };
 
-byte pic_crosshair_data[8][8] = {
+uint8_t pic_crosshair_data[8][8] = {
     { 255, 255, 255, 255, 255, 255, 255, 255 },
     { 255, 255, 255, 8, 9, 255, 255, 255 },
     { 255, 255, 255, 6, 8, 2, 255, 255 },
@@ -110,14 +110,14 @@ typedef struct cachepic_s
 {
     char name[MAX_QPATH];
     qpic_t pic;
-    byte padding[32]; // for appended glpic
+    uint8_t padding[32]; // for appended glpic
 } cachepic_t;
 
 #define MAX_CACHED_PICS 128
 cachepic_t menu_cachepics[MAX_CACHED_PICS];
 int menu_numcachepics;
 
-byte menuplyr_pixels[4096];
+uint8_t menuplyr_pixels[4096];
 
 //  scrap allocation
 //  Allocate all the little status bar obejcts into a single texture
@@ -128,7 +128,7 @@ byte menuplyr_pixels[4096];
 #define BLOCK_HEIGHT 256
 
 int scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
-byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT]; //johnfitz -- removed *4 after BLOCK_HEIGHT
+uint8_t scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT]; //johnfitz -- removed *4 after BLOCK_HEIGHT
 bool scrap_dirty;
 gltexture_t* scrap_textures[MAX_SCRAPS]; //johnfitz
 
@@ -308,7 +308,7 @@ qpic_t* Draw_CachePic(char* path)
 Draw_MakePic -- johnfitz -- generate pics from internal data
 ================
 */
-qpic_t* Draw_MakePic(char* name, int width, int height, byte* data)
+qpic_t* Draw_MakePic(char* name, int width, int height, uint8_t* data)
 {
     int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST | TEXPREF_NOPICMIP | TEXPREF_PAD;
     qpic_t* pic;
@@ -341,7 +341,7 @@ Draw_LoadPics -- johnfitz
 */
 void Draw_LoadPics(void)
 {
-    byte* data;
+    uint8_t* data;
     unsigned offset;
 
     data = W_GetLumpName("conchars");
@@ -617,7 +617,7 @@ Fills a box of pixels with a single color
 */
 void Draw_Fill(int x, int y, int w, int h, int c, float alpha) //johnfitz -- added alpha
 {
-    byte* pal = (byte*)d_8to24table; //johnfitz -- use d_8to24table instead of host_basepal
+    uint8_t* pal = (uint8_t*)d_8to24table; //johnfitz -- use d_8to24table instead of host_basepal
 
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_BLEND); //johnfitz -- for alpha

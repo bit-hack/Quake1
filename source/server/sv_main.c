@@ -424,12 +424,12 @@ crosses a waterline.
 */
 
 int fatbytes;
-byte fatpvs[MAX_MAP_LEAFS / 8];
+uint8_t fatpvs[MAX_MAP_LEAFS / 8];
 
 void SV_AddToFatPVS(vec3_t org, mnode_t* node, model_t* worldmodel) //johnfitz -- added worldmodel as a parameter
 {
     int i;
-    byte* pvs;
+    uint8_t* pvs;
     mplane_t* plane;
     float d;
 
@@ -469,7 +469,7 @@ Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 given point.
 =============
 */
-byte* SV_FatPVS(vec3_t org, model_t* worldmodel) //johnfitz -- added worldmodel as a parameter
+uint8_t* SV_FatPVS(vec3_t org, model_t* worldmodel) //johnfitz -- added worldmodel as a parameter
 {
     fatbytes = (worldmodel->numleafs + 31) >> 3;
     Q_memset(fatpvs, 0, fatbytes);
@@ -486,7 +486,7 @@ PVS test encapsulated in a nice function
 */
 bool SV_VisibleToClient(edict_t* client, edict_t* test, model_t* worldmodel)
 {
-    byte* pvs;
+    uint8_t* pvs;
     vec3_t org;
     int i;
 
@@ -512,7 +512,7 @@ void SV_WriteEntitiesToClient(edict_t* clent, sizebuf_t* msg)
 {
     int e, i;
     int bits;
-    byte* pvs;
+    uint8_t* pvs;
     vec3_t org;
     float miss;
     edict_t* ent;
@@ -686,7 +686,7 @@ void SV_WriteEntitiesToClient(edict_t* clent, sizebuf_t* msg)
         if (bits & U_MODEL2)
             MSG_WriteByte(msg, (int)ent->v.modelindex >> 8);
         if (bits & U_LERPFINISH)
-            MSG_WriteByte(msg, (byte)(Q_rint((ent->v.nextthink - sv.time) * 255)));
+            MSG_WriteByte(msg, (uint8_t)(Q_rint((ent->v.nextthink - sv.time) * 255)));
         //johnfitz
     }
 
@@ -919,7 +919,7 @@ SV_SendClientDatagram
 */
 bool SV_SendClientDatagram(client_t* client)
 {
-    byte buf[MAX_DATAGRAM];
+    uint8_t buf[MAX_DATAGRAM];
     sizebuf_t msg;
 
     msg.data = buf;
@@ -1002,7 +1002,7 @@ message buffer
 void SV_SendNop(client_t* client)
 {
     sizebuf_t msg;
-    byte buf[4];
+    uint8_t buf[4];
 
     msg.data = buf;
     msg.maxsize = sizeof(buf);

@@ -390,7 +390,7 @@ int WINS_CheckNewConnections(void)
 
 //=============================================================================
 
-int WINS_Read(int socket, byte* buf, int len, struct qsockaddr* addr)
+int WINS_Read(int socket, uint8_t* buf, int len, struct qsockaddr* addr)
 {
     int addrlen = sizeof(struct qsockaddr);
     int ret;
@@ -422,7 +422,7 @@ int WINS_MakeSocketBroadcastCapable(int socket)
 
 //=============================================================================
 
-int WINS_Broadcast(int socket, byte* buf, int len)
+int WINS_Broadcast(int socket, uint8_t* buf, int len)
 {
     int ret;
 
@@ -444,7 +444,7 @@ int WINS_Broadcast(int socket, byte* buf, int len)
 
 //=============================================================================
 
-int WINS_Write(int socket, byte* buf, int len, struct qsockaddr* addr)
+int WINS_Write(int socket, uint8_t* buf, int len, struct qsockaddr* addr)
 {
     int ret;
 

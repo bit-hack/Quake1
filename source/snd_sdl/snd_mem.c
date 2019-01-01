@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ResampleSfx
 ================
 */
-static void ResampleSfx(sfx_t* sfx, int inrate, int inwidth, byte* data)
+static void ResampleSfx(sfx_t* sfx, int inrate, int inwidth, uint8_t* data)
 {
     int outcount;
     int srcsample;
@@ -97,12 +97,12 @@ S_LoadSound
 sfxcache_t* S_LoadSound(sfx_t* s)
 {
     char namebuffer[256];
-    byte* data;
+    uint8_t* data;
     wavinfo_t info;
     int len;
     float stepscale;
     sfxcache_t* sc;
-    byte stackbuf[1 * 1024]; // avoid dirtying the cache heap
+    uint8_t stackbuf[1 * 1024]; // avoid dirtying the cache heap
 
     // see if still in memory
     sc = Cache_Check(&s->cache);
@@ -158,10 +158,10 @@ WAV loading
 ===============================================================================
 */
 
-byte* data_p;
-byte* iff_end;
-byte* last_chunk;
-byte* iff_data;
+uint8_t* data_p;
+uint8_t* iff_end;
+uint8_t* last_chunk;
+uint8_t* iff_data;
 int iff_chunk_len;
 
 short GetLittleShort(void)
@@ -239,7 +239,7 @@ void DumpChunks(void)
 GetWavinfo
 ============
 */
-wavinfo_t GetWavinfo(char* name, byte* wav, int wavlength)
+wavinfo_t GetWavinfo(char* name, uint8_t* wav, int wavlength)
 {
     wavinfo_t info;
     int i;

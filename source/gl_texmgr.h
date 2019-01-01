@@ -88,7 +88,7 @@ void TexMgr_Init(void);
 
 // IMAGE LOADING
 gltexture_t* TexMgr_LoadImage(model_t* owner, char* name, int width, int height, enum srcformat format,
-    byte* data, char* source_file, unsigned source_offset, unsigned flags);
+    uint8_t* data, char* source_file, unsigned source_offset, unsigned flags);
 void TexMgr_ReloadImage(gltexture_t* glt, int shirt, int pants);
 void TexMgr_ReloadImages(void);
 void TexMgr_ReloadNobrightImages(void);

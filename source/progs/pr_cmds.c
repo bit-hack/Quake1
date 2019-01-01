@@ -665,12 +665,12 @@ static void PF_checkpos(void)
 
 //============================================================================
 
-static byte checkpvs[MAX_MAP_LEAFS / 8];
+static uint8_t checkpvs[MAX_MAP_LEAFS / 8];
 
 static int PF_newcheckclient(int check)
 {
     int i;
-    byte* pvs;
+    uint8_t* pvs;
     edict_t* ent;
     mleaf_t* leaf;
     vec3_t org;

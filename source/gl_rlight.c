@@ -343,7 +343,7 @@ loc0:
             if (surf->samples)
             {
                 // LordHavoc: enhanced to interpolate lighting
-                byte* lightmap;
+                uint8_t* lightmap;
                 int maps, line3, dsfrac = ds & 15, dtfrac = dt & 15, r00 = 0, g00 = 0, b00 = 0, r01 = 0, g01 = 0, b01 = 0, r10 = 0, g10 = 0, b10 = 0, r11 = 0, g11 = 0, b11 = 0;
                 float scale;
                 line3 = ((surf->extents[0] >> 4) + 1) * 3;

@@ -65,7 +65,7 @@ typedef struct entity_s
     struct efrag_s* efrag; // linked list of efrags
     int frame;
     float syncbase; // for client-side animations
-    byte* colormap;
+    uint8_t* colormap;
     int effects; // light, particles, etc
     int skinnum; // for Alias models
     int visframe; // last frame this entity was
@@ -80,8 +80,8 @@ typedef struct entity_s
     //  that splits bmodel, or NULL if
     //  not split
 
-    byte alpha; //johnfitz -- alpha
-    byte lerpflags; //johnfitz -- lerping
+    uint8_t alpha; //johnfitz -- alpha
+    uint8_t lerpflags; //johnfitz -- lerping
     float lerpstart; //johnfitz -- animation lerping
     float lerptime; //johnfitz -- animation lerping
     float lerpfinish; //johnfitz -- lerping -- server sent us a more accurate interval, use it instead of 0.1

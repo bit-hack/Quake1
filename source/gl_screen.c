@@ -715,7 +715,7 @@ SCR_ScreenShot_f -- johnfitz -- rewritten to use Image_WriteTGA
 */
 void SCR_ScreenShot_f(void)
 {
-    byte* buffer;
+    uint8_t* buffer;
     char tganame[16]; //johnfitz -- was [80]
     char checkname[MAX_OSPATH];
     int i;

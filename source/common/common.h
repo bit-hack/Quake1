@@ -22,8 +22,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
-typedef unsigned char byte;
+//typedef unsigned char byte;
 
 //============================================================================
 
@@ -31,7 +32,7 @@ typedef struct sizebuf_s
 {
     bool allowoverflow; // if false, do a Sys_Error
     bool overflowed; // set to true if the buffer size failed
-    byte* data;
+    uint8_t* data;
     int maxsize;
     int cursize;
 } sizebuf_t;
@@ -172,13 +173,13 @@ void COM_CloseFile(int h);
 void COM_CreatePath(char* path);
 
 // load a file to a buffer on the stack
-byte* COM_LoadStackFile(char* path, void* buffer, int bufsize);
+uint8_t* COM_LoadStackFile(char* path, void* buffer, int bufsize);
 
 // ?
-byte* COM_LoadTempFile(char* path);
+uint8_t* COM_LoadTempFile(char* path);
 
 // load a file and allocate a hunk for it
-byte* COM_LoadHunkFile(char* path);
+uint8_t* COM_LoadHunkFile(char* path);
 
 // load a file into the cache ?
 void COM_LoadCacheFile(char* path, struct cache_user_s* cu);

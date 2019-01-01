@@ -69,10 +69,10 @@ R_InitParticleTextures -- johnfitz -- rewritten
 void R_InitParticleTextures(void)
 {
     int x, y;
-    static byte particle1_data[64 * 64 * 4];
-    static byte particle2_data[2 * 2 * 4];
-    static byte particle3_data[64 * 64 * 4];
-    byte* dst;
+    static uint8_t particle1_data[64 * 64 * 4];
+    static uint8_t particle2_data[2 * 2 * 4];
+    static uint8_t particle3_data[64 * 64 * 4];
+    uint8_t* dst;
 
     // particle texture 1 -- circle
     dst = particle1_data;
@@ -817,7 +817,7 @@ void R_DrawParticles(void)
     particle_t* p;
     float scale;
     vec3_t up, right, p_up, p_right, p_upright; //johnfitz -- p_ vectors
-    byte color[4]; //johnfitz -- particle transparency
+    uint8_t color[4]; //johnfitz -- particle transparency
     extern cvar_t r_particles; //johnfitz
 
     if (!r_particles.value)

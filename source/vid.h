@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define VID_GRADES (1 << VID_CBITS)
 
 // a pixel can be one, two, or four bytes
-typedef byte pixel_t;
+typedef uint8_t pixel_t;
 
 typedef struct vrect_s
 {

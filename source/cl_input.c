@@ -329,7 +329,7 @@ void CL_SendMove(usercmd_t* cmd)
     int i;
     int bits;
     sizebuf_t buf;
-    byte data[128];
+    uint8_t data[128];
 
     buf.maxsize = 128;
     buf.cursize = 0;
