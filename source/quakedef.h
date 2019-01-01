@@ -239,7 +239,7 @@ typedef struct
 #include "draw.h"
 #include "cvar.h"
 #include "screen.h"
-#include "net.h"
+#include "net/net.h"
 #include "protocol.h"
 #include "cmd.h"
 #include "sbar.h"

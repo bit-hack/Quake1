@@ -1,4 +1,4 @@
-#include "quakedef.h"
+#include "../quakedef.h"
 
 static int NetNull_Init(void)
 {

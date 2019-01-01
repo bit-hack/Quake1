@@ -1,9 +1,14 @@
 add_subdirectory(common)
 add_subdirectory(progs)
 add_subdirectory(server)
+add_subdirectory(net)
 
-add_subdirectory(snd_win32)
+
+# add_subdirectory(in_win32)
+add_subdirectory(in_sdl)
+
 add_subdirectory(snd_null)
+# add_subdirectory(snd_win32)
 add_subdirectory(snd_sdl)
 
 file(GLOB CFILE *.c)
@@ -16,7 +21,7 @@ if(USE_SDL)
     find_package(SDL REQUIRED)
     
     include_directories(SYSTEM ${SDL_INCLUDE_DIR})
-    target_include_directories(snd_win32 SYSTEM PUBLIC ${SDL_INCLUDE_DIR})
+#    target_include_directories(snd_win32 SYSTEM PUBLIC ${SDL_INCLUDE_DIR})
 
     list(REMOVE_ITEM CFILE
         "${CMAKE_CURRENT_SOURCE_DIR}/sys_win.c"
@@ -43,9 +48,11 @@ target_link_libraries(
     common
     progs
     server
+    net
     #snd_null
     #snd_win32
     snd_sdl
+    in_sdl
     OPENGL32.lib
     ws2_32.lib
     winmm.lib

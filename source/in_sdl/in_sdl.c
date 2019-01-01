@@ -19,10 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include <SDL.h>
+#include <SDL/SDL.h>
 
-#include "quakedef.h"
-#include "winquake.h"
+#include "../quakedef.h"
+#include "../winquake.h"
 
 #define DINPUT_BUFFERSIZE 16
 #define iDirectInputCreate(a, b, c, d) pDirectInputCreate(a, b, c, d)
@@ -33,17 +33,17 @@ cvar_t m_filter = { "m_filter", "0" };
 //johnfitz -- compatibility with old Quake -- setting to 0 disables KP_* codes
 cvar_t cl_keypad = { "cl_keypad", "1" };
 
-int mouse_buttons;
-int mouse_oldbuttonstate;
-POINT current_pos;
-int mouse_x, mouse_y, old_mouse_x, old_mouse_y, mx_accum, my_accum;
+static int mouse_buttons;
+static int mouse_oldbuttonstate;
+static POINT current_pos;
+static int mouse_x, mouse_y, old_mouse_x, old_mouse_y, mx_accum, my_accum;
 
 static bool restore_spi;
 static int originalmouseparms[3], newmouseparms[3] = { 0, 0, 1 };
 
-unsigned int uiWheelMessage;
+static unsigned int uiWheelMessage;
 bool mouseactive;
-bool mouseinitialized;
+static bool mouseinitialized;
 static bool mouseparmsvalid, mouseactivatetoggle;
 static bool mouseshowtoggle = 1;
 
@@ -123,6 +123,8 @@ static int MapKey(int key)
 {
     switch (key)
     {
+    case SDLK_TAB:
+        return K_TAB;
     case SDLK_RETURN:
         return K_ENTER;
     case SDLK_HOME:
@@ -197,11 +199,6 @@ void IN_DeactivateMouse(void)
 
 void IN_RestoreOriginalMouseState(void)
 {
-}
-
-bool IN_InitDInput(void)
-{
-    return false;
 }
 
 void IN_StartupMouse(void)
