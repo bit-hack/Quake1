@@ -1597,7 +1597,7 @@ void M_Quit_Draw(void) //johnfitz -- modified for new quit message
     char msg1[40];
     char msg2[40];
     char msg3[40];
-    int boxlen, y;
+    int boxlen;
 
     if (wasInMenus)
     {

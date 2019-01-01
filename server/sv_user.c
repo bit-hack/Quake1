@@ -20,7 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_user.c -- server code for moving users
 
-#include "quakedef.h"
+#include "../quakedef.h"
+#include "server_int.h"
 
 edict_t* sv_player;
 
@@ -247,7 +248,7 @@ void SV_WaterMove(void)
         VectorScale(wishvel, sv_maxspeed.value / wishspeed, wishvel);
         wishspeed = sv_maxspeed.value;
     }
-    wishspeed *= 0.7;
+    wishspeed *= .7f;
 
     //
     // water friction

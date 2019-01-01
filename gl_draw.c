@@ -360,6 +360,12 @@ void Draw_LoadPics(void)
 Draw_NewGame -- johnfitz
 ===============
 */
+
+// defined in gl_screen.c
+void SCR_LoadPics(void);
+// defined in sbar.c
+void Sbar_LoadPics(void);
+
 void Draw_NewGame(void)
 {
     cachepic_t* pic;

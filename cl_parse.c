@@ -907,6 +907,10 @@ void CL_ParseStaticSound(int version) //johnfitz -- added argument
 CL_ParseServerMessage
 =====================
 */
+
+// defined in gl_sky.c
+void Sky_LoadSkyBox(char* name);
+
 void CL_ParseServerMessage(void)
 {
     int cmd;

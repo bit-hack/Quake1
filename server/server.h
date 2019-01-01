@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #pragma once
-#include "progs/progs.h"
+#include "../quakedef.h"
+#include "../progs/progs.h"
 
 // server.h
 
@@ -170,61 +171,38 @@ typedef struct client_s
 #define SPAWNFLAG_NOT_HARD 1024
 #define SPAWNFLAG_NOT_DEATHMATCH 2048
 
-//============================================================================
-
-extern cvar_t teamplay;
-extern cvar_t skill;
-extern cvar_t deathmatch;
-extern cvar_t coop;
-extern cvar_t fraglimit;
-extern cvar_t timelimit;
-
-extern server_static_t svs; // persistant server info
-extern server_t sv; // local server
-
-extern client_t* host_client;
-
-extern jmp_buf host_abortserver;
-
-extern double host_time;
-
-extern edict_t* sv_player;
-
-//===========================================================
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
 void SV_Init(void);
-
-void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count);
-void SV_StartSound(edict_t* entity, int channel, char* sample, int volume,
-    float attenuation);
-
-void SV_DropClient(bool crash);
-
 void SV_SendClientMessages(void);
 void SV_ClearDatagram(void);
-
-int SV_ModelIndex(char* name);
-
-void SV_SetIdealPitch(void);
-
-void SV_AddUpdates(void);
-
-void SV_ClientThink(void);
-void SV_AddClientToServer(struct qsocket_s* ret);
-
-void SV_ClientPrintf(char* fmt, ...);
-void SV_BroadcastPrintf(char* fmt, ...);
-
 void SV_Physics(void);
-
+void SV_CheckForNewClients(void);
+void SV_RunClients(void);
+void SV_WriteClientdataToMessage(edict_t* ent, sizebuf_t* msg);
+void SV_SaveSpawnparms();
+void SV_SpawnServer(char* server);
+//byte* SV_FatPVS(vec3_t org, model_t* worldmodel);
+void SV_MoveToGoal(void);
+void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count);
+void SV_StartSound(edict_t* entity, int channel, char* sample, int volume, float attenuation);
+int  SV_ModelIndex(char* name);
 bool SV_CheckBottom(edict_t* ent);
 bool SV_movestep(edict_t* ent, vec3_t move, bool relink);
 
-void SV_WriteClientdataToMessage(edict_t* ent, sizebuf_t* msg);
+void SV_BroadcastPrintf(char* fmt, ...);
+void SV_ClientPrintf(char* fmt, ...);
+void SV_DropClient(bool crash);
 
-void SV_MoveToGoal(void);
+extern edict_t* sv_player;
+extern server_t sv; // local server
+extern server_static_t svs; // persistant server info
+extern cvar_t sv_gravity;
 
-void SV_CheckForNewClients(void);
-void SV_RunClients(void);
-void SV_SaveSpawnparms();
-void SV_SpawnServer(char* server);
+extern cvar_t teamplay;
+extern client_t* host_client;
+extern cvar_t deathmatch;
+extern cvar_t coop;
+extern cvar_t skill;
+extern cvar_t fraglimit;
+extern cvar_t timelimit;

@@ -59,7 +59,7 @@ static const float r_avertexnormal_dots[SHADEDOT_QUANT][256] = {
 
 extern vec3_t lightspot;
 
-float* shadedots = r_avertexnormal_dots[0];
+const float* shadedots = r_avertexnormal_dots[0];
 
 float entalpha; //johnfitz
 
@@ -212,7 +212,7 @@ void R_SetupAliasFrame(aliashdr_t* paliashdr, int frame, lerpdata_t* lerpdata)
         posenum += (int)(cl.time / e->lerptime) % numposes;
     }
     else
-        e->lerptime = 0.1;
+        e->lerptime = 0.1f;
 
     if (e->lerpflags & LERP_RESETANIM) //kill any lerp in progress
     {
@@ -398,7 +398,6 @@ R_DrawAliasModel -- johnfitz -- almost completely rewritten
 void R_DrawAliasModel(entity_t* e)
 {
     aliashdr_t* paliashdr;
-    vec3_t mins, maxs;
     int i, anim;
     gltexture_t *tx, *fb;
     lerpdata_t lerpdata;
@@ -652,10 +651,10 @@ cleanup:
 }
 
 //johnfitz -- values for shadow matrix
-#define SHADOW_SKEW_X -0.7 //skew along x axis. -0.7 to mimic glquake shadows
-#define SHADOW_SKEW_Y 0 //skew along y axis. 0 to mimic glquake shadows
-#define SHADOW_VSCALE 0 //0=completely flat
-#define SHADOW_HEIGHT 0.1 //how far above the floor to render the shadow
+#define SHADOW_SKEW_X -0.7f // skew along x axis. -0.7 to mimic glquake shadows
+#define SHADOW_SKEW_Y  0.f  // skew along y axis. 0 to mimic glquake shadows
+#define SHADOW_VSCALE  0.f  // 0=completely flat
+#define SHADOW_HEIGHT  0.1f // how far above the floor to render the shadow
 //johnfitz
 
 /*
@@ -673,7 +672,6 @@ void GL_DrawAliasShadow(entity_t* e)
         0, 0, SHADOW_HEIGHT, 1 };
     float lheight;
     aliashdr_t* paliashdr;
-    vec3_t mins, maxs;
     lerpdata_t lerpdata;
 
     if (R_CullModelForEntity(e))
@@ -728,7 +726,6 @@ R_DrawAliasModel_ShowTris -- johnfitz
 void R_DrawAliasModel_ShowTris(entity_t* e)
 {
     aliashdr_t* paliashdr;
-    vec3_t mins, maxs;
     lerpdata_t lerpdata;
 
     if (R_CullModelForEntity(e))

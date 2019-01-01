@@ -127,7 +127,7 @@ void TexMgr_TextureMode_f(void)
         if (arg[0] == 'G' || arg[0] == 'g')
         {
             for (i = 0; i < NUM_GLMODES; i++)
-                if (!stricmp(modes[i].name, arg))
+                if (!Q_stricmp(modes[i].name, arg))
                 {
                     gl_texturemode = i;
                     goto stuff;
@@ -547,7 +547,6 @@ must be called before any texture loading
 */
 void TexMgr_Init(void)
 {
-    int i, mark;
     static byte notexture_data[16] = { 159, 91, 83, 255, 0, 0, 0, 255, 0, 0, 0, 255, 159, 91, 83, 255 }; //black and pink checker
     static byte nulltexture_data[16] = { 127, 191, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 127, 191, 255, 255 }; //black and blue checker
     extern texture_t *r_notexture_mip, *r_notexture_mip2;
@@ -555,9 +554,9 @@ void TexMgr_Init(void)
     // init texture list
     free_gltextures = (gltexture_t*)Hunk_AllocName(MAX_GLTEXTURES * sizeof(gltexture_t), "gltextures");
     active_gltextures = NULL;
-    for (i = 0; i < MAX_GLTEXTURES - 1; i++)
+    for (int i = 0; i < MAX_GLTEXTURES - 1; i++)
         free_gltextures[i].next = &free_gltextures[i + 1];
-    free_gltextures[i].next = NULL;
+    free_gltextures[MAX_GLTEXTURES - 1].next = NULL;
     numgltextures = 0;
 
     // palette
@@ -1180,7 +1179,7 @@ gltexture_t* TexMgr_LoadImage(model_t* owner, char* name, int width, int height,
     extern int lightmap_bytes;
     unsigned short crc;
     gltexture_t* glt;
-    int mark, bytes;
+    int mark;
 
     if (isDedicated)
         return NULL;

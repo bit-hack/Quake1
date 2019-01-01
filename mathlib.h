@@ -31,10 +31,10 @@ typedef int fixed8_t;
 typedef int fixed16_t;
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846 // matches value in gcc v2 math.h
+#define M_PI 3.14159265358979323846f // matches value in gcc v2 math.h
 #endif
 
-#define M_PI_DIV_180 (M_PI / 180.0) //johnfitz
+#define M_PI_DIV_180 (M_PI / 180.0f) //johnfitz
 
 struct mplane_s;
 

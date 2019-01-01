@@ -146,6 +146,7 @@ void Con_Clear_f(void)
 Con_Dump_f -- johnfitz -- adapted from quake2 source
 ================
 */
+
 void Con_Dump_f(void)
 {
     int l, x;
@@ -983,7 +984,7 @@ void Con_DrawInput(void)
     extern qpic_t *pic_ovr, *pic_ins; //johnfitz -- new cursor handling
     extern double key_blinktime;
     extern int key_insert;
-    int i, len;
+    int len;
     char c[256], *text;
 
     if (key_dest != key_console && !con_forcedup)
@@ -1001,7 +1002,7 @@ void Con_DrawInput(void)
         text += 1 + key_linepos - con_linewidth;
 
     // draw input string
-    for (i = 0; i <= strlen(text) - 1; i++) //only write enough letters to go from *text to cursor
+    for (size_t i = 0; i <= strlen(text) - 1; i++) //only write enough letters to go from *text to cursor
         Draw_Character((i + 1) << 3, vid.conheight - 16, text[i]);
 
     // johnfitz -- new cursor handling

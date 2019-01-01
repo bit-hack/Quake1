@@ -22,6 +22,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+// defined in world.c
+bool SV_RecursiveHullCheck(hull_t* hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, trace_t* trace);
+
 /*
 
 entities never clip against themselves, or their owner
@@ -666,7 +669,7 @@ bool SV_RecursiveHullCheck(hull_t* hull, int num, float p1f, float p2f, vec3_t p
     while (SV_HullPointContents(hull, hull->firstclipnode, mid)
         == CONTENTS_SOLID)
     { // shouldn't really happen, but does occasionally
-        frac -= 0.1;
+        frac -= 0.1f;
         if (frac < 0)
         {
             trace->fraction = midf;

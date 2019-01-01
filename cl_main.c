@@ -22,6 +22,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+// defined in chase.c
+void TraceLine(vec3_t start, vec3_t end, vec3_t impact);
+
 // we need to declare some mouse variables here, because the menu system
 // references them even when on a unix system.
 
@@ -366,20 +369,20 @@ float CL_LerpPoint(void)
     if (f > 0.1) // dropped packet, or start of demo
     {
         cl.mtime[1] = cl.mtime[0] - 0.1;
-        f = 0.1;
+        f = 0.1f;
     }
 
     frac = (cl.time - cl.mtime[1]) / f;
 
     if (frac < 0)
     {
-        if (frac < -0.01)
+        if (frac < -0.01f)
             cl.time = cl.mtime[1];
         frac = 0;
     }
     else if (frac > 1)
     {
-        if (frac > 1.01)
+        if (frac > 1.01f)
             cl.time = cl.mtime[0];
         frac = 1;
     }

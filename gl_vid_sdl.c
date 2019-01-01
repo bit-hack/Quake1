@@ -846,12 +846,12 @@ GL_Init will still do the stuff that only needs to be done once
 */
 void GL_SetupState(void)
 {
-    glClearColor(0.15, 0.15, 0.15, 0); //johnfitz -- originally 1,0,0,0
+    glClearColor(0.15f, 0.15f, 0.15f, 0); //johnfitz -- originally 1,0,0,0
     glCullFace(GL_BACK); //johnfitz -- glquake used CCW with backwards culling -- let's do it right
     glFrontFace(GL_CW); //johnfitz -- glquake used CCW with backwards culling -- let's do it right
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.666);
+    glAlphaFunc(GL_GREATER, 0.666f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glShadeModel(GL_FLAT);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //johnfitz
@@ -884,14 +884,14 @@ void GL_Init(void)
 
     Cvar_RegisterVariable(&vid_vsync, VID_Vsync_f); //johnfitz
 
-    if (strnicmp(gl_renderer, "PowerVR", 7) == 0)
+    if (Q_strnicmp(gl_renderer, "PowerVR", 7) == 0)
         fullsbardraw = true;
 
-    if (strnicmp(gl_renderer, "Permedia", 8) == 0)
+    if (Q_strnicmp(gl_renderer, "Permedia", 8) == 0)
         isPermedia = true;
 
     //johnfitz -- intel video workarounds from Baker
-    if (!strcmp(gl_vendor, "Intel"))
+    if (!Q_strcmp(gl_vendor, "Intel"))
     {
         Con_Printf("Intel Display Adapter detected\n");
         isIntelVideo = true;

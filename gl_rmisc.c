@@ -374,8 +374,6 @@ void R_TimeRefresh_f(void)
 {
     int i;
     float start, stop, time;
-    int startangle;
-    vrect_t vr;
 
     glDrawBuffer(GL_FRONT);
     glFinish();

@@ -112,7 +112,7 @@ void R_InitParticleTextures(void)
 
     //set default
     particletexture = particletexture1;
-    texturescalefactor = 1.27;
+    texturescalefactor = 1.27f;
 }
 
 /*
@@ -126,11 +126,11 @@ void R_SetParticleTexture_f(void)
     {
     case 1:
         particletexture = particletexture1;
-        texturescalefactor = 1.27;
+        texturescalefactor = 1.27f;
         break;
     case 2:
         particletexture = particletexture2;
-        texturescalefactor = 1.0;
+        texturescalefactor = 1.0f;
         break;
         //	case 3:
         //		particletexture = particletexture3;
@@ -180,8 +180,8 @@ extern float r_avertexnormals[NUMVERTEXNORMALS][3];
 vec3_t avelocities[NUMVERTEXNORMALS];
 float beamlength = 16;
 vec3_t avelocity = { 23, 7, 3 };
-float partstep = 0.01;
-float timescale = 0.01;
+float partstep = 0.01f;
+float timescale = 0.01f;
 
 void R_EntityParticles(entity_t* ent)
 {
@@ -710,7 +710,7 @@ void CL_RunParticles(void)
 {
     particle_t *p, *kill;
     int i;
-    float time1, time2, time3, dvel, frametime, scale, grav;
+    float time1, time2, time3, dvel, frametime, grav;
     extern cvar_t sv_gravity;
 
     frametime = cl.time - cl.oldtime;
@@ -818,7 +818,6 @@ void R_DrawParticles(void)
     float scale;
     vec3_t up, right, p_up, p_right, p_upright; //johnfitz -- p_ vectors
     byte color[4]; //johnfitz -- particle transparency
-    float alpha; //johnfitz -- particle transparency
     extern cvar_t r_particles; //johnfitz
 
     if (!r_particles.value)
@@ -842,11 +841,11 @@ void R_DrawParticles(void)
                 + (p->org[1] - r_origin[1]) * vpn[1]
                 + (p->org[2] - r_origin[2]) * vpn[2];
             if (scale < 20)
-                scale = 1 + 0.08; //johnfitz -- added .08 to be consistent
+                scale = 1 + 0.08f; //johnfitz -- added .08 to be consistent
             else
-                scale = 1 + scale * 0.004;
+                scale = 1 + scale * 0.004f;
 
-            scale /= 2.0; //quad is half the size of triangle
+            scale /= 2.0f; //quad is half the size of triangle
 
             scale *= texturescalefactor; //johnfitz -- compensate for apparent size of different particle textures
 
@@ -860,15 +859,15 @@ void R_DrawParticles(void)
             glTexCoord2f(0, 0);
             glVertex3fv(p->org);
 
-            glTexCoord2f(0.5, 0);
+            glTexCoord2f(0.5f, 0);
             VectorMA(p->org, scale, up, p_up);
             glVertex3fv(p_up);
 
-            glTexCoord2f(0.5, 0.5);
+            glTexCoord2f(0.5f, 0.5f);
             VectorMA(p_up, scale, right, p_upright);
             glVertex3fv(p_upright);
 
-            glTexCoord2f(0, 0.5);
+            glTexCoord2f(0, 0.5f);
             VectorMA(p->org, scale, right, p_right);
             glVertex3fv(p_right);
 
@@ -886,9 +885,9 @@ void R_DrawParticles(void)
                 + (p->org[1] - r_origin[1]) * vpn[1]
                 + (p->org[2] - r_origin[2]) * vpn[2];
             if (scale < 20)
-                scale = 1 + 0.08; //johnfitz -- added .08 to be consistent
+                scale = 1 + 0.08f; //johnfitz -- added .08 to be consistent
             else
-                scale = 1 + scale * 0.004;
+                scale = 1 + scale * 0.004f;
 
             scale *= texturescalefactor; //johnfitz -- compensate for apparent size of different particle textures
 
@@ -936,8 +935,8 @@ void R_DrawParticles_ShowTris(void)
     if (!r_particles.value)
         return;
 
-    VectorScale(vup, 1.5, up);
-    VectorScale(vright, 1.5, right);
+    VectorScale(vup, 1.5f, up);
+    VectorScale(vright, 1.5f, right);
 
     if (r_quadparticles.value)
     {
@@ -950,11 +949,11 @@ void R_DrawParticles_ShowTris(void)
                 + (p->org[1] - r_origin[1]) * vpn[1]
                 + (p->org[2] - r_origin[2]) * vpn[2];
             if (scale < 20)
-                scale = 1 + 0.08; //johnfitz -- added .08 to be consistent
+                scale = 1 + 0.08f; //johnfitz -- added .08 to be consistent
             else
-                scale = 1 + scale * 0.004;
+                scale = 1 + scale * 0.004f;
 
-            scale /= 2.0; //quad is half the size of triangle
+            scale /= 2.0f; //quad is half the size of triangle
 
             scale *= texturescalefactor; //compensate for apparent size of different particle textures
 
@@ -982,9 +981,9 @@ void R_DrawParticles_ShowTris(void)
                 + (p->org[1] - r_origin[1]) * vpn[1]
                 + (p->org[2] - r_origin[2]) * vpn[2];
             if (scale < 20)
-                scale = 1 + 0.08; //johnfitz -- added .08 to be consistent
+                scale = 1 + 0.08f; //johnfitz -- added .08 to be consistent
             else
-                scale = 1 + scale * 0.004;
+                scale = 1 + scale * 0.004f;
 
             scale *= texturescalefactor; //compensate for apparent size of different particle textures
 

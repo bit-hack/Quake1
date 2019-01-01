@@ -32,6 +32,8 @@ int lightmap_bytes;
 
 unsigned blocklights[BLOCK_WIDTH * BLOCK_HEIGHT * 3]; //johnfitz -- was 18*18, added lit support (*3) and loosened surface extents maximum (BLOCK_WIDTH*BLOCK_HEIGHT)
 
+
+
 typedef struct glRect_s
 {
     unsigned char l, t, w, h;
@@ -499,8 +501,6 @@ R_DrawBrushModel
 */
 void R_DrawBrushModel(entity_t* e)
 {
-    int j, k;
-    int i, numsurfaces;
     msurface_t* psurf;
     float dot;
     mplane_t* pplane;
@@ -531,7 +531,7 @@ void R_DrawBrushModel(entity_t* e)
     // instanced model
     if (clmodel->firstmodelsurface != 0 && !gl_flashblend.value)
     {
-        for (k = 0; k < MAX_DLIGHTS; k++)
+        for (int k = 0; k < MAX_DLIGHTS; k++)
         {
             if ((cl_dlights[k].die < cl.time) || (!cl_dlights[k].radius))
                 continue;
@@ -553,7 +553,7 @@ void R_DrawBrushModel(entity_t* e)
     if (r_drawflat_cheatsafe) //johnfitz
         glDisable(GL_TEXTURE_2D);
 
-    for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+    for (int i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
     {
         pplane = psurf->plane;
         dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
@@ -579,7 +579,6 @@ R_DrawBrushModel_ShowTris -- johnfitz
 */
 void R_DrawBrushModel_ShowTris(entity_t* e)
 {
-    int i, j, k, numsurfaces;
     msurface_t* psurf;
     float dot;
     mplane_t* pplane;
@@ -616,7 +615,7 @@ void R_DrawBrushModel_ShowTris(entity_t* e)
     // draw it
     //
 
-    for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+    for (int i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
     {
         pplane = psurf->plane;
         dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
@@ -707,17 +706,14 @@ AllocBlock -- returns a texture number and the position inside it
 int AllocBlock(int w, int h, int* x, int* y)
 {
     int i, j;
-    int best, best2;
-    int bestx;
-    int texnum;
 
-    for (texnum = 0; texnum < MAX_LIGHTMAPS; texnum++)
+    for (int texnum = 0; texnum < MAX_LIGHTMAPS; texnum++)
     {
-        best = BLOCK_HEIGHT;
+        int best = BLOCK_HEIGHT;
 
-        for (i = 0; i < BLOCK_WIDTH - w; i++)
+        for (int i = 0; i < BLOCK_WIDTH - w; i++)
         {
-            best2 = 0;
+            int best2 = 0;
 
             for (j = 0; j < w; j++)
             {
@@ -758,7 +754,7 @@ GL_CreateSurfaceLightmap
 */
 void GL_CreateSurfaceLightmap(msurface_t* surf)
 {
-    int smax, tmax, s, t, l, i;
+    int smax, tmax;
     byte* base;
 
     smax = (surf->extents[0] >> 4) + 1;
@@ -777,14 +773,9 @@ BuildSurfaceDisplayList -- called at level load time
 */
 void BuildSurfaceDisplayList(msurface_t* fa)
 {
-    int i, lindex, lnumverts, s_axis, t_axis;
-    float dist, lastdist, lzi, scale, u, v, frac;
-    unsigned mask;
-    vec3_t local, transformed;
+    int i, lindex, lnumverts;
     medge_t *pedges, *r_pedge;
-    mplane_t* pplane;
-    int vertpage, newverts, newpage, lastvert;
-    bool visible;
+    int vertpage;
     float* vec;
     float s, t;
     glpoly_t* poly;
@@ -1032,7 +1023,6 @@ void R_BuildLightMap(msurface_t* surf, byte* dest, int stride)
     byte* lightmap;
     unsigned scale;
     int maps;
-    int lightadj[4];
     unsigned* bl;
 
     surf->cached_dlight = (surf->dlightframe == r_framecount);
@@ -1076,7 +1066,6 @@ void R_BuildLightMap(msurface_t* surf, byte* dest, int stride)
     }
 
 // bound, invert, and shift
-store:
 
     //johnfitz -- only support GL_RGB lightmaps
     switch (gl_lightmap_format)

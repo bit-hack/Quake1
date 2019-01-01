@@ -118,6 +118,7 @@ float MSG_ReadAngle16(void); //johnfitz
 
 //============================================================================
 
+// TODO: Const these ones
 void Q_memset(void* dest, int fill, int count);
 void Q_memcpy(void* dest, void* src, int count);
 int Q_memcmp(void* m1, void* m2, int count);
@@ -132,6 +133,8 @@ int Q_strcasecmp(char* s1, char* s2);
 int Q_strncasecmp(char* s1, char* s2, int n);
 int Q_atoi(char* str);
 float Q_atof(char* str);
+#define Q_stricmp(A, B) _stricmp(A, B)
+#define Q_strnicmp(A, B, C) _strnicmp(A, B, C)
 
 //============================================================================
 
@@ -166,6 +169,7 @@ void COM_WriteFile(char* filename, void* data, int len);
 int COM_OpenFile(char* filename, int* hndl);
 int COM_FOpenFile(char* filename, FILE** file);
 void COM_CloseFile(int h);
+void COM_CreatePath(char* path);
 
 // load a file to a buffer on the stack
 byte* COM_LoadStackFile(char* path, void* buffer, int bufsize);

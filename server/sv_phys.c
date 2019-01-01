@@ -20,7 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_phys.c
 
-#include "quakedef.h"
+#include "../quakedef.h"
+#include "server_int.h"
 
 /*
 
@@ -787,7 +788,7 @@ int SV_TryUnstick(edict_t* ent, vec3_t oldvel)
         ent->v.velocity[0] = oldvel[0];
         ent->v.velocity[1] = oldvel[1];
         ent->v.velocity[2] = 0;
-        clip = SV_FlyMove(ent, 0.1, &steptrace);
+        clip = SV_FlyMove(ent, .1f, &steptrace);
 
         if (fabs(oldorg[1] - ent->v.origin[1]) > 4
             || fabs(oldorg[0] - ent->v.origin[0]) > 4)

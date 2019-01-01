@@ -99,14 +99,14 @@ void R_RenderDlight(dlight_t* light)
     }
 
     glBegin(GL_TRIANGLE_FAN);
-    glColor3f(0.2, 0.1, 0.0);
+    glColor3f(0.2f, 0.1f, 0.0f);
     for (i = 0; i < 3; i++)
         v[i] = light->origin[i] - vpn[i] * rad;
     glVertex3fv(v);
     glColor3f(0, 0, 0);
     for (i = 16; i >= 0; i--)
     {
-        a = i / 16.0 * M_PI * 2;
+        a = i / 16.0f * M_PI * 2.f;
         for (j = 0; j < 3; j++)
             v[j] = light->origin[j] + vright[j] * cos(a) * rad
                 + vup[j] * sin(a) * rad;

@@ -377,9 +377,9 @@ void Fog_Init(void)
 
     //set up global fog
     fog_density = 0.0;
-    fog_red = 0.3;
-    fog_green = 0.3;
-    fog_blue = 0.3;
+    fog_red = 0.3f;
+    fog_green = 0.3f;
+    fog_blue = 0.3f;
 
     glFogi(GL_FOG_MODE, GL_EXP2);
 }

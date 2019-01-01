@@ -145,7 +145,7 @@ void Host_Game_f(void)
         }
 
         strcpy(pakfile, va("%s/%s", host_parms.basedir, Cmd_Argv(1)));
-        if (!stricmp(pakfile, com_gamedir)) //no change
+        if (!Q_stricmp(pakfile, com_gamedir)) //no change
         {
             Con_Printf("\"game\" is already \"%s\"\n", COM_SkipPath(com_gamedir));
             return;
@@ -166,7 +166,7 @@ void Host_Game_f(void)
 
         strcpy(com_gamedir, pakfile);
 
-        if (stricmp(Cmd_Argv(1), GAMENAME)) //game is not id1
+        if (Q_stricmp(Cmd_Argv(1), GAMENAME)) //game is not id1
         {
             search = Z_Malloc(sizeof(searchpath_t));
             strcpy(search->filename, pakfile);
@@ -229,7 +229,7 @@ void ExtraMaps_Add(char* name)
     strcpy(level->name, name);
 
     //insert each entry in alphabetical order
-    if (extralevels == NULL || stricmp(level->name, extralevels->name) < 0) //insert at front
+    if (extralevels == NULL || Q_stricmp(level->name, extralevels->name) < 0) //insert at front
     {
         level->next = extralevels;
         extralevels = level;
@@ -238,7 +238,7 @@ void ExtraMaps_Add(char* name)
     {
         prev = extralevels;
         cursor = extralevels->next;
-        while (cursor && (stricmp(level->name, cursor->name) > 0))
+        while (cursor && (Q_stricmp(level->name, cursor->name) > 0))
         {
             prev = cursor;
             cursor = cursor->next;
@@ -354,7 +354,7 @@ void Modlist_Add(char* name)
     strcpy(mod->name, name);
 
     //insert each entry in alphabetical order
-    if (modlist == NULL || _stricmp(mod->name, modlist->name) < 0) //insert at front
+    if (modlist == NULL || Q_stricmp(mod->name, modlist->name) < 0) //insert at front
     {
         mod->next = modlist;
         modlist = mod;
@@ -363,7 +363,7 @@ void Modlist_Add(char* name)
     {
         prev = modlist;
         cursor = modlist->next;
-        while (cursor && (_stricmp(mod->name, cursor->name) > 0))
+        while (cursor && (Q_stricmp(mod->name, cursor->name) > 0))
         {
             prev = cursor;
             cursor = cursor->next;
@@ -379,7 +379,6 @@ void Modlist_Init(void) //TODO: move win32 specific stuff to sys_win.c
     WIN32_FIND_DATA FindFileData, FindChildData;
     HANDLE Find, FindProgs, FindPak;
     char filestring[MAX_OSPATH], childstring[MAX_OSPATH];
-    int temp;
 
     sprintf(filestring, "%s/*", host_parms.basedir);
     Find = FindFirstFile(filestring, &FindFileData);
@@ -1722,7 +1721,7 @@ Host_Give_f
 void Host_Give_f(void)
 {
     char* t;
-    int v, w;
+    int v;
     eval_t* val;
 
     if (cmd_source == src_command)
@@ -1874,19 +1873,19 @@ void Host_Give_f(void)
     case 'a':
         if (v > 150)
         {
-            sv_player->v.armortype = 0.8;
+            sv_player->v.armortype = 0.8f;
             sv_player->v.armorvalue = v;
             sv_player->v.items = sv_player->v.items - ((int)(sv_player->v.items) & (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) + IT_ARMOR3;
         }
         else if (v > 100)
         {
-            sv_player->v.armortype = 0.6;
+            sv_player->v.armortype = 0.6f;
             sv_player->v.armorvalue = v;
             sv_player->v.items = sv_player->v.items - ((int)(sv_player->v.items) & (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) + IT_ARMOR2;
         }
         else if (v >= 0)
         {
-            sv_player->v.armortype = 0.3;
+            sv_player->v.armortype = 0.3f;
             sv_player->v.armorvalue = v;
             sv_player->v.items = sv_player->v.items - ((int)(sv_player->v.items) & (int)(IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) + IT_ARMOR1;
         }

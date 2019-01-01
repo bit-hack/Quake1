@@ -3,6 +3,7 @@ project(fitzquake)
 
 add_subdirectory(common)
 add_subdirectory(progs)
+add_subdirectory(server)
 
 add_subdirectory(snd_win32)
 add_subdirectory(snd_null)
@@ -44,6 +45,7 @@ target_link_libraries(
     fitzquake
     common
     progs
+    server
     #snd_null
     #snd_win32
     snd_sdl
