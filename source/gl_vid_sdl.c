@@ -608,20 +608,18 @@ GL_MakeNiceExtensionsList -- johnfitz
 */
 static char* GL_MakeNiceExtensionsList(const char* in)
 {
-    char *copy, *token, *out;
-    int i, count;
-
+    int count = 0;
     //each space will be replaced by 4 chars, so count the spaces before we malloc
-    for (i = 0, count = 1; i < strlen(in); i++)
+    for (size_t i = 0, count = 1; i < strlen(in); i++)
         if (in[i] == ' ')
             count++;
-    out = Z_Malloc(strlen(in) + count * 3 + 1); //usually about 1-2k
+    char *out = Z_Malloc(strlen(in) + count * 3 + 1); //usually about 1-2k
     out[0] = 0;
 
-    copy = Z_Malloc(strlen(in) + 1);
+    char *copy = Z_Malloc(strlen(in) + 1);
     strcpy(copy, in);
 
-    for (token = strtok(copy, " "); token; token = strtok(NULL, " "))
+    for (char *token = strtok(copy, " "); token; token = strtok(NULL, " "))
     {
         strcat(out, "\n   ");
         strcat(out, token);

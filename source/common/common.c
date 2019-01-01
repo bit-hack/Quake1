@@ -57,22 +57,7 @@ char com_cmdline[CMDLINE_LENGTH];
 
 bool standard_quake = true, rogue, hipnotic;
 
-#if 0
-// this graphic needs to be in the pak file to use registered features
-static const unsigned short pop[] = {
-    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x6600, 0x0000, 0x0000, 0x0000, 0x6600, 0x0000,
-    0x0000, 0x0066, 0x0000, 0x0000, 0x0000, 0x0000, 0x0067, 0x0000, 0x0000, 0x6665, 0x0000, 0x0000, 0x0000, 0x0000, 0x0065, 0x6600,
-    0x0063, 0x6561, 0x0000, 0x0000, 0x0000, 0x0000, 0x0061, 0x6563, 0x0064, 0x6561, 0x0000, 0x0000, 0x0000, 0x0000, 0x0061, 0x6564,
-    0x0064, 0x6564, 0x0000, 0x6469, 0x6969, 0x6400, 0x0064, 0x6564, 0x0063, 0x6568, 0x6200, 0x0064, 0x6864, 0x0000, 0x6268, 0x6563,
-    0x0000, 0x6567, 0x6963, 0x0064, 0x6764, 0x0063, 0x6967, 0x6500, 0x0000, 0x6266, 0x6769, 0x6a68, 0x6768, 0x6a69, 0x6766, 0x6200,
-    0x0000, 0x0062, 0x6566, 0x6666, 0x6666, 0x6666, 0x6562, 0x0000, 0x0000, 0x0000, 0x0062, 0x6364, 0x6664, 0x6362, 0x0000, 0x0000,
-    0x0000, 0x0000, 0x0000, 0x0062, 0x6662, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0061, 0x6661, 0x0000, 0x0000, 0x0000,
-    0x0000, 0x0000, 0x0000, 0x0000, 0x6500, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x6400, 0x0000, 0x0000, 0x0000
-};
-#endif
-
 /*
-
 
 All of Quake's data access is through a hierchal file system, but the contents
 of the file system can be transparently merged from several sources.
@@ -157,7 +142,7 @@ void Q_memset(void* dest, int fill, int count)
             ((byte*)dest)[i] = fill;
 }
 
-void Q_memcpy(void* dest, void* src, int count)
+void Q_memcpy(void* dest, const void* src, int count)
 {
     int i;
 
@@ -172,7 +157,7 @@ void Q_memcpy(void* dest, void* src, int count)
             ((byte*)dest)[i] = ((byte*)src)[i];
 }
 
-int Q_memcmp(void* m1, void* m2, int count)
+int Q_memcmp(const void* m1, const void* m2, int count)
 {
     while (count)
     {
@@ -183,7 +168,7 @@ int Q_memcmp(void* m1, void* m2, int count)
     return 0;
 }
 
-void Q_strcpy(char* dest, char* src)
+void Q_strcpy(char* dest, const char* src)
 {
     while (*src)
     {
@@ -192,7 +177,7 @@ void Q_strcpy(char* dest, char* src)
     *dest++ = 0;
 }
 
-void Q_strncpy(char* dest, char* src, int count)
+void Q_strncpy(char* dest, const char* src, int count)
 {
     while (*src && count--)
     {
@@ -202,7 +187,7 @@ void Q_strncpy(char* dest, char* src, int count)
         *dest++ = 0;
 }
 
-int Q_strlen(char* str)
+int Q_strlen(const char* str)
 {
     int count;
 
@@ -223,13 +208,13 @@ char* Q_strrchr(char* s, char c)
     return 0;
 }
 
-void Q_strcat(char* dest, char* src)
+void Q_strcat(char* dest, const char* src)
 {
     dest += Q_strlen(dest);
     Q_strcpy(dest, src);
 }
 
-int Q_strcmp(char* s1, char* s2)
+int Q_strcmp(const char* s1, const char* s2)
 {
     while (1)
     {
@@ -244,7 +229,7 @@ int Q_strcmp(char* s1, char* s2)
     return -1;
 }
 
-int Q_strncmp(char* s1, char* s2, int count)
+int Q_strncmp(const char* s1, const char* s2, int count)
 {
     while (1)
     {
@@ -261,7 +246,7 @@ int Q_strncmp(char* s1, char* s2, int count)
     return -1;
 }
 
-int Q_strncasecmp(char* s1, char* s2, int n)
+int Q_strncasecmp(const char* s1, const char* s2, int n)
 {
     int c1, c2;
 
@@ -291,12 +276,12 @@ int Q_strncasecmp(char* s1, char* s2, int n)
     return -1;
 }
 
-int Q_strcasecmp(char* s1, char* s2)
+int Q_strcasecmp(const char* s1, const char* s2)
 {
     return Q_strncasecmp(s1, s2, 99999);
 }
 
-int Q_atoi(char* str)
+int Q_atoi(const char* str)
 {
     int val;
     int sign;
@@ -354,7 +339,7 @@ int Q_atoi(char* str)
     return 0;
 }
 
-float Q_atof(char* str)
+float Q_atof(const char* str)
 {
     double val;
     int sign;

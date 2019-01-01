@@ -331,7 +331,11 @@ void Con_Init(void)
         if (strlen(com_gamedir) < (MAXGAMEDIRLEN - strlen(t2)))
         {
             sprintf(temp, "%s%s", com_gamedir, t2);
+#if 1
+            _unlink(temp);
+#else
             unlink(temp);
+#endif
         }
     }
 
@@ -479,14 +483,20 @@ void Con_DebugLog(char* file, char* fmt, ...)
 {
     va_list argptr;
     static char data[1024];
-    int fd;
 
     va_start(argptr, fmt);
     vsprintf(data, fmt, argptr);
     va_end(argptr);
+#if 1
+    FILE *fd = fopen(file, "w+");
+    fwrite(data, 1, strlen(data), fd);
+    fclose(fd);
+#else
+    int fd;
     fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0666);
     write(fd, data, strlen(data));
     close(fd);
+#endif
 }
 
 /*
