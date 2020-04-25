@@ -69,7 +69,7 @@ void VID_Init(void);
 void VID_Shutdown(void);
 
 // flushes the given rectangles from the view buffer to the screen
-void VID_Update(vrect_t* rects);
+//void VID_Update(vrect_t* rects);
 
 // sets the mode; only used by the Quake engine for resetting to mode 0 (the
 // base mode) on memory allocation failures
@@ -77,3 +77,12 @@ int VID_SetMode(int modenum);
 
 // called only on Win32, when pause happens, so the mouse can be released
 void VID_HandlePause(bool pause);
+
+void VID_SetDefaultMode(void);
+
+typedef enum { MS_WINDOWED,
+    MS_FULLSCREEN,
+    MS_FULLDIB,
+    MS_UNINIT } modestate_t;
+
+extern modestate_t modestate;

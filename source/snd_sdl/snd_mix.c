@@ -26,6 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../api.h"
 
+#include "snd_sdl.h"
+
+
 extern const quake_api_t *api;
 
 #define PAINTBUFFER_SIZE 512

@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "api.h"
 #include "quakedef.h"
-#include "winquake.h"
 #include "resource.h"
 
 #define MAX_MODE_LIST 600 //johnfitz -- was 30
@@ -78,7 +77,6 @@ const char* gl_version;
 const char* gl_extensions = "";
 const char* wgl_extensions = "";
 
-bool DDActive;
 bool scr_skipupdate;
 
 // XXX: default init this list

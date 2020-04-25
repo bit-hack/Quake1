@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <direct.h>
 
 #include "quakedef.h"
-#include "winquake.h"
 #include "errno.h"
 #include "resource.h"
 
@@ -90,12 +89,12 @@ static int findhandle(void)
 
 static long filelength(FILE* f)
 {
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     const long pos = ftell(f);
     fseek(f, 0, SEEK_END);
     const long end = ftell(f);
     fseek(f, pos, SEEK_SET);
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
     return end;
 }
 
@@ -103,7 +102,7 @@ int Sys_FileOpenRead(const char* path, int* hndl)
 {
     *hndl = -1;
     int retval = -1;
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     {
         const int i = findhandle();
         FILE* f = fopen(path, "rb");
@@ -114,56 +113,56 @@ int Sys_FileOpenRead(const char* path, int* hndl)
             retval = filelength(f);
         }
     }
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
     return retval;
 }
 
 int Sys_FileOpenWrite(const char* path)
 {
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     const int i = findhandle();
     FILE* f = fopen(path, "wb");
     if (!f)
         Sys_Error("Error opening %s: %s", path, strerror(errno));
     sys_handles[i] = f;
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
     return i;
 }
 
 void Sys_FileClose(int handle)
 {
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     fclose(sys_handles[handle]);
     sys_handles[handle] = NULL;
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
 }
 
 void Sys_FileSeek(int handle, int position)
 {
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     fseek(sys_handles[handle], position, SEEK_SET);
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
 }
 
 int Sys_FileRead(int handle, void* dest, int count)
 {
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     const int x = fread(dest, 1, count, sys_handles[handle]);
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
     return x;
 }
 
 int Sys_FileWrite(int handle, void* data, int count)
 {
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     const int x = fwrite(data, 1, count, sys_handles[handle]);
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
     return x;
 }
 
 int Sys_FileTime(const char* path)
 {
-    const int t = VID_ForceUnlockedAndReturnState();
+//    const int t = VID_ForceUnlockedAndReturnState();
     FILE* f = fopen(path, "rb");
     int retval = -1;
     if (f)
@@ -171,7 +170,7 @@ int Sys_FileTime(const char* path)
         fclose(f);
         retval = 1;
     }
-    VID_ForceLockState(t);
+//    VID_ForceLockState(t);
     return retval;
 }
 
@@ -240,7 +239,6 @@ void Sys_Error(const char* error, ...)
     if (!in_sys_error3)
     {
         in_sys_error3 = 1;
-        VID_ForceUnlockedAndReturnState();
     }
 
     va_start(argptr, error);
@@ -307,7 +305,6 @@ void Sys_Printf(const char* fmt, ...)
 
 void Sys_Quit(void)
 {
-    VID_ForceUnlockedAndReturnState();
     Host_Shutdown();
     //    if (tevent)
     //        CloseHandle(tevent);
@@ -527,12 +524,12 @@ void SYS_MainLoop()
         else
         {
             // yield the CPU for a little while when paused, minimized, or not the focus
-            if ((cl.paused && (!ActiveApp && !DDActive)) || Minimized || block_drawing)
+            if ((cl.paused && (!ActiveApp)) || Minimized || block_drawing)
             {
                 SDL_Delay(PAUSE_SLEEP);
                 scr_skipupdate = 1; // no point in bothering to draw
             }
-            else if (!ActiveApp && !DDActive)
+            else if (!ActiveApp)
             {
                 SDL_Delay(NOT_FOCUS_SLEEP);
             }

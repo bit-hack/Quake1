@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define DEFAULT_SOUND_PACKET_VOLUME 255
 #define DEFAULT_SOUND_PACKET_ATTENUATION 1.0
 
-// !!! if this is changed, it much be changed in asm_i386.h too !!!
 typedef struct
 {
     int left;
@@ -41,7 +40,6 @@ typedef struct sfx_s
     cache_user_t cache;
 } sfx_t;
 
-// !!! if this is changed, it much be changed in asm_i386.h too !!!
 typedef struct
 {
     int length;
@@ -52,21 +50,6 @@ typedef struct
     uint8_t data[1]; // variable sized
 } sfxcache_t;
 
-typedef struct
-{
-    bool gamealive;
-    bool soundalive;
-    bool splitbuffer;
-    int channels;
-    int samples; // mono samples in buffer
-    int submission_chunk; // don't mix less than this #
-    int samplepos; // in mono samples
-    int samplebits;
-    int speed;
-    unsigned char* buffer;
-} dma_t;
-
-// !!! if this is changed, it much be changed in asm_i386.h too !!!
 typedef struct
 {
     sfx_t* sfx; // sfx number
@@ -118,14 +101,6 @@ channel_t* SND_PickChannel(int entnum, int entchannel);
 // spatializes a channel
 void SND_Spatialize(channel_t* ch);
 
-// initializes cycling through a DMA buffer and returns information on it
-bool SNDDMA_Init(void);
-
-// gets the current DMA position
-int SNDDMA_GetDMAPos(void);
-
-// shutdown the DMA xfer.
-void SNDDMA_Shutdown(void);
 
 // ====================================================================
 // User-setable variables
@@ -154,8 +129,6 @@ extern vec3_t listener_origin;
 extern vec3_t listener_forward;
 extern vec3_t listener_right;
 extern vec3_t listener_up;
-extern volatile dma_t* shm;
-extern volatile dma_t sn;
 extern vec_t sound_nominal_clip_dist;
 
 extern cvar_t loadas8bit;
@@ -170,9 +143,6 @@ void S_LocalSound(char* s);
 sfxcache_t* S_LoadSound(sfx_t* s);
 
 wavinfo_t GetWavinfo(char* name, uint8_t* wav, int wavlength);
-
-void SND_InitScaletable(void);
-void SNDDMA_Submit(void); // <--- submit buffers to waveout device
 
 void S_AmbientOff(void);
 void S_AmbientOn(void);

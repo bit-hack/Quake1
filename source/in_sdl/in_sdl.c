@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <SDL/SDL.h>
 
 #include "../quakedef.h"
-#include "../winquake.h"
 
 // mouse variables
 cvar_t m_filter = { "m_filter", "0" };

@@ -23,9 +23,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../api.h"
 #include "../quakedef.h"
 
-#ifdef _WIN32
-#include "../winquake.h"
-#endif
+//#ifdef _WIN32
+//#include "../winquake.h"
+//#endif
+
+#include "snd_sdl.h"
 
 const quake_api_t *api;
 

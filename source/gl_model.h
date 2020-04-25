@@ -49,7 +49,6 @@ BRUSH MODELS
 //
 // in memory representation
 //
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
     vec3_t position;

@@ -274,7 +274,7 @@ PR_EnterFunction
 Returns the new program statement counter
 ====================
 */
-static int PR_EnterFunction(const dfunction_t* f)
+static int PR_EnterFunction(dfunction_t* f)
 {
     pr_stack[pr_depth].s = pr_xstatement;
     pr_stack[pr_depth].f = pr_xfunction;

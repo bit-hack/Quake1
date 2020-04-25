@@ -5,6 +5,9 @@
 
 #include "../quakedef.h"
 
+#include "snd_sdl.h"
+
+
 static dma_t the_shm;
 static int snd_inited;
 

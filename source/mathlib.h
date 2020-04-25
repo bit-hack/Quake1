@@ -33,7 +33,6 @@ typedef int fixed8_t;
 typedef int fixed16_t;
 
 // plane_t structure
-// !!! if this is changed, it must be changed in asm_i386.h too !!!
 typedef struct mplane_s
 {
     vec3_t normal;
