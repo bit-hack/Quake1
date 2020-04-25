@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #pragma once
 
+#include <stdint.h>
+
 // mathlib.h
 
 typedef float vec_t;
@@ -30,18 +32,26 @@ typedef int fixed4_t;
 typedef int fixed8_t;
 typedef int fixed16_t;
 
+// plane_t structure
+// !!! if this is changed, it must be changed in asm_i386.h too !!!
+typedef struct mplane_s
+{
+    vec3_t normal;
+    float dist;
+    uint8_t type; // for texture axis selection and fast side tests
+    uint8_t signbits; // signx + signy<<1 + signz<<1
+    uint8_t pad[2];
+} mplane_t;
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f // matches value in gcc v2 math.h
 #endif
 
 #define M_PI_DIV_180 (M_PI / 180.0f) //johnfitz
 
-struct mplane_s;
-
 extern vec3_t vec3_origin;
-extern int nanmask;
 
-#define IS_NAN(x) (((*(int*)&x) & nanmask) == nanmask)
+#define IS_NAN(X) (isnan(X) != 0)
 
 #define CLAMP(min, x, max) ((x) < (min) ? (min) : (x) > (max) ? (max) : (x)) //johnfitz
 
@@ -101,19 +111,11 @@ int Q_log2(int val);
 void R_ConcatRotations(float in1[3][3], float in2[3][3], float out[3][3]);
 void R_ConcatTransforms(float in1[3][4], float in2[3][4], float out[3][4]);
 
-void FloorDivMod(double numer, double denom, int* quotient,
-    int* rem);
+void FloorDivMod(double numer, double denom, int* quotient, int* rem);
 fixed16_t Invert24To16(fixed16_t val);
 int GreatestCommonDivisor(int i1, int i2);
 
 void AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
-int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct mplane_s* plane);
 float anglemod(float a);
 
-#define BOX_ON_PLANE_SIDE(emins, emaxs, p)                                                                 \
-    (((p)->type < 3) ? (                                                                                   \
-                           ((p)->dist <= (emins)[(p)->type]) ? 1                                           \
-                                                             : (                                           \
-                                                                   ((p)->dist >= (emaxs)[(p)->type]) ? 2   \
-                                                                                                     : 3)) \
-                     : BoxOnPlaneSide((emins), (emaxs), (p)))
+int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, mplane_t* p);

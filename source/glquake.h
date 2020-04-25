@@ -49,11 +49,13 @@ extern glvert_t glv;
 
 extern int glx, gly, glwidth, glheight;
 
+#if 0
 #ifdef _WIN32
 extern PROC glArrayElementEXT;
 extern PROC glColorPointerEXT;
 extern PROC glTexturePointerEXT;
 extern PROC glVertexPointerEXT;
+#endif
 #endif
 
 // r_local.h -- private refresh defs

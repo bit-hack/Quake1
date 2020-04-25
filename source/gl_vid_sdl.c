@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <SDL.h>
 #include <SDL_syswm.h>
 
+#include "api.h"
 #include "quakedef.h"
 #include "winquake.h"
 #include "resource.h"
@@ -613,10 +614,10 @@ static char* GL_MakeNiceExtensionsList(const char* in)
     for (size_t i = 0, count = 1; i < strlen(in); i++)
         if (in[i] == ' ')
             count++;
-    char *out = Z_Malloc(strlen(in) + count * 3 + 1); //usually about 1-2k
+    char *out = GetQuakeAPI()->mem->Z_Malloc(strlen(in) + count * 3 + 1); //usually about 1-2k
     out[0] = 0;
 
-    char *copy = Z_Malloc(strlen(in) + 1);
+    char *copy = GetQuakeAPI()->mem->Z_Malloc(strlen(in) + 1);
     strcpy(copy, in);
 
     for (char *token = strtok(copy, " "); token; token = strtok(NULL, " "))
@@ -625,7 +626,7 @@ static char* GL_MakeNiceExtensionsList(const char* in)
         strcat(out, token);
     }
 
-    Z_Free(copy);
+    GetQuakeAPI()->mem->Z_Free(copy);
     return out;
 }
 

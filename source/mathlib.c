@@ -21,12 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // mathlib.c -- math primitives
 
 #include <math.h>
+
 #include "quakedef.h"
 
-void Sys_Error(char* error, ...);
-
 vec3_t vec3_origin = { 0, 0, 0 };
-int nanmask = 255 << 23;
 
 /*-----------------------------------------------------------------*/
 
@@ -129,7 +127,7 @@ int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, mplane_t* p)
     float dist1, dist2;
     int sides;
 
-#if 0 // this is done by the BOX_ON_PLANE_SIDE macro before calling this
+#if 1 // this is done by the BOX_ON_PLANE_SIDE macro before calling this
 		// function
 // fast axial cases
 	if (p->type < 3)

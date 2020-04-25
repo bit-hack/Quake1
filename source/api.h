@@ -190,6 +190,17 @@ typedef struct mem_api_t {
   void  (*Cache_Free)(cache_user_t* c, bool freetextures);
   void* (*Cache_Alloc)(cache_user_t* c, int size, char* name);
   void  (*Cache_Report)(void);
+
+  void* (*Z_Malloc)(int size);
+  void  (*Z_Free)(void* ptr);
+
+  void  (*Hunk_Check)(void);
+  void* (*Hunk_Alloc)(int size);
+  void* (*Hunk_AllocName)(int size, char* name);
+  int   (*Hunk_LowMark)(void);
+  void  (*Hunk_FreeToLowMark)(int mark);
+  void* (*Hunk_TempAlloc)(int size);
+
 } mem_api_t;
 
 // api agregator

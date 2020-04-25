@@ -47,7 +47,9 @@ typedef struct
     int minfilter;
     char* name;
 } glmode_t;
-glmode_t modes[] = {
+
+#define NUM_GLMODES 6
+static glmode_t modes[NUM_GLMODES] = {
     { GL_NEAREST, GL_NEAREST, "GL_NEAREST" },
     { GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST, "GL_NEAREST_MIPMAP_NEAREST" },
     { GL_NEAREST, GL_NEAREST_MIPMAP_LINEAR, "GL_NEAREST_MIPMAP_LINEAR" },
@@ -55,8 +57,8 @@ glmode_t modes[] = {
     { GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST, "GL_LINEAR_MIPMAP_NEAREST" },
     { GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR, "GL_LINEAR_MIPMAP_LINEAR" },
 };
-#define NUM_GLMODES 6
-int gl_texturemode = 5; // bilinear
+
+static int32_t gl_texturemode = TEXPREF_LINEAR;
 
 /*
 ===============
@@ -65,12 +67,9 @@ TexMgr_DescribeTextureModes_f -- report available texturemodes
 */
 void TexMgr_DescribeTextureModes_f(void)
 {
-    int i;
-
-    for (i = 0; i < NUM_GLMODES; i++)
+    for (int i = 0; i < NUM_GLMODES; i++)
         Con_SafePrintf("   %2i: %s\n", i + 1, modes[i].name);
-
-    Con_Printf("%i modes\n", i);
+    Con_Printf("%i modes\n", NUM_GLMODES);
 }
 
 /*
@@ -113,9 +112,8 @@ TexMgr_TextureMode_f
 */
 void TexMgr_TextureMode_f(void)
 {
-    gltexture_t* glt;
-    char* arg;
-    int i;
+    gltexture_t* glt = NULL;
+    char* arg = NULL;
 
     switch (Cmd_Argc())
     {
@@ -126,18 +124,18 @@ void TexMgr_TextureMode_f(void)
         arg = Cmd_Argv(1);
         if (arg[0] == 'G' || arg[0] == 'g')
         {
-            for (i = 0; i < NUM_GLMODES; i++)
+            for (int i = 0; i < NUM_GLMODES; i++)
                 if (!Q_stricmp(modes[i].name, arg))
                 {
                     gl_texturemode = i;
-                    goto stuff;
+                    goto stuff; // XXX: lets remove this
                 }
             Con_Printf("\"%s\" is not a valid texturemode\n", arg);
             return;
         }
         else if (arg[0] >= '0' && arg[0] <= '9')
         {
-            i = atoi(arg);
+            int i = atoi(arg);
             if (i > NUM_GLMODES || i < 1)
             {
                 Con_Printf("\"%s\" is not a valid texturemode\n", arg);
@@ -261,12 +259,10 @@ TexMgr_FrameUsage -- report texture memory usage for this frame
 */
 float TexMgr_FrameUsage(void)
 {
-    float mb;
     float texels = 0;
-    gltexture_t* glt;
     extern cvar_t vid_bpp;
 
-    for (glt = active_gltextures; glt; glt = glt->next)
+    for (gltexture_t* glt = active_gltextures; glt; glt = glt->next)
         if (glt->visframe == r_framecount)
         {
             if (glt->flags & TEXPREF_MIPMAP)
@@ -275,8 +271,7 @@ float TexMgr_FrameUsage(void)
                 texels += (glt->width * glt->height);
         }
 
-    mb = texels * (vid_bpp.value / 8.0f) / 0x100000;
-    return mb;
+    return texels * (vid_bpp.value / 8.0f) / 0x100000;
 }
 
 /*
@@ -294,15 +289,12 @@ TexMgr_FindTexture
 */
 gltexture_t* TexMgr_FindTexture(model_t* owner, char* name)
 {
-    gltexture_t* glt;
-
     if (name)
     {
-        for (glt = active_gltextures; glt; glt = glt->next)
+        for (gltexture_t* glt = active_gltextures; glt; glt = glt->next)
             if (glt->owner == owner && !strcmp(glt->name, name))
                 return glt;
     }
-
     return NULL;
 }
 
@@ -313,12 +305,10 @@ TexMgr_NewTexture
 */
 gltexture_t* TexMgr_NewTexture(void)
 {
-    gltexture_t* glt;
-
     if (numgltextures == MAX_GLTEXTURES)
         Sys_Error("numgltextures == MAX_GLTEXTURES\n");
 
-    glt = free_gltextures;
+    gltexture_t* glt = free_gltextures;
     free_gltextures = glt->next;
     glt->next = active_gltextures;
     active_gltextures = glt;
@@ -335,8 +325,6 @@ TexMgr_FreeTexture
 */
 void TexMgr_FreeTexture(gltexture_t* kill)
 {
-    gltexture_t* glt;
-
     if (kill == NULL)
     {
         Con_Printf("TexMgr_FreeTexture: NULL texture\n");
@@ -354,7 +342,7 @@ void TexMgr_FreeTexture(gltexture_t* kill)
         return;
     }
 
-    for (glt = active_gltextures; glt; glt = glt->next)
+    for (gltexture_t* glt = active_gltextures; glt; glt = glt->next)
         if (glt->next == kill)
         {
             glt->next = kill->next;
@@ -378,9 +366,8 @@ compares each bit in "flags" to the one in glt->flags only if that bit is active
 */
 void TexMgr_FreeTextures(int flags, int mask)
 {
-    gltexture_t *glt, *next;
-
-    for (glt = active_gltextures; glt; glt = next)
+    gltexture_t* next = NULL;
+    for (gltexture_t* glt = active_gltextures; glt; glt = next)
     {
         next = glt->next;
         if ((glt->flags & mask) == (flags & mask))
@@ -395,9 +382,8 @@ TexMgr_FreeTexturesForOwner
 */
 void TexMgr_FreeTexturesForOwner(model_t* owner)
 {
-    gltexture_t *glt, *next;
-
-    for (glt = active_gltextures; glt; glt = next)
+    gltexture_t* next = NULL;
+    for (gltexture_t* glt = active_gltextures; glt; glt = next)
     {
         next = glt->next;
         if (glt && glt->owner == owner)
@@ -420,8 +406,8 @@ TexMgr_LoadPalette -- johnfitz -- was VID_SetPalette, moved here, renamed, rewri
 */
 void TexMgr_LoadPalette(void)
 {
-    uint8_t mask[] = { 255, 255, 255, 0 };
-    uint8_t black[] = { 0, 0, 0, 255 };
+    const uint8_t mask[] = { 255, 255, 255, 0 };
+    const uint8_t black[] = { 0, 0, 0, 255 };
     uint8_t *pal, *src, *dst;
     int i, mark;
     FILE* f;
@@ -511,9 +497,9 @@ void TexMgr_RecalcWarpImageSize(void)
 
     gl_warpimagesize = TexMgr_SafeTextureSize(512);
 
-    while (gl_warpimagesize > vid.width)
+    while (gl_warpimagesize > (int)vid.width)
         gl_warpimagesize >>= 1;
-    while (gl_warpimagesize > vid.height)
+    while (gl_warpimagesize > (int)vid.height)
         gl_warpimagesize >>= 1;
 
     if (gl_warpimagesize == oldsize)
@@ -1016,14 +1002,14 @@ void TexMgr_LoadImage32(gltexture_t* glt, unsigned* data)
     picmip = (glt->flags & TEXPREF_NOPICMIP) ? 0 : max((int)gl_picmip.value, 0);
     mipwidth = TexMgr_SafeTextureSize(glt->width >> picmip);
     mipheight = TexMgr_SafeTextureSize(glt->height >> picmip);
-    while (glt->width > mipwidth)
+    while ((int)glt->width > mipwidth)
     {
         TexMgr_MipMapW(data, glt->width, glt->height);
         glt->width >>= 1;
         if (glt->flags & TEXPREF_ALPHA)
             TexMgr_AlphaEdgeFix((uint8_t*)data, glt->width, glt->height);
     }
-    while (glt->height > mipheight)
+    while ((int)glt->height > mipheight)
     {
         TexMgr_MipMapH(data, glt->width, glt->height);
         glt->height >>= 1;
@@ -1073,7 +1059,6 @@ void TexMgr_LoadImage8(gltexture_t* glt, uint8_t* data)
     bool padw = false, padh = false;
     uint8_t padbyte;
     unsigned int* usepal;
-    int i;
 
     // HACK HACK HACK -- taken from tomazquake
     if (strstr(glt->name, "shot1sid") && glt->width == 32 && glt->height == 32 && CRC_Block(data, 1024) == 65393)
@@ -1087,10 +1072,11 @@ void TexMgr_LoadImage8(gltexture_t* glt, uint8_t* data)
     // detect false alpha cases
     if (glt->flags & TEXPREF_ALPHA && !(glt->flags & TEXPREF_CONCHARS))
     {
-        for (i = 0; i < glt->width * glt->height; i++)
+        uint32_t i = 0;
+        for (; i < glt->width * glt->height; i++)
             if (data[i] == 255) //transparent index
                 break;
-        if (i == glt->width * glt->height)
+        if (i == (glt->width * glt->height))
             glt->flags -= TEXPREF_ALPHA;
     }
 
@@ -1119,13 +1105,13 @@ void TexMgr_LoadImage8(gltexture_t* glt, uint8_t* data)
     // pad each dimention, but only if it's not going to be downsampled later
     if (glt->flags & TEXPREF_PAD)
     {
-        if (glt->width < TexMgr_SafeTextureSize(glt->width))
+        if ((int32_t)glt->width < TexMgr_SafeTextureSize(glt->width))
         {
             data = TexMgr_PadImageW(data, glt->width, glt->height, padbyte);
             glt->width = TexMgr_Pad(glt->width);
             padw = true;
         }
-        if (glt->height < TexMgr_SafeTextureSize(glt->height))
+        if ((int32_t)glt->height < TexMgr_SafeTextureSize(glt->height))
         {
             data = TexMgr_PadImageH(data, glt->width, glt->height, padbyte);
             glt->height = TexMgr_Pad(glt->height);

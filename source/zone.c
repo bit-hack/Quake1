@@ -27,6 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ZONEID 0x1d4a11
 #define MINFRAGMENT 64
 
+#define HUNK_SENTINAL 0x1df001ed
+
+
 typedef struct memblock_s
 {
     int size; // including the header and possibly tiny fragments
@@ -43,8 +46,38 @@ typedef struct
     memblock_t* rover;
 } memzone_t;
 
+typedef struct
+{
+    int sentinal;
+    int size; // including sizeof(hunk_t), -1 = not allocated
+    char name[8];
+} hunk_t;
+
+typedef struct cache_system_s
+{
+    int size; // including this header
+    cache_user_t* user;
+    char name[16];
+    struct cache_system_s *prev, *next;
+    struct cache_system_s *lru_prev, *lru_next; // for LRU flushing
+} cache_system_t;
+
+static cache_system_t cache_head;
+
+cache_system_t* Cache_TryAlloc(int size, bool nobottom);
 void Cache_FreeLow(int new_low_hunk);
 void Cache_FreeHigh(int new_high_hunk);
+static void* Z_TagMalloc(int size, int tag);
+static void Hunk_FreeToHighMark(int mark);
+
+uint8_t* hunk_base;   // XXX: Find out where this is used
+static int hunk_size;
+
+static int hunk_low_used;
+static int hunk_high_used;
+
+static bool hunk_tempactive;
+static int hunk_tempmark;
 
 /*
 ==============================================================================
@@ -61,16 +94,14 @@ all big things are allocated on the hunk.
 ==============================================================================
 */
 
-memzone_t* mainzone;
-
-void Z_ClearZone(memzone_t* zone, int size);
+static memzone_t* mainzone;
 
 /*
 ========================
 Z_ClearZone
 ========================
 */
-void Z_ClearZone(memzone_t* zone, int size)
+static void Z_ClearZone(memzone_t* zone, int size)
 {
     memblock_t* block;
 
@@ -148,7 +179,7 @@ void* Z_Malloc(int size)
     return buf;
 }
 
-void* Z_TagMalloc(int size, int tag)
+static void* Z_TagMalloc(int size, int tag)
 {
     int extra;
     memblock_t *start, *rover, *new, *base;
@@ -211,7 +242,7 @@ void* Z_TagMalloc(int size, int tag)
 Z_Print
 ========================
 */
-void Z_Print(memzone_t* zone)
+static void Z_Print(memzone_t* zone)
 {
     memblock_t* block;
 
@@ -238,7 +269,7 @@ void Z_Print(memzone_t* zone)
 Z_CheckHeap
 ========================
 */
-void Z_CheckHeap(void)
+static void Z_CheckHeap(void)
 {
     memblock_t* block;
 
@@ -254,28 +285,6 @@ void Z_CheckHeap(void)
             Sys_Error("Z_CheckHeap: two consecutive free blocks\n");
     }
 }
-
-//============================================================================
-
-#define HUNK_SENTINAL 0x1df001ed
-
-typedef struct
-{
-    int sentinal;
-    int size; // including sizeof(hunk_t), -1 = not allocated
-    char name[8];
-} hunk_t;
-
-uint8_t* hunk_base;
-int hunk_size;
-
-int hunk_low_used;
-int hunk_high_used;
-
-bool hunk_tempactive;
-int hunk_tempmark;
-
-void R_FreeTextures(void);
 
 /*
 ==============
@@ -306,7 +315,7 @@ If "all" is specified, every single allocation is printed.
 Otherwise, allocations with the same name will be totaled up before printing.
 ==============
 */
-void Hunk_Print(bool all)
+static void Hunk_Print(bool all)
 {
     hunk_t *h, *next, *endlow, *starthigh, *endhigh;
     int count, sum;
@@ -388,7 +397,7 @@ void Hunk_Print(bool all)
 Hunk_Print_f -- johnfitz -- console command to call hunk_print
 ===================
 */
-void Hunk_Print_f(void)
+static void Hunk_Print_f(void)
 {
     Hunk_Print(false);
 }
@@ -451,7 +460,7 @@ void Hunk_FreeToLowMark(int mark)
     hunk_low_used = mark;
 }
 
-int Hunk_HighMark(void)
+static int Hunk_HighMark(void)
 {
     if (hunk_tempactive)
     {
@@ -462,7 +471,7 @@ int Hunk_HighMark(void)
     return hunk_high_used;
 }
 
-void Hunk_FreeToHighMark(int mark)
+static void Hunk_FreeToHighMark(int mark)
 {
     if (hunk_tempactive)
     {
@@ -480,7 +489,7 @@ void Hunk_FreeToHighMark(int mark)
 Hunk_HighAllocName
 ===================
 */
-void* Hunk_HighAllocName(int size, char* name)
+static void* Hunk_HighAllocName(int size, char* name)
 {
     hunk_t* h;
 
@@ -547,32 +556,11 @@ void* Hunk_TempAlloc(int size)
 }
 
 /*
-===============================================================================
-
-CACHE MEMORY
-
-===============================================================================
-*/
-
-typedef struct cache_system_s
-{
-    int size; // including this header
-    cache_user_t* user;
-    char name[16];
-    struct cache_system_s *prev, *next;
-    struct cache_system_s *lru_prev, *lru_next; // for LRU flushing
-} cache_system_t;
-
-cache_system_t* Cache_TryAlloc(int size, bool nobottom);
-
-cache_system_t cache_head;
-
-/*
 ===========
 Cache_Move
 ===========
 */
-void Cache_Move(cache_system_t* c)
+static void Cache_Move(cache_system_t* c)
 {
     cache_system_t* new;
 
@@ -603,7 +591,7 @@ Cache_FreeLow
 Throw things out until the hunk can be expanded to the given point
 ============
 */
-void Cache_FreeLow(int new_low_hunk)
+static void Cache_FreeLow(int new_low_hunk)
 {
     cache_system_t* c;
 
@@ -625,7 +613,7 @@ Cache_FreeHigh
 Throw things out until the hunk can be expanded to the given point
 ============
 */
-void Cache_FreeHigh(int new_high_hunk)
+static void Cache_FreeHigh(int new_high_hunk)
 {
     cache_system_t *c, *prev;
 
@@ -647,7 +635,7 @@ void Cache_FreeHigh(int new_high_hunk)
     }
 }
 
-void Cache_UnlinkLRU(cache_system_t* cs)
+static void Cache_UnlinkLRU(cache_system_t* cs)
 {
     if (!cs->lru_next || !cs->lru_prev)
         Sys_Error("Cache_UnlinkLRU: NULL link");
@@ -658,7 +646,7 @@ void Cache_UnlinkLRU(cache_system_t* cs)
     cs->lru_prev = cs->lru_next = NULL;
 }
 
-void Cache_MakeLRU(cache_system_t* cs)
+static void Cache_MakeLRU(cache_system_t* cs)
 {
     if (cs->lru_next || cs->lru_prev)
         Sys_Error("Cache_MakeLRU: active link");
@@ -677,7 +665,7 @@ Looks for a free block of memory between the high and low hunk marks
 Size should already include the header and padding
 ============
 */
-cache_system_t* Cache_TryAlloc(int size, bool nobottom)
+static cache_system_t* Cache_TryAlloc(int size, bool nobottom)
 {
     cache_system_t *cs, *new;
 
@@ -768,7 +756,7 @@ Cache_Print
 
 ============
 */
-void Cache_Print(void)
+static void Cache_Print(void)
 {
     cache_system_t* cd;
 
@@ -791,21 +779,11 @@ void Cache_Report(void)
 
 /*
 ============
-Cache_Compact
-
-============
-*/
-void Cache_Compact(void)
-{
-}
-
-/*
-============
 Cache_Init
 
 ============
 */
-void Cache_Init(void)
+static void Cache_Init(void)
 {
     cache_head.next = cache_head.prev = &cache_head;
     cache_head.lru_next = cache_head.lru_prev = &cache_head;

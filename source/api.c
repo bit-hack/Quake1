@@ -102,6 +102,16 @@ static const mem_api_t api_mem = {
     Cache_Free,
     Cache_Alloc,
     Cache_Report,
+
+    Z_Malloc,
+    Z_Free,
+
+    Hunk_Check,
+    Hunk_Alloc,
+    Hunk_AllocName,
+    Hunk_LowMark,
+    Hunk_FreeToLowMark,
+    Hunk_TempAlloc
 };
 
 static const quake_api_t api_quake = {

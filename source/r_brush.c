@@ -915,7 +915,7 @@ void GL_BuildLightmaps(void)
         sprintf(name, "lightmap%03i", i);
         data = lightmaps + i * BLOCK_WIDTH * BLOCK_HEIGHT * lightmap_bytes;
         lightmap_textures[i] = TexMgr_LoadImage(cl.worldmodel, name, BLOCK_WIDTH, BLOCK_HEIGHT,
-            SRC_LIGHTMAP, data, "", (unsigned)data, TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+            SRC_LIGHTMAP, data, "", (unsigned)data, TEXPREF_NEAREST | TEXPREF_NOPICMIP);
         //johnfitz
     }
 

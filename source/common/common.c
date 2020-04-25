@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // common.c -- misc functions used in client and server
 
 #include "../quakedef.h"
+#include "../api.h"
 
 #define NUM_SAFE_ARGVS 7
 
@@ -1549,7 +1550,7 @@ uint8_t* COM_LoadFile(const char* path, int usehunk)
     else if (usehunk == 2)
         buf = Hunk_TempAlloc(len + 1);
     else if (usehunk == 0)
-        buf = Z_Malloc(len + 1);
+        buf = GetQuakeAPI()->mem->Z_Malloc(len + 1);
     else if (usehunk == 3)
         buf = Cache_Alloc(loadcache, len + 1, base);
     else if (usehunk == 4)
@@ -1641,7 +1642,7 @@ pack_t* COM_LoadPackFile(const char* packfile)
 
     //johnfitz -- dynamic gamedir loading
     //Hunk_AllocName (numpackfiles * sizeof(packfile_t), "packfile");
-    newfiles = Z_Malloc(numpackfiles * sizeof(packfile_t));
+    newfiles = GetQuakeAPI()->mem->Z_Malloc(numpackfiles * sizeof(packfile_t));
     //johnfitz
 
     Sys_FileSeek(packhandle, header.dirofs);
@@ -1664,7 +1665,7 @@ pack_t* COM_LoadPackFile(const char* packfile)
 
     //johnfitz -- dynamic gamedir loading
     //pack = Hunk_Alloc (sizeof (pack_t));
-    pack = Z_Malloc(sizeof(pack_t));
+    pack = GetQuakeAPI()->mem->Z_Malloc(sizeof(pack_t));
     //johnfitz
 
     strcpy(pack->filename, packfile);
@@ -1691,7 +1692,7 @@ void COM_AddGameDirectory(const char* dir)
     strcpy(com_gamedir, dir);
 
     // add the directory to the search path
-    search = Z_Malloc(sizeof(searchpath_t));
+    search = GetQuakeAPI()->mem->Z_Malloc(sizeof(searchpath_t));
     strcpy(search->filename, dir);
     search->next = com_searchpaths;
     com_searchpaths = search;
@@ -1703,7 +1704,7 @@ void COM_AddGameDirectory(const char* dir)
         pak = COM_LoadPackFile(pakfile);
         if (!pak)
             break;
-        search = Z_Malloc(sizeof(searchpath_t));
+        search = GetQuakeAPI()->mem->Z_Malloc(sizeof(searchpath_t));
         search->pack = pak;
         search->next = com_searchpaths;
         com_searchpaths = search;

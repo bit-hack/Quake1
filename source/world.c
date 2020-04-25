@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // world.c -- world query functions
 
+#include "mathlib.h"
 #include "quakedef.h"
 
 // defined in world.c
@@ -362,7 +363,7 @@ void SV_FindTouchedLeafs(edict_t* ent, mnode_t* node)
     // NODE_MIXED
 
     splitplane = node->plane;
-    sides = BOX_ON_PLANE_SIDE(ent->v.absmin, ent->v.absmax, splitplane);
+    sides = BoxOnPlaneSide(ent->v.absmin, ent->v.absmax, splitplane);
 
     // recurse down the contacted sides
     if (sides & 1)

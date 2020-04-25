@@ -33,11 +33,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static char* PF_VarString(int first)
 {
-    int i;
     static char out[256];
-
     out[0] = 0;
-    for (i = first; i < pr_argc; i++)
+    for (int i = first; i < pr_argc; i++)
     {
         strcat(out, G_STRING((OFS_PARM0 + i * 3)));
     }
@@ -56,14 +54,10 @@ error(value)
 */
 static void PF_error(void)
 {
-    char* s;
-    edict_t* ed;
-
-    s = PF_VarString(0);
+    char *s = PF_VarString(0);
     Con_Printf("======SERVER ERROR in %s:\n%s\n", pr_strings + pr_xfunction->s_name, s);
-    ed = PROG_TO_EDICT(pr_global_struct->self);
+    edict_t* ed = PROG_TO_EDICT(pr_global_struct->self);
     ED_Print(ed);
-
     Host_Error("Program error");
 }
 
@@ -79,15 +73,11 @@ objerror(value)
 */
 static void PF_objerror(void)
 {
-    char* s;
-    edict_t* ed;
-
-    s = PF_VarString(0);
+    char* s = PF_VarString(0);
     Con_Printf("======OBJECT ERROR in %s:\n%s\n", pr_strings + pr_xfunction->s_name, s);
-    ed = PROG_TO_EDICT(pr_global_struct->self);
+    edict_t* ed = PROG_TO_EDICT(pr_global_struct->self);
     ED_Print(ed);
     ED_Free(ed);
-
     //Host_Error ("Program error"); //johnfitz -- by design, this should not be fatal
 }
 
@@ -115,11 +105,8 @@ setorigin (entity, origin)
 */
 static void PF_setorigin(void)
 {
-    edict_t* e;
-    float* org;
-
-    e = G_EDICT(OFS_PARM0);
-    org = G_VECTOR(OFS_PARM1);
+    edict_t* e = G_EDICT(OFS_PARM0);
+    float* org = G_VECTOR(OFS_PARM1);
     VectorCopy(org, e->v.origin);
     SV_LinkEdict(e, false);
 }
@@ -209,12 +196,9 @@ setsize (entity, minvector, maxvector)
 */
 static void PF_setsize(void)
 {
-    edict_t* e;
-    float *min, *max;
-
-    e = G_EDICT(OFS_PARM0);
-    min = G_VECTOR(OFS_PARM1);
-    max = G_VECTOR(OFS_PARM2);
+    edict_t* e = G_EDICT(OFS_PARM0);
+    float* min = G_VECTOR(OFS_PARM1);
+    float* max = G_VECTOR(OFS_PARM2);
     SetMinMaxSize(e, min, max, false);
 }
 
@@ -227,13 +211,11 @@ setmodel(entity, model)
 */
 static void PF_setmodel(void)
 {
-    edict_t* e;
-    char *m, **check;
-    model_t* mod;
+    char **check = NULL;
     int i;
 
-    e = G_EDICT(OFS_PARM0);
-    m = G_STRING(OFS_PARM1);
+    edict_t* e = G_EDICT(OFS_PARM0);
+    char *m = G_STRING(OFS_PARM1);
 
     // check to see if model was properly precached
     for (i = 0, check = sv.model_precache; *check; i++, check++)
@@ -246,7 +228,7 @@ static void PF_setmodel(void)
     e->v.model = m - pr_strings;
     e->v.modelindex = i; //SV_ModelIndex (m);
 
-    mod = sv.models[(int)e->v.modelindex]; // Mod_ForName (m, true);
+    model_t* mod = sv.models[(int)e->v.modelindex]; // Mod_ForName (m, true);
 
     if (mod)
     //johnfitz -- correct physics cullboxes for bmodels
@@ -272,9 +254,7 @@ bprint(value)
 */
 static void PF_bprint(void)
 {
-    char* s;
-
-    s = PF_VarString(0);
+    char* s = PF_VarString(0);
     SV_BroadcastPrintf("%s", s);
 }
 
@@ -289,12 +269,8 @@ sprint(clientent, value)
 */
 static void PF_sprint(void)
 {
-    char* s;
-    client_t* client;
-    int entnum;
-
-    entnum = G_EDICTNUM(OFS_PARM0);
-    s = PF_VarString(1);
+    int entnum = G_EDICTNUM(OFS_PARM0);
+    char* s = PF_VarString(1);
 
     if (entnum < 1 || entnum > svs.maxclients)
     {
@@ -302,7 +278,7 @@ static void PF_sprint(void)
         return;
     }
 
-    client = &svs.clients[entnum - 1];
+    client_t* client = &svs.clients[entnum - 1];
 
     MSG_WriteChar(&client->message, svc_print);
     MSG_WriteString(&client->message, s);
@@ -319,12 +295,8 @@ centerprint(clientent, value)
 */
 static void PF_centerprint(void)
 {
-    char* s;
-    client_t* client;
-    int entnum;
-
-    entnum = G_EDICTNUM(OFS_PARM0);
-    s = PF_VarString(1);
+    int entnum = G_EDICTNUM(OFS_PARM0);
+    char* s = PF_VarString(1);
 
     if (entnum < 1 || entnum > svs.maxclients)
     {
@@ -332,7 +304,7 @@ static void PF_centerprint(void)
         return;
     }
 
-    client = &svs.clients[entnum - 1];
+    client_t* client = &svs.clients[entnum - 1];
 
     MSG_WriteChar(&client->message, svc_centerprint);
     MSG_WriteString(&client->message, s);
@@ -347,17 +319,11 @@ vector normalize(vector)
 */
 static void PF_normalize(void)
 {
-    float* value1;
+    float* value1 = G_VECTOR(OFS_PARM0);
+    float new = sqrtf(value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2]);
     vec3_t newvalue;
-    float new;
-
-    value1 = G_VECTOR(OFS_PARM0);
-
-    new = value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2];
-    new = sqrt(new);
-
     if (new == 0)
-        newvalue[0] = newvalue[1] = newvalue[2] = 0;
+        newvalue[0] = newvalue[1] = newvalue[2] = 0.f;
     else
     {
         new = 1 / new;
@@ -365,7 +331,6 @@ static void PF_normalize(void)
         newvalue[1] = value1[1] * new;
         newvalue[2] = value1[2] * new;
     }
-
     VectorCopy(newvalue, G_VECTOR(OFS_RETURN));
 }
 
@@ -378,14 +343,8 @@ scalar vlen(vector)
 */
 static void PF_vlen(void)
 {
-    float* value1;
-    float new;
-
-    value1 = G_VECTOR(OFS_PARM0);
-
-    new = value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2];
-    new = sqrt(new);
-
+    float* value1 = G_VECTOR(OFS_PARM0);
+    float new = sqrtf(value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2]);
     G_FLOAT(OFS_RETURN) = new;
 }
 
@@ -398,13 +357,11 @@ float vectoyaw(vector)
 */
 static void PF_vectoyaw(void)
 {
-    float* value1;
-    float yaw;
+    float* value1 = G_VECTOR(OFS_PARM0);
+    float yaw = 0.f;
 
-    value1 = G_VECTOR(OFS_PARM0);
-
-    if (value1[1] == 0 && value1[0] == 0)
-        yaw = 0;
+    if (value1[1] == 0.f && value1[0] == 0.f)
+        yaw = 0.f;
     else
     {
         yaw = (int)(atan2(value1[1], value1[0]) * 180 / M_PI);
@@ -424,11 +381,9 @@ vector vectoangles(vector)
 */
 static void PF_vectoangles(void)
 {
-    float* value1;
-    float forward;
-    float yaw, pitch;
-
-    value1 = G_VECTOR(OFS_PARM0);
+    float yaw = 0.f;
+    float pitch = 0.f;
+    float *value1 = G_VECTOR(OFS_PARM0);
 
     if (value1[1] == 0 && value1[0] == 0)
     {
@@ -444,7 +399,7 @@ static void PF_vectoangles(void)
         if (yaw < 0)
             yaw += 360;
 
-        forward = sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
+        float forward = sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
         pitch = (int)(atan2(value1[2], forward) * 180 / M_PI);
         if (pitch < 0)
             pitch += 360;
@@ -466,10 +421,7 @@ random()
 */
 static void PF_random(void)
 {
-    float num;
-
-    num = (rand() & 0x7fff) / ((float)0x7fff);
-
+    float num = (rand() & 0x7fff) / ((float)0x7fff);
     G_FLOAT(OFS_RETURN) = num;
 }
 
@@ -482,14 +434,10 @@ particle(origin, color, count)
 */
 static void PF_particle(void)
 {
-    float *org, *dir;
-    float color;
-    float count;
-
-    org = G_VECTOR(OFS_PARM0);
-    dir = G_VECTOR(OFS_PARM1);
-    color = G_FLOAT(OFS_PARM2);
-    count = G_FLOAT(OFS_PARM3);
+    float* org = G_VECTOR(OFS_PARM0);
+    float* dir = G_VECTOR(OFS_PARM1);
+    float color = G_FLOAT(OFS_PARM2);
+    float count = G_FLOAT(OFS_PARM3);
     SV_StartParticle(org, dir, color, count);
 }
 
@@ -501,20 +449,17 @@ PF_ambientsound
 */
 static void PF_ambientsound(void)
 {
-    char** check;
-    char* samp;
-    float* pos;
-    float vol, attenuation;
-    int i, soundnum;
+    char** check = NULL;
+    int soundnum = 0;
     int large = false; //johnfitz -- PROTOCOL_FITZQUAKE
 
-    pos = G_VECTOR(OFS_PARM0);
-    samp = G_STRING(OFS_PARM1);
-    vol = G_FLOAT(OFS_PARM2);
-    attenuation = G_FLOAT(OFS_PARM3);
+    float *pos = G_VECTOR(OFS_PARM0);
+    char *samp = G_STRING(OFS_PARM1);
+    float vol = G_FLOAT(OFS_PARM2);
+    float attenuation = G_FLOAT(OFS_PARM3);
 
     // check to see if samp was properly precached
-    for (soundnum = 0, check = sv.sound_precache; *check; check++, soundnum++)
+    for (check = sv.sound_precache; *check; check++, soundnum++)
         if (!strcmp(*check, samp))
             break;
 
@@ -541,7 +486,7 @@ static void PF_ambientsound(void)
         MSG_WriteByte(&sv.signon, svc_spawnstaticsound);
     //johnfitz
 
-    for (i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++)
         MSG_WriteCoord(&sv.signon, pos[i]);
 
     //johnfitz -- PROTOCOL_FITZQUAKE
@@ -563,7 +508,7 @@ Each entity can have eight independant sound sources, like voice,
 weapon, feet, etc.
 
 Channel 0 is an auto-allocate channel, the others override anything
-allready running on that entity/channel pair.
+already running on that entity/channel pair.
 
 An attenuation of 0 will play full volume everywhere in the level.
 Larger attenuations will drop off.
@@ -572,17 +517,11 @@ Larger attenuations will drop off.
 */
 static void PF_sound(void)
 {
-    char* sample;
-    int channel;
-    edict_t* entity;
-    int volume;
-    float attenuation;
-
-    entity = G_EDICT(OFS_PARM0);
-    channel = G_FLOAT(OFS_PARM1);
-    sample = G_STRING(OFS_PARM2);
-    volume = G_FLOAT(OFS_PARM3) * 255;
-    attenuation = G_FLOAT(OFS_PARM4);
+    edict_t* entity = G_EDICT(OFS_PARM0);
+    int channel = G_FLOAT(OFS_PARM1);
+    char* sample = G_STRING(OFS_PARM2);
+    int volume = G_FLOAT(OFS_PARM3) * 255;
+    float attenuation = G_FLOAT(OFS_PARM4);
 
     if (volume < 0 || volume > 255)
         Sys_Error("SV_StartSound: volume = %i", volume);
@@ -606,7 +545,7 @@ break()
 static void PF_break(void)
 {
     Con_Printf("break statement\n");
-    *(int*)-4 = 0; // dump to debugger
+    __debugbreak();
     //	PR_RunError ("break statement");
 }
 
@@ -623,17 +562,12 @@ traceline (vector1, vector2, tryents)
 */
 static void PF_traceline(void)
 {
-    float *v1, *v2;
-    trace_t trace;
-    int nomonsters;
-    edict_t* ent;
+    float *v1 = G_VECTOR(OFS_PARM0);
+    float *v2 = G_VECTOR(OFS_PARM1);
+    int nomonsters = G_FLOAT(OFS_PARM2);
+    edict_t* ent = G_EDICT(OFS_PARM3);
 
-    v1 = G_VECTOR(OFS_PARM0);
-    v2 = G_VECTOR(OFS_PARM1);
-    nomonsters = G_FLOAT(OFS_PARM2);
-    ent = G_EDICT(OFS_PARM3);
-
-    trace = SV_Move(v1, vec3_origin, vec3_origin, v2, nomonsters, ent);
+    trace_t trace = SV_Move(v1, vec3_origin, vec3_origin, v2, nomonsters, ent);
 
     pr_global_struct->trace_allsolid = trace.allsolid;
     pr_global_struct->trace_startsolid = trace.startsolid;
@@ -670,9 +604,7 @@ static uint8_t checkpvs[MAX_MAP_LEAFS / 8];
 static int PF_newcheckclient(int check)
 {
     int i;
-    uint8_t* pvs;
     edict_t* ent;
-    mleaf_t* leaf;
     vec3_t org;
 
     // cycle to the next one
@@ -710,8 +642,8 @@ static int PF_newcheckclient(int check)
 
     // get the PVS for the entity
     VectorAdd(ent->v.origin, ent->v.view_ofs, org);
-    leaf = Mod_PointInLeaf(org, sv.worldmodel);
-    pvs = Mod_LeafPVS(leaf, sv.worldmodel);
+    mleaf_t* leaf = Mod_PointInLeaf(org, sv.worldmodel);
+    uint8_t* pvs = Mod_LeafPVS(leaf, sv.worldmodel);
     memcpy(checkpvs, pvs, (sv.worldmodel->numleafs + 7) >> 3);
 
     return i;
@@ -736,11 +668,6 @@ name checkclient ()
 int c_invis, c_notvis;
 static void PF_checkclient(void)
 {
-    edict_t *ent, *self;
-    mleaf_t* leaf;
-    int l;
-    vec3_t view;
-
     // find a new check if on a new frame
     if (sv.time - sv.lastchecktime >= 0.1)
     {
@@ -749,7 +676,7 @@ static void PF_checkclient(void)
     }
 
     // return check if it might be visible
-    ent = EDICT_NUM(sv.lastcheck);
+    edict_t *ent = EDICT_NUM(sv.lastcheck);
     if (ent->free || ent->v.health <= 0)
     {
         RETURN_EDICT(sv.edicts);
@@ -757,10 +684,11 @@ static void PF_checkclient(void)
     }
 
     // if current entity can't possibly see the check entity, return 0
-    self = PROG_TO_EDICT(pr_global_struct->self);
+    edict_t *self = PROG_TO_EDICT(pr_global_struct->self);
+    vec3_t view;
     VectorAdd(self->v.origin, self->v.view_ofs, view);
-    leaf = Mod_PointInLeaf(view, sv.worldmodel);
-    l = (leaf - sv.worldmodel->leafs) - 1;
+    mleaf_t* leaf = Mod_PointInLeaf(view, sv.worldmodel);
+    int l = (leaf - sv.worldmodel->leafs) - 1;
     if ((l < 0) || !(checkpvs[l >> 3] & (1 << (l & 7))))
     {
         c_notvis++;
@@ -786,16 +714,12 @@ stuffcmd (clientent, value)
 */
 static void PF_stuffcmd(void)
 {
-    int entnum;
-    char* str;
-    client_t* old;
-
-    entnum = G_EDICTNUM(OFS_PARM0);
+    int entnum = G_EDICTNUM(OFS_PARM0);
     if (entnum < 1 || entnum > svs.maxclients)
         PR_RunError("Parm 0 not a client");
-    str = G_STRING(OFS_PARM1);
+    char *str = G_STRING(OFS_PARM1);
 
-    old = host_client;
+    client_t* old = host_client;
     host_client = &svs.clients[entnum - 1];
     Host_ClientCommands("%s", str);
     host_client = old;
@@ -812,9 +736,7 @@ localcmd (string)
 */
 static void PF_localcmd(void)
 {
-    char* str;
-
-    str = G_STRING(OFS_PARM0);
+    char* str = G_STRING(OFS_PARM0);
     Cbuf_AddText(str);
 }
 
@@ -827,10 +749,7 @@ float cvar (string)
 */
 static void PF_cvar(void)
 {
-    char* str;
-
-    str = G_STRING(OFS_PARM0);
-
+    char* str = G_STRING(OFS_PARM0);
     G_FLOAT(OFS_RETURN) = Cvar_VariableValue(str);
 }
 
@@ -843,11 +762,8 @@ float cvar (string)
 */
 static void PF_cvar_set(void)
 {
-    char *var, *val;
-
-    var = G_STRING(OFS_PARM0);
-    val = G_STRING(OFS_PARM1);
-
+    char *var = G_STRING(OFS_PARM0);
+    char *val = G_STRING(OFS_PARM1);
     Cvar_Set(var, val);
 }
 
@@ -862,26 +778,22 @@ findradius (origin, radius)
 */
 static void PF_findradius(void)
 {
-    edict_t *ent, *chain;
-    float rad;
-    float* org;
-    vec3_t eorg;
-    int i, j;
+    edict_t *chain = (edict_t*)sv.edicts;
 
-    chain = (edict_t*)sv.edicts;
+    float *org = G_VECTOR(OFS_PARM0);
+    float rad = G_FLOAT(OFS_PARM1);
 
-    org = G_VECTOR(OFS_PARM0);
-    rad = G_FLOAT(OFS_PARM1);
-
-    ent = NEXT_EDICT(sv.edicts);
-    for (i = 1; i < sv.num_edicts; i++, ent = NEXT_EDICT(ent))
+    edict_t *ent = NEXT_EDICT(sv.edicts);
+    for (int i = 1; i < sv.num_edicts; i++, ent = NEXT_EDICT(ent))
     {
         if (ent->free)
             continue;
         if (ent->v.solid == SOLID_NOT)
             continue;
-        for (j = 0; j < 3; j++)
+        vec3_t eorg;
+        for (int j = 0; j < 3; j++) {
             eorg[j] = org[j] - (ent->v.origin[j] + (ent->v.mins[j] + ent->v.maxs[j]) * 0.5);
+        }
         if (Length(eorg) > rad)
             continue;
 
@@ -1067,15 +979,9 @@ float(float yaw, float dist) walkmove
 */
 static void PF_walkmove(void)
 {
-    edict_t* ent;
-    float yaw, dist;
-    vec3_t move;
-    dfunction_t* oldf;
-    int oldself;
-
-    ent = PROG_TO_EDICT(pr_global_struct->self);
-    yaw = G_FLOAT(OFS_PARM0);
-    dist = G_FLOAT(OFS_PARM1);
+    edict_t* ent = PROG_TO_EDICT(pr_global_struct->self);
+    float yaw = G_FLOAT(OFS_PARM0);
+    float dist = G_FLOAT(OFS_PARM1);
 
     if (!((int)ent->v.flags & (FL_ONGROUND | FL_FLY | FL_SWIM)))
     {
@@ -1085,13 +991,14 @@ static void PF_walkmove(void)
 
     yaw = yaw * M_PI * 2 / 360;
 
+    vec3_t move;
     move[0] = cos(yaw) * dist;
     move[1] = sin(yaw) * dist;
     move[2] = 0;
 
     // save program state, because SV_movestep may call other progs
-    oldf = pr_xfunction;
-    oldself = pr_global_struct->self;
+    dfunction_t* oldf = pr_xfunction;
+    int oldself = pr_global_struct->self;
 
     G_FLOAT(OFS_RETURN) = SV_movestep(ent, move, true);
 
@@ -1109,16 +1016,13 @@ void() droptofloor
 */
 static void PF_droptofloor(void)
 {
-    edict_t* ent;
+    edict_t* ent = PROG_TO_EDICT(pr_global_struct->self);
+
     vec3_t end;
-    trace_t trace;
-
-    ent = PROG_TO_EDICT(pr_global_struct->self);
-
     VectorCopy(ent->v.origin, end);
     end[2] -= 256;
 
-    trace = SV_Move(ent->v.origin, ent->v.mins, ent->v.maxs, end, false, ent);
+    trace_t trace = SV_Move(ent->v.origin, ent->v.mins, ent->v.maxs, end, false, ent);
 
     if (trace.fraction == 1 || trace.allsolid)
         G_FLOAT(OFS_RETURN) = 0;
@@ -1157,12 +1061,14 @@ static void PF_lightstyle(void)
         return;
 
     for (j = 0, client = svs.clients; j < svs.maxclients; j++, client++)
+    {
         if (client->active || client->spawned)
         {
             MSG_WriteChar(&client->message, svc_lightstyle);
             MSG_WriteChar(&client->message, style);
             MSG_WriteString(&client->message, val);
         }
+    }
 }
 
 static void PF_rint(void)
@@ -1455,8 +1361,6 @@ static void PF_WriteEntity(void)
 
 //=============================================================================
 
-int SV_ModelIndex(char* name);
-
 static void PF_makestatic(void)
 {
     edict_t* ent;
@@ -1528,8 +1432,6 @@ static void PF_makestatic(void)
     ED_Free(ent);
 }
 
-//=============================================================================
-
 /*
 ==============
 PF_setspawnparms
@@ -1576,41 +1478,41 @@ static void PF_Fixme(void)
     PR_RunError("unimplemented bulitin");
 }
 
-builtin_t pr_builtin[] = {
+static builtin_t pr_builtin[] = {
     PF_Fixme,
-    PF_makevectors, // void(entity e)	makevectors 		= #1;
-    PF_setorigin, // void(entity e, vector o) setorigin	= #2;
-    PF_setmodel, // void(entity e, string m) setmodel	= #3;
-    PF_setsize, // void(entity e, vector min, vector max) setsize = #4;
-    PF_Fixme, // void(entity e, vector min, vector max) setabssize = #5;
-    PF_break, // void() break						= #6;
-    PF_random, // float() random						= #7;
-    PF_sound, // void(entity e, float chan, string samp) sound = #8;
-    PF_normalize, // vector(vector v) normalize			= #9;
-    PF_error, // void(string e) error				= #10;
-    PF_objerror, // void(string e) objerror				= #11;
-    PF_vlen, // float(vector v) vlen				= #12;
-    PF_vectoyaw, // float(vector v) vectoyaw		= #13;
-    PF_Spawn, // entity() spawn						= #14;
-    PF_Remove, // void(entity e) remove				= #15;
-    PF_traceline, // float(vector v1, vector v2, float tryents) traceline = #16;
-    PF_checkclient, // entity() clientlist					= #17;
-    PF_Find, // entity(entity start, .string fld, string match) find = #18;
-    PF_precache_sound, // void(string s) precache_sound		= #19;
-    PF_precache_model, // void(string s) precache_model		= #20;
-    PF_stuffcmd, // void(entity client, string s)stuffcmd = #21;
-    PF_findradius, // entity(vector org, float rad) findradius = #22;
-    PF_bprint, // void(string s) bprint				= #23;
-    PF_sprint, // void(entity client, string s) sprint = #24;
-    PF_dprint, // void(string s) dprint				= #25;
-    PF_ftos, // void(string s) ftos				= #26;
-    PF_vtos, // void(string s) vtos				= #27;
+    PF_makevectors,         // void(entity e)	makevectors
+    PF_setorigin,           // void(entity e, vector o) setorigin
+    PF_setmodel,            // void(entity e, string m) setmodel
+    PF_setsize,             // void(entity e, vector min, vector max) setsize
+    PF_Fixme,               // void(entity e, vector min, vector max) setabssize
+    PF_break,               // void() break
+    PF_random,              // float() random
+    PF_sound,               // void(entity e, float chan, string samp) sound
+    PF_normalize,           // vector(vector v) normalize
+    PF_error,               // void(string e) error
+    PF_objerror,            // void(string e) objerror
+    PF_vlen,                // float(vector v) vlen
+    PF_vectoyaw,            // float(vector v) vectoyaw
+    PF_Spawn,               // entity() spawn
+    PF_Remove,              // void(entity e) remove
+    PF_traceline,           // float(vector v1, vector v2, float tryents) traceline
+    PF_checkclient,         // entity() clientlist
+    PF_Find,                // entity(entity start, .string fld, string match) find
+    PF_precache_sound,      // void(string s) precache_sound
+    PF_precache_model,      // void(string s) precache_model
+    PF_stuffcmd,            // void(entity client, string s)stuffcmd
+    PF_findradius,          // entity(vector org, float rad) findradius
+    PF_bprint,              // void(string s) bprint
+    PF_sprint,              // void(entity client, string s) sprint
+    PF_dprint,              // void(string s) dprint
+    PF_ftos,                // void(string s) ftos
+    PF_vtos,                // void(string s) vtos
     PF_coredump,
     PF_traceon,
     PF_traceoff,
-    PF_eprint, // void(entity e) debug print an entire entity
-    PF_walkmove, // float(float yaw, float dist) walkmove
-    PF_Fixme, // float(float yaw, float dist) walkmove
+    PF_eprint,              // void(entity e) debug print an entire entity
+    PF_walkmove,            // float(float yaw, float dist) walkmove
+    PF_Fixme,               // float(float yaw, float dist) walkmove
     PF_droptofloor,
     PF_lightstyle,
     PF_rint,

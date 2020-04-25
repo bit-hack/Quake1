@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "quakedef.h"
+#include "api.h"
 
 /*
 
@@ -27,6 +28,7 @@ key up events are sent even if in console mode
 */
 
 #define MAXCMDLINE 256
+
 char key_lines[32][MAXCMDLINE];
 int key_linepos;
 int shift_down = false;
@@ -40,14 +42,12 @@ int history_line = 0;
 keydest_t key_dest;
 
 int key_count; // incremented every key event
-
 char* keybindings[256];
 int keyshift[256]; // key to map to if shift held down in console
 int key_repeats[256]; // if > 1, it is autorepeating
 bool consolekeys[256]; // if true, can't be rebound while in console
 bool menubound[256]; // if true, can't be rebound while in menu
 bool keydown[256];
-
 bool repeatkeys[256]; //johnfitz -- if true, autorepeat is enabled for this key
 
 typedef struct
@@ -56,7 +56,7 @@ typedef struct
     int keynum;
 } keyname_t;
 
-keyname_t keynames[] = {
+static keyname_t keynames[] = {
     { "TAB", K_TAB },
     { "ENTER", K_ENTER },
     { "ESCAPE", K_ESCAPE },
@@ -220,7 +220,7 @@ void Key_Console(int key)
 
     case K_DEL:
         key_tabpartial[0] = 0;
-        if (key_linepos < strlen(key_lines[edit_line]))
+        if (key_linepos < (int)strlen(key_lines[edit_line]))
             strcpy(key_lines[edit_line] + key_linepos, key_lines[edit_line] + key_linepos + 1);
         return;
 
@@ -260,8 +260,8 @@ void Key_Console(int key)
     case K_PGUP:
         //case K_MWHEELUP:
         con_backscroll += keydown[K_CTRL] ? ((con_vislines >> 3) - 4) : 2;
-        if (con_backscroll > con_totallines - (vid.height >> 3) - 1)
-            con_backscroll = con_totallines - (vid.height >> 3) - 1;
+        if (con_backscroll > con_totallines - (int)(vid.height >> 3) - 1)
+            con_backscroll = con_totallines - (int)(vid.height >> 3) - 1;
         return;
 
     case K_PGDN:
@@ -282,7 +282,7 @@ void Key_Console(int key)
     case K_RIGHTARROW:
         if (strlen(key_lines[edit_line]) == key_linepos)
         {
-            if (strlen(key_lines[(edit_line + 31) & 31]) <= key_linepos)
+            if ((int)strlen(key_lines[(edit_line + 31) & 31]) <= key_linepos)
                 return; // no character to get
 
             key_lines[edit_line][key_linepos] = key_lines[(edit_line + 31) & 31][key_linepos];
@@ -526,22 +526,19 @@ Key_SetBinding
 */
 void Key_SetBinding(int keynum, char* binding)
 {
-    char* new;
-    int l;
-
     if (keynum == -1)
         return;
 
     // free old bindings
     if (keybindings[keynum])
     {
-        Z_Free(keybindings[keynum]);
+        GetQuakeAPI()->mem->Z_Free(keybindings[keynum]);
         keybindings[keynum] = NULL;
     }
 
     // allocate memory for new binding
-    l = Q_strlen(binding);
-    new = Z_Malloc(l + 1);
+    int l = Q_strlen(binding);
+    char *new = GetQuakeAPI()->mem->Z_Malloc(l + 1);
     Q_strcpy(new, binding);
     new[l] = 0;
     keybindings[keynum] = new;

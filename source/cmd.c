@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // cmd.c -- Quake script command processing module
 
 #include "quakedef.h"
+#include "api.h"
 
 void Cmd_ForwardToServer(void);
 
@@ -118,7 +119,7 @@ void Cbuf_InsertText(char* text)
     templen = cmd_text.cursize;
     if (templen)
     {
-        temp = Z_Malloc(templen);
+        temp = GetQuakeAPI()->mem->Z_Malloc(templen);
         Q_memcpy(temp, cmd_text.data, templen);
         SZ_Clear(&cmd_text);
     }
@@ -132,7 +133,7 @@ void Cbuf_InsertText(char* text)
     if (templen)
     {
         SZ_Write(&cmd_text, temp, templen);
-        Z_Free(temp);
+        GetQuakeAPI()->mem->Z_Free(temp);
     }
 }
 
@@ -288,7 +289,7 @@ char* CopyString(char* in)
 {
     char* out;
 
-    out = Z_Malloc(strlen(in) + 1);
+    out = GetQuakeAPI()->mem->Z_Malloc(strlen(in) + 1);
     strcpy(out, in);
     return out;
 }
@@ -335,14 +336,14 @@ void Cmd_Alias_f(void)
         {
             if (!strcmp(s, a->name))
             {
-                Z_Free(a->value);
+                GetQuakeAPI()->mem->Z_Free(a->value);
                 break;
             }
         }
 
         if (!a)
         {
-            a = Z_Malloc(sizeof(cmdalias_t));
+            a = GetQuakeAPI()->mem->Z_Malloc(sizeof(cmdalias_t));
             a->next = cmd_alias;
             cmd_alias = a;
         }
@@ -385,8 +386,8 @@ void Cmd_Unalias_f(void)
             if (!strcmp(Cmd_Argv(1), a->name))
             {
                 prev->next = a->next;
-                Z_Free(a->value);
-                Z_Free(a);
+                GetQuakeAPI()->mem->Z_Free(a->value);
+                GetQuakeAPI()->mem->Z_Free(a);
                 prev = a;
                 return;
             }
@@ -408,8 +409,8 @@ void Cmd_Unaliasall_f(void)
     while (cmd_alias)
     {
         blah = cmd_alias->next;
-        Z_Free(cmd_alias->value);
-        Z_Free(cmd_alias);
+        GetQuakeAPI()->mem->Z_Free(cmd_alias->value);
+        GetQuakeAPI()->mem->Z_Free(cmd_alias);
         cmd_alias = blah;
     }
 }
@@ -546,7 +547,7 @@ void Cmd_TokenizeString(char* text)
 {
     // clear the args from the last string
     for (int i = 0; i < cmd_argc; i++)
-        Z_Free(cmd_argv[i]);
+        GetQuakeAPI()->mem->Z_Free(cmd_argv[i]);
 
     cmd_argc = 0;
     cmd_args = NULL;
@@ -577,7 +578,7 @@ void Cmd_TokenizeString(char* text)
 
         if (cmd_argc < MAX_ARGS)
         {
-            cmd_argv[cmd_argc] = Z_Malloc(Q_strlen(com_token) + 1);
+            cmd_argv[cmd_argc] = GetQuakeAPI()->mem->Z_Malloc(Q_strlen(com_token) + 1);
             Q_strcpy(cmd_argv[cmd_argc], com_token);
             cmd_argc++;
         }
@@ -614,7 +615,7 @@ void Cmd_AddCommand(char* cmd_name, xcommand_t function)
         }
     }
 
-    cmd = Hunk_Alloc(sizeof(cmd_function_t));
+    cmd = GetQuakeAPI()->mem->Hunk_Alloc(sizeof(cmd_function_t));
     cmd->name = cmd_name;
     cmd->function = function;
 

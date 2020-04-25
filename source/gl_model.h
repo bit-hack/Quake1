@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #pragma once
 
+#include "mathlib.h"
 #include "modelgen.h"
 #include "spritegn.h"
 
@@ -57,17 +58,6 @@ typedef struct
 #define SIDE_FRONT 0
 #define SIDE_BACK 1
 #define SIDE_ON 2
-
-// plane_t structure
-// !!! if this is changed, it must be changed in asm_i386.h too !!!
-typedef struct mplane_s
-{
-    vec3_t normal;
-    float dist;
-    uint8_t type; // for texture axis selection and fast side tests
-    uint8_t signbits; // signx + signy<<1 + signz<<1
-    uint8_t pad[2];
-} mplane_t;
 
 typedef struct texture_s
 {

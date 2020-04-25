@@ -69,15 +69,6 @@ static char* empty_string = "";
 HWND hwnd_dialog;
 
 /*
-================
-Sys_PageIn
-================
-*/
-void Sys_PageIn(void* ptr, int size)
-{
-}
-
-/*
 ===============================================================================
 
 FILE IO
@@ -232,7 +223,7 @@ void Sys_Init(void)
     vinfo.dwOSVersionInfoSize = sizeof(vinfo);
 }
 
-void Sys_Error(char* error, ...)
+void Sys_Error(const char* error, ...)
 {
     va_list argptr;
     char text[1024], text2[1024];
@@ -309,8 +300,9 @@ void Sys_Error(char* error, ...)
     exit(1);
 }
 
-void Sys_Printf(char* fmt, ...)
+void Sys_Printf(const char* fmt, ...)
 {
+  // XXX: Called but no body!
 }
 
 void Sys_Quit(void)
@@ -516,7 +508,7 @@ void SYS_MainLoop()
     oldtime = Sys_FloatTime();
 
     /* main window message loop */
-    while (1)
+    while (true)
     {
         Sys_PumpEvents();
 
@@ -651,13 +643,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     if (!parms.membase)
         Sys_Error("Not enough memory free; check disk space\n");
-
-    Sys_PageIn(parms.membase, parms.memsize);
-
-    //    tevent = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-    //    if (!tevent)
-    //        Sys_Error("Couldn't create event");
 
     if (isDedicated)
     {
