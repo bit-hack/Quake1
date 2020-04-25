@@ -688,6 +688,7 @@ GL_CheckExtensions -- johnfitz
 */
 static void GL_CheckExtensions(void)
 {
+#if 0  // disable for now
     //
     // multitexture
     //
@@ -814,6 +815,7 @@ static void GL_CheckExtensions(void)
     }
     else
         Con_Warning("texture_filter_anisotropic not supported\n");
+#endif
 }
 
 static void GetWGLExtensions(void)

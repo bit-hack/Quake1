@@ -108,7 +108,7 @@ static long filelength(FILE* f)
     return end;
 }
 
-int Sys_FileOpenRead(char* path, int* hndl)
+int Sys_FileOpenRead(const char* path, int* hndl)
 {
     *hndl = -1;
     int retval = -1;
@@ -127,7 +127,7 @@ int Sys_FileOpenRead(char* path, int* hndl)
     return retval;
 }
 
-int Sys_FileOpenWrite(char* path)
+int Sys_FileOpenWrite(const char* path)
 {
     const int t = VID_ForceUnlockedAndReturnState();
     const int i = findhandle();
@@ -170,7 +170,7 @@ int Sys_FileWrite(int handle, void* data, int count)
     return x;
 }
 
-int Sys_FileTime(char* path)
+int Sys_FileTime(const char* path)
 {
     const int t = VID_ForceUnlockedAndReturnState();
     FILE* f = fopen(path, "rb");
@@ -184,7 +184,7 @@ int Sys_FileTime(char* path)
     return retval;
 }
 
-void Sys_mkdir(char* path)
+void Sys_mkdir(const char* path)
 {
     _mkdir(path);
 }

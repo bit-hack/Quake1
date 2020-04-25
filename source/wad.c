@@ -66,11 +66,7 @@ W_LoadWadFile
 */
 void W_LoadWadFile(void) //johnfitz -- filename is now hard-coded for honesty
 {
-    lumpinfo_t* lump_p;
-    wadinfo_t* header;
-    unsigned i;
-    int infotableofs;
-    char* filename = WADFILENAME;
+    const char* filename = WADFILENAME;
 
     //johnfitz -- modified to use malloc
     //TODO: use cache_alloc
@@ -86,17 +82,18 @@ void W_LoadWadFile(void) //johnfitz -- filename is now hard-coded for honesty
     COM_CloseFile(h);
     //johnfitz
 
-    header = (wadinfo_t*)wad_base;
+    wadinfo_t* header = (wadinfo_t*)wad_base;
 
     if (header->identification[0] != 'W' || header->identification[1] != 'A'
         || header->identification[2] != 'D' || header->identification[3] != '2')
         Sys_Error("Wad file %s doesn't have WAD2 id\n", filename);
 
     wad_numlumps = LittleLong(header->numlumps);
-    infotableofs = LittleLong(header->infotableofs);
+    const int infotableofs = LittleLong(header->infotableofs);
     wad_lumps = (lumpinfo_t*)(wad_base + infotableofs);
 
-    for (i = 0, lump_p = wad_lumps; i < wad_numlumps; i++, lump_p++)
+    lumpinfo_t* lump_p = wad_lumps;
+    for (int i = 0; i < wad_numlumps; i++, lump_p++)
     {
         lump_p->filepos = LittleLong(lump_p->filepos);
         lump_p->size = LittleLong(lump_p->size);

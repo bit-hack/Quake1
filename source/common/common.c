@@ -833,11 +833,9 @@ void SZ_Print(sizebuf_t* buf, char* data)
 COM_SkipPath
 ============
 */
-char* COM_SkipPath(char* pathname)
+const char* COM_SkipPath(const char* pathname)
 {
-    char* last;
-
-    last = pathname;
+    const char* last = pathname;
     while (*pathname)
     {
         if (*pathname == '/')
@@ -852,7 +850,7 @@ char* COM_SkipPath(char* pathname)
 COM_StripExtension
 ============
 */
-void COM_StripExtension(char* in, char* out)
+void COM_StripExtension(const char* in, char* out)
 {
     while (*in && *in != '.')
         *out++ = *in++;
@@ -864,7 +862,7 @@ void COM_StripExtension(char* in, char* out)
 COM_FileExtension
 ============
 */
-char* COM_FileExtension(char* in)
+const char* COM_FileExtension(const char* in)
 {
     static char exten[8];
     int i;
@@ -885,9 +883,9 @@ char* COM_FileExtension(char* in)
 COM_FileBase
 ============
 */
-void COM_FileBase(char* in, char* out)
+void COM_FileBase(const char* in, char* out)
 {
-    char *s, *s2;
+    const char *s, *s2;
 
     s = in + strlen(in) - 1;
 
@@ -912,16 +910,15 @@ void COM_FileBase(char* in, char* out)
 COM_DefaultExtension
 ==================
 */
-void COM_DefaultExtension(char* path, char* extension)
+void COM_DefaultExtension(char* path, const char* extension)
 {
-    char* src;
     //
     // if path doesn't have a .EXT, append extension
     // (extension should include the .)
     //
-    src = path + strlen(path) - 1;
+    char *src = path + strlen(path) - 1;
 
-    while (*src != '/' && src != path)
+    while (*src != '/' && *src != '\\' && src != path)
     {
         if (*src == '.')
             return; // it has an extension
@@ -941,9 +938,8 @@ Parse a token out of a string
 char* COM_Parse(char* data)
 {
     int c;
-    int len;
 
-    len = 0;
+    int len = 0;
     com_token[0] = 0;
 
     if (!data)
@@ -1015,11 +1011,9 @@ Returns the position (1 to argc-1) in the program's argument list
 where the given parameter apears, or 0 if not present
 ================
 */
-int COM_CheckParm(char* parm)
+int COM_CheckParm(const char* parm)
 {
-    int i;
-
-    for (i = 1; i < com_argc; i++)
+    for (int i = 1; i < com_argc; i++)
     {
         if (!com_argv[i])
             continue; // NEXTSTEP sometimes clears appkit vars.
@@ -1042,32 +1036,6 @@ being registered.
 */
 void COM_CheckRegistered(void)
 {
-#if 0
-    int h;
-    unsigned short check[128];
-    int i;
-
-    COM_OpenFile("gfx/pop.lmp", &h);
-    static_registered = 0;
-
-    if (h == -1)
-    {
-#if WINDED
-        Sys_Error("This dedicated server requires a full registered copy of Quake");
-#endif
-        Con_Printf("Playing shareware version.\n");
-        if (com_modified)
-            Sys_Error("You must have the registered version to use modified games");
-        return;
-    }
-
-    Sys_FileRead(h, check, sizeof(check));
-    COM_CloseFile(h);
-
-    for (i = 0; i < 128; i++)
-        if (pop[i] != (unsigned short)BigShort(check[i]))
-            Sys_Error("Corrupted data file.");
-#endif
     Cvar_Set("cmdline", com_cmdline + 1); //johnfitz -- eliminate leading space
     Cvar_Set("registered", "1");
     static_registered = 1;
@@ -1158,7 +1126,7 @@ void Test_f(void)
 COM_Init
 ================
 */
-void COM_Init(char* basedir)
+void COM_Init(const char* basedir)
 {
     uint8_t swaptest[2] = { 1, 0 };
 
@@ -1204,7 +1172,7 @@ varargs versions of all text functions.
 FIXME: make this buffer size safe someday
 ============
 */
-char* va(char* format, ...)
+char* va(const char* format, ...)
 {
     va_list argptr;
     static char string[1024];
@@ -1313,7 +1281,7 @@ COM_WriteFile
 The filename will be prefixed by the current game directory
 ============
 */
-void COM_WriteFile(char* filename, void* data, int len)
+void COM_WriteFile(const char* filename, void* data, int len)
 {
     int handle;
     char name[MAX_OSPATH];
@@ -1339,19 +1307,20 @@ void COM_WriteFile(char* filename, void* data, int len)
 COM_CreatePath
 ============
 */
-void COM_CreatePath(char* path)
+void COM_CreatePath(const char* path)
 {
-    char* ofs;
+  char temp[MAX_PATH];
+  strcpy(temp, path);
 
-    for (ofs = path + 1; *ofs; ofs++)
-    {
-        if (*ofs == '/')
-        { // create the directory
-            *ofs = 0;
-            Sys_mkdir(path);
-            *ofs = '/';
-        }
-    }
+  for (char *ofs = temp + 1; *ofs; ++ofs)
+  {
+      if (*ofs == '/' || *ofs == '\\')
+      { // create the directory
+          *ofs = '\0';
+          Sys_mkdir(path);
+          *ofs = '/';
+      }
+  }
 }
 
 /*
@@ -1362,7 +1331,7 @@ Copies a file over from the net to the local cache, creating any directories
 needed.  This is for the convenience of developers using ISDN from home.
 ===========
 */
-void COM_CopyFile(char* netpath, char* cachepath)
+void COM_CopyFile(const char* netpath, const char* cachepath)
 {
     int in, out;
     int remaining, count;
@@ -1395,7 +1364,7 @@ Finds the file in the search path.
 Sets com_filesize and one of handle or file
 ===========
 */
-int COM_FindFile(char* filename, int* handle, FILE** file)
+int COM_FindFile(const char* filename, int* handle, FILE** file)
 {
     searchpath_t* search;
     char netpath[MAX_OSPATH];
@@ -1513,7 +1482,7 @@ returns a handle and a length
 it may actually be inside a pak file
 ===========
 */
-int COM_OpenFile(char* filename, int* handle)
+int COM_OpenFile(const char* filename, int* handle)
 {
     return COM_FindFile(filename, handle, NULL);
 }
@@ -1526,7 +1495,7 @@ If the requested file is inside a packfile, a new FILE * will be opened
 into the file.
 ===========
 */
-int COM_FOpenFile(char* filename, FILE** file)
+int COM_FOpenFile(const char* filename, FILE** file)
 {
     return COM_FindFile(filename, NULL, file);
 }
@@ -1560,7 +1529,7 @@ Allways appends a 0 byte.
 cache_user_t* loadcache;
 uint8_t* loadbuf;
 int loadsize;
-uint8_t* COM_LoadFile(char* path, int usehunk)
+uint8_t* COM_LoadFile(const char* path, int usehunk)
 {
     int h;
     uint8_t* buf = NULL;
@@ -1605,24 +1574,24 @@ uint8_t* COM_LoadFile(char* path, int usehunk)
     return buf;
 }
 
-uint8_t* COM_LoadHunkFile(char* path)
+uint8_t* COM_LoadHunkFile(const char* path)
 {
     return COM_LoadFile(path, 1);
 }
 
-uint8_t* COM_LoadTempFile(char* path)
+uint8_t* COM_LoadTempFile(const char* path)
 {
     return COM_LoadFile(path, 2);
 }
 
-void COM_LoadCacheFile(char* path, struct cache_user_s* cu)
+void COM_LoadCacheFile(const char* path, struct cache_user_s* cu)
 {
     loadcache = cu;
     COM_LoadFile(path, 3);
 }
 
 // uses temp hunk if larger than bufsize
-uint8_t* COM_LoadStackFile(char* path, void* buffer, int bufsize)
+uint8_t* COM_LoadStackFile(const char* path, void* buffer, int bufsize)
 {
     uint8_t* buf;
 
@@ -1643,7 +1612,7 @@ Loads the header and directory, adding the files at the beginning
 of the list so they override previous pack files.
 =================
 */
-pack_t* COM_LoadPackFile(char* packfile)
+pack_t* COM_LoadPackFile(const char* packfile)
 {
     dpackheader_t header;
     int i;
@@ -1712,7 +1681,7 @@ pack_t* COM_LoadPackFile(char* packfile)
 COM_AddGameDirectory -- johnfitz -- modified based on topaz's tutorial
 =================
 */
-void COM_AddGameDirectory(char* dir)
+void COM_AddGameDirectory(const char* dir)
 {
     int i;
     searchpath_t* search;

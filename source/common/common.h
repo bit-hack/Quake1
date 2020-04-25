@@ -24,8 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdbool.h>
 #include <stdint.h>
 
-//typedef unsigned char byte;
-
 //============================================================================
 
 typedef struct sizebuf_s
@@ -67,17 +65,17 @@ void InsertLinkAfter(link_t* l, link_t* after);
 #define NULL ((void*)0)
 #endif
 
-#define Q_MAXCHAR ((char)0x7f)
-#define Q_MAXSHORT ((short)0x7fff)
-#define Q_MAXINT ((int)0x7fffffff)
-#define Q_MAXLONG ((int)0x7fffffff)
-#define Q_MAXFLOAT ((int)0x7fffffff)
+#define Q_MAXCHAR  ((int8_t) 0x7f)
+#define Q_MAXSHORT ((int16_t)0x7fff)
+#define Q_MAXINT   ((int32_t)0x7fffffff)
+#define Q_MAXLONG  ((int32_t)0x7fffffff)
+#define Q_MAXFLOAT ((int32_t)0x7fffffff)
 
-#define Q_MINCHAR ((char)0x80)
-#define Q_MINSHORT ((short)0x8000)
-#define Q_MININT ((int)0x80000000)
-#define Q_MINLONG ((int)0x80000000)
-#define Q_MINFLOAT ((int)0x7fffffff)
+#define Q_MINCHAR  ((int8_t) 0x80)
+#define Q_MINSHORT ((int16_t)0x8000)
+#define Q_MININT   ((int32_t)0x80000000)
+#define Q_MINLONG  ((int32_t)0x80000000)
+#define Q_MINFLOAT ((int32_t)0x7fffffff)
 
 //============================================================================
 
@@ -119,7 +117,6 @@ float MSG_ReadAngle16(void); //johnfitz
 
 //============================================================================
 
-// TODO: Const these ones
 void Q_memset(void* dest, int fill, int count);
 void Q_memcpy(void* dest, const void* src, int count);
 int Q_memcmp(const void* m1, const void* m2, int count);
@@ -147,16 +144,16 @@ char* COM_Parse(char* data);
 extern int com_argc;
 extern char** com_argv;
 
-int COM_CheckParm(char* parm);
-void COM_Init(char* path);
+int COM_CheckParm(const char* parm);
+void COM_Init(const char* path);
 void COM_InitArgv(int argc, char** argv);
 
-char* COM_SkipPath(char* pathname);
-void COM_StripExtension(char* in, char* out);
-void COM_FileBase(char* in, char* out);
-void COM_DefaultExtension(char* path, char* extension);
+const char* COM_SkipPath(const char* pathname);
+void COM_StripExtension(const char* in, char* out);
+void COM_FileBase(const char* in, char* out);
+void COM_DefaultExtension(char* path, const char* extension);
 
-char* va(char* format, ...);
+char* va(const char* format, ...);
 // does a varargs printf into a temp buffer
 
 //============================================================================
@@ -166,23 +163,23 @@ struct cache_user_s;
 
 extern char com_gamedir[MAX_OSPATH];
 
-void COM_WriteFile(char* filename, void* data, int len);
-int COM_OpenFile(char* filename, int* hndl);
-int COM_FOpenFile(char* filename, FILE** file);
+void COM_WriteFile(const char* filename, void* data, int len);
+int COM_OpenFile(const char* filename, int* hndl);
+int COM_FOpenFile(const char* filename, FILE** file);
 void COM_CloseFile(int h);
-void COM_CreatePath(char* path);
+void COM_CreatePath(const char* path);
 
 // load a file to a buffer on the stack
-uint8_t* COM_LoadStackFile(char* path, void* buffer, int bufsize);
+uint8_t* COM_LoadStackFile(const char* path, void* buffer, int bufsize);
 
 // ?
-uint8_t* COM_LoadTempFile(char* path);
+uint8_t* COM_LoadTempFile(const char* path);
 
 // load a file and allocate a hunk for it
-uint8_t* COM_LoadHunkFile(char* path);
+uint8_t* COM_LoadHunkFile(const char* path);
 
 // load a file into the cache ?
-void COM_LoadCacheFile(char* path, struct cache_user_s* cu);
+void COM_LoadCacheFile(const char* path, struct cache_user_s* cu);
 
 extern struct cvar_s registered;
 

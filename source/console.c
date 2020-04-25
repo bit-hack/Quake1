@@ -1030,10 +1030,6 @@ The typing input line at the bottom should only be drawn if typing is allowed
 */
 void Con_DrawConsole(int lines, bool drawinput)
 {
-    int i, x, y, j, sb, rows;
-    char ver[32];
-    char* text;
-
     if (lines <= 0)
         return;
 
@@ -1044,19 +1040,19 @@ void Con_DrawConsole(int lines, bool drawinput)
     Draw_ConsoleBackground();
 
     // draw the buffer text
-    rows = (con_vislines + 7) / 8;
-    y = vid.conheight - rows * 8;
+    int rows = (con_vislines + 7) / 8;
+    int y = vid.conheight - rows * 8;
     rows -= 2; //for input and version lines
-    sb = (con_backscroll) ? 2 : 0;
+    const int sb = (con_backscroll) ? 2 : 0;
 
-    for (i = con_current - rows + 1; i <= con_current - sb; i++, y += 8)
+    for (int i = con_current - rows + 1; i <= con_current - sb; i++, y += 8)
     {
-        j = i - con_backscroll;
+        int j = i - con_backscroll;
         if (j < 0)
             j = 0;
-        text = con_text + (j % con_totallines) * con_linewidth;
+        char *text = con_text + (j % con_totallines) * con_linewidth;
 
-        for (x = 0; x < con_linewidth; x++)
+        for (int x = 0; x < con_linewidth; x++)
             Draw_Character((x + 1) << 3, y, text[x]);
     }
 
@@ -1064,7 +1060,7 @@ void Con_DrawConsole(int lines, bool drawinput)
     if (con_backscroll)
     {
         y += 8; // blank line
-        for (x = 0; x < con_linewidth; x += 4)
+        for (int x = 0; x < con_linewidth; x += 4)
             Draw_Character((x + 1) << 3, y, '^');
         y += 8;
     }
@@ -1075,8 +1071,9 @@ void Con_DrawConsole(int lines, bool drawinput)
 
     //draw version number in bottom right
     y += 8;
+    char ver[32];
     sprintf(ver, "FitzQuake %1.2f" /*" beta2"*/, (float)FITZQUAKE_VERSION);
-    for (x = 0; x < strlen(ver); x++)
+    for (size_t x = 0; x < strlen(ver); x++)
         Draw_Character((con_linewidth - strlen(ver) + x + 2) << 3, y, ver[x] /*+ 128*/);
 }
 

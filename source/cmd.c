@@ -520,7 +520,7 @@ Cmd_Argv
 */
 char* Cmd_Argv(int arg)
 {
-    if ((unsigned)arg >= cmd_argc)
+    if (arg >= cmd_argc)
         return cmd_null_string;
     return cmd_argv[arg];
 }
@@ -544,10 +544,8 @@ Parses the given string into command line tokens.
 */
 void Cmd_TokenizeString(char* text)
 {
-    int i;
-
     // clear the args from the last string
-    for (i = 0; i < cmd_argc; i++)
+    for (int i = 0; i < cmd_argc; i++)
         Z_Free(cmd_argv[i]);
 
     cmd_argc = 0;
